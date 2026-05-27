@@ -10,7 +10,14 @@ from app.core.config import settings
 
 
 def load_and_clean(audio_path: str):
-    y, sr = librosa.load(audio_path, sr=16000, mono=True)
+    import subprocess, tempfile
+    # Convert to wav first (handles webm from browser)
+    tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+    tmp_wav.close()
+    subprocess.run(['ffmpeg', '-y', '-i', audio_path, '-ar', '16000', '-ac', '1', tmp_wav.name],
+                   capture_output=True)
+    y, sr = librosa.load(tmp_wav.name, sr=16000, mono=True)
+    os.unlink(tmp_wav.name)
     y_clean = nr.reduce_noise(y=y, sr=sr, stationary=False)
     return y_clean, sr
 
