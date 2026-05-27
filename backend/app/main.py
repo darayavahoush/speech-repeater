@@ -88,9 +88,15 @@ async def compare(
     session_id = session_id or str(uuid.uuid4())
     child_id = child_id or "anonymous"
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        tmp.write(await audio.read())
-        tmp_path = tmp.name
+    import subprocess
+    raw = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
+    raw.write(await audio.read())
+    raw.close()
+    tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    tmp_wav.close()
+    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", tmp_wav.name], capture_output=True)
+    os.unlink(raw.name)
+    tmp_path = tmp_wav.name
 
     try:
         segments, _ = whisper.transcribe(tmp_path)
@@ -184,9 +190,15 @@ async def evaluate(
     child_id = child_id or "anonymous"
     history = json.loads(attempt_history)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        tmp.write(await audio.read())
-        tmp_path = tmp.name
+    import subprocess
+    raw = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
+    raw.write(await audio.read())
+    raw.close()
+    tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    tmp_wav.close()
+    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", tmp_wav.name], capture_output=True)
+    os.unlink(raw.name)
+    tmp_path = tmp_wav.name
 
     try:
         segments, _ = whisper.transcribe(tmp_path)

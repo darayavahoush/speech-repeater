@@ -121,13 +121,15 @@ def parse_attributes(phrase: str) -> dict:
     words = phrase.lower().strip().split()
     color, size, obj_words = None, None, []
     for w in words:
-        if w in COLORS:
+        if w in COLORS and color is None:
             color = w
-        elif w in SIZES:
+        elif w in SIZES and size is None:
             size = w
         else:
             obj_words.append(w)
-    return {"object": " ".join(obj_words) if obj_words else phrase, "color": color, "size": size}
+    # Use last noun as object if multiple words
+    obj = " ".join(obj_words) if obj_words else phrase
+    return {"object": obj, "color": color, "size": size}
 
 
 def make_transparent(img):

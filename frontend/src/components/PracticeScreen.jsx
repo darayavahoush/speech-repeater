@@ -3,10 +3,9 @@ import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 import { evaluateAttempt, playBase64Audio, base64ToBlob } from "../utils/api";
 
-export default function PracticeScreen({ character, wordData, sessionId, onResult }) {
+export default function PracticeScreen({ character, wordData, sessionId, attemptNumber, attemptHistory = [], onResult }) {
   const [phase, setPhase] = useState("listen"); // listen | record | loading
-  const [attemptNumber, setAttemptNumber] = useState(1);
-  const [attemptHistory, setAttemptHistory] = useState([]);
+
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
   const { isRecording, audioBlob, audioUrl, startRecording, stopRecording, reset } = useAudio();
@@ -51,6 +50,7 @@ export default function PracticeScreen({ character, wordData, sessionId, onResul
     setPhase("loading");
 
     try {
+      console.log('Sending attempt', attemptNumber, 'history length:', attemptHistory.length, attemptHistory);
       const result = await evaluateAttempt({
         audio: audioBlob,
         targetWord: wordData.word,
@@ -63,7 +63,6 @@ export default function PracticeScreen({ character, wordData, sessionId, onResul
       });
 
       const newHistory = [...attemptHistory, result];
-      setAttemptHistory(newHistory);
       onResult({ ...result, attemptNumber, attemptHistory: newHistory, childAudioUrl: audioUrl });
     } catch (err) {
       console.error(err);
