@@ -153,39 +153,106 @@ def make_transparent(img):
 
 
 def apply_color(image_path: str, color_name: str):
-    COLOR_HUES = {
-        "red": 0, "orange": 15, "yellow": 30, "green": 60,
-        "blue": 120, "purple": 150, "pink": 170, "brown": 10
+    from sklearn.cluster import KMeans
+
+    COLOR_TARGETS = {
+        "red":    (0,   200, 60),
+        "orange": (15,  210, 70),
+        "yellow": (30,  220, 80),
+        "green":  (60,  200, 60),
+        "blue":   (120, 210, 70),
+        "purple": (150, 200, 60),
+        "pink":   (170, 180, 80),
+        "brown":  (10,  180, 50),
+        "black":  (0,   0,   15),
+        "white":  (0,   0,   240),
+        "grey":   (0,   0,   128),
+        "gray":   (0,   0,   128),
     }
+
     img = cv2.imread(image_path)
     if img is None:
         return None
-    target_hue = COLOR_HUES.get(color_name)
-    if target_hue is None:
+    target = COLOR_TARGETS.get(color_name)
+    if target is None:
         return img
 
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+    h, w = img.shape[:2]
+    target_hue, target_sat, target_val_base = target
 
-    # Mask: coloured pixels only
-    # Exclude white (high V, low S), grey (low S), black (low V)
-    saturation_mask = hsv[:, :, 1] > 40       # not grey or white
-    brightness_mask = hsv[:, :, 2] > 40       # not black
-    not_white_mask  = hsv[:, :, 2] < 240      # not pure white
-    mask = saturation_mask & brightness_mask & not_white_mask
+    # Step 1: floodfill to isolate subject
+    flood_mask = np.zeros((h+2, w+2), np.uint8)
+    img_copy = img.copy()
+    for corner in [(0,0),(0,w-1),(h-1,0),(h-1,w-1)]:
+        cv2.floodFill(img_copy, flood_mask, (corner[1],corner[0]),
+                      (255,0,255), loDiff=(25,25,25), upDiff=(25,25,25))
+    bg_mask = (img_copy[:,:,0]==255) & (img_copy[:,:,1]==0) & (img_copy[:,:,2]==255)
+    subject_mask = ~bg_mask
 
-    if mask.sum() == 0:
-        # No coloured pixels — just tint the whole non-white area
-        mask = brightness_mask & not_white_mask
+    # Step 2: get subject pixels
+    subject_pixels = img[subject_mask]
+    if len(subject_pixels) == 0:
+        return img
 
-    if mask.sum() == 0:
-        return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
+    # Step 3: k-means to find dominant clusters
+    n_clusters = min(5, len(subject_pixels) // 100 + 1)
+    hsv_full = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
+    subject_hsv = hsv_full[subject_mask]
 
-    # Set hue directly to target — more reliable than relative shift
-    hsv[:, :, 0][mask] = target_hue
-    hsv[:, :, 1][mask] = np.clip(hsv[:, :, 1][mask] * 1.4, 80, 255)
+    try:
+        km = KMeans(n_clusters=n_clusters, n_init=3, max_iter=50, random_state=0)
+        km.fit(subject_hsv)
+        labels = km.labels_
+        centers = km.cluster_centers_
+    except Exception:
+        # Fallback: direct remap
+        hsv_full[:,:,0][subject_mask] = target_hue
+        hsv_full[:,:,1][subject_mask] = target_sat
+        hsv_full = np.clip(hsv_full, 0, 255).astype(np.uint8)
+        return cv2.cvtColor(hsv_full, cv2.COLOR_HSV2BGR)
 
-    hsv = np.clip(hsv, 0, 255).astype(np.uint8)
-    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    # Step 4: remap each cluster preserving relative brightness
+    result_hsv = hsv_full.copy()
+    subject_indices = np.where(subject_mask)
+
+    # Get brightness range for normalisation
+    orig_vals = subject_hsv[:, 2]
+    val_min, val_max = orig_vals.min(), orig_vals.max()
+    val_range = max(val_max - val_min, 1)
+
+    for i, px_label in enumerate(labels):
+        orig_v = subject_hsv[i, 2]
+        # Normalise brightness 0-1 then scale to target range
+        norm_v = (orig_v - val_min) / val_range
+        new_v = target_val_base + norm_v * (255 - target_val_base) * 0.6
+
+        row, col = subject_indices[0][i], subject_indices[1][i]
+        result_hsv[row, col, 0] = target_hue
+        result_hsv[row, col, 1] = target_sat if color_name not in ("black","white","grey","gray") else 0
+        result_hsv[row, col, 2] = np.clip(new_v, 0, 255)
+
+    # Override for achromatic colours — direct brightness remap is more reliable
+    if color_name == "black":
+        orig_v = subject_hsv[:, 2]
+        result_hsv_flat = result_hsv[subject_mask]
+        result_hsv_flat[:, 0] = 0
+        result_hsv_flat[:, 1] = 0
+        result_hsv_flat[:, 2] = np.clip(orig_v * 0.1, 0, 25)
+        result_hsv[subject_mask] = result_hsv_flat
+    elif color_name == "white":
+        result_hsv_flat = result_hsv[subject_mask]
+        result_hsv_flat[:, 1] = 0
+        result_hsv_flat[:, 2] = 240
+        result_hsv[subject_mask] = result_hsv_flat
+    elif color_name in ("grey", "gray"):
+        orig_v = subject_hsv[:, 2]
+        result_hsv_flat = result_hsv[subject_mask]
+        result_hsv_flat[:, 1] = 0
+        result_hsv_flat[:, 2] = np.clip(orig_v * 0.5 + 60, 80, 180)
+        result_hsv[subject_mask] = result_hsv_flat
+
+    result_hsv = np.clip(result_hsv, 0, 255).astype(np.uint8)
+    return cv2.cvtColor(result_hsv, cv2.COLOR_HSV2BGR)
 
 
 def apply_size(image_path: str, size: str):
@@ -198,30 +265,71 @@ def apply_size(image_path: str, size: str):
     return cv2.resize(img, (int(w * scale), int(h * scale)))
 
 
+EMOTION_WORDS = {
+    "happy", "sad", "angry", "scared", "surprised", "excited",
+    "tired", "confused", "proud", "worried", "calm", "nervous"
+}
+
 def get_image_for_phrase(phrase: str) -> dict:
     attrs = parse_attributes(phrase)
+    words = phrase.lower().strip().split()
+
+    # Detect if phrase has an emotion modifier + object (e.g. "angry lemon")
+    emotion = None
+    obj_words = []
+    for w in words:
+        if w in EMOTION_WORDS and emotion is None:
+            emotion = w
+        elif w not in [attrs.get("color"), attrs.get("size")] or attrs.get("color") is None:
+            if w not in (attrs.get("color") or "").split() and w not in (attrs.get("size") or "").split():
+                obj_words.append(w)
+
+    # Build images list
+    images = []
+
+    # Emotion image
+    if emotion:
+        emotion_match = find_image(emotion)
+        if emotion_match["path"]:
+            img = cv2.imread(emotion_match["path"])
+            if img is not None:
+                img = make_transparent(img)
+                _, buf = cv2.imencode(".png", img)
+                images.append({
+                    "label": emotion,
+                    "image_bytes": buf.tobytes(),
+                    "match_type": emotion_match["match_type"]
+                })
+
+    # Main object image
     match = find_image(attrs["object"])
+    if match["path"]:
+        if attrs["color"]:
+            img = apply_color(match["path"], attrs["color"])
+        elif attrs["size"]:
+            img = apply_size(match["path"], attrs["size"])
+        else:
+            img = cv2.imread(match["path"])
 
-    if not match["path"]:
-        return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None}
+        if img is not None:
+            img = make_transparent(img)
+            _, buf = cv2.imencode(".png", img)
+            images.append({
+                "label": match["word"],
+                "image_bytes": buf.tobytes(),
+                "match_type": match["match_type"]
+            })
 
-    if attrs["color"]:
-        img = apply_color(match["path"], attrs["color"])
-    elif attrs["size"]:
-        img = apply_size(match["path"], attrs["size"])
-    else:
-        img = cv2.imread(match["path"])
+    if not images:
+        return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
 
-    if img is None:
-        return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None}
-
-    img = make_transparent(img)
-    _, buf = cv2.imencode(".png", img)
+    # Return primary image as before + full images list
+    primary = images[-1]  # object is primary
     return {
         "found": True,
         "phrase": phrase,
-        "matched_word": match["word"],
-        "match_type": match["match_type"],
-        "confidence": match["confidence"],
-        "image_bytes": buf.tobytes()
+        "matched_word": primary["label"],
+        "match_type": primary["match_type"],
+        "image_bytes": primary["image_bytes"],
+        "images": images,  # all images for multi-display
     }
