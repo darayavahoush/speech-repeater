@@ -64,15 +64,17 @@ async def image_endpoint(phrase: str = Form(...)):
     result = get_image_for_phrase(phrase)
     if not result["found"]:
         return {"found": False, "phrase": phrase}
-    return Response(
-        content=result["image_bytes"],
-        media_type="image/png",
-        headers={
-            "X-Matched-Word": result["matched_word"],
-            "X-Match-Type": result["match_type"],
-            "X-Confidence": str(result["confidence"])
-        }
-    )
+    return {
+        "found": True,
+        "matched_word": result.get("matched_word"),
+        "match_type": result.get("match_type"),
+        "confidence": result.get("confidence", 100),
+        "image_base64": __import__("base64").b64encode(result["image_bytes"]).decode(),
+        "images": [
+            {**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None}
+            for img in result.get("images", [])
+        ]
+    }
 
 @app.post("/compare")
 async def compare(
@@ -158,6 +160,10 @@ async def input_word(
     # Step 4: get image
     image_result = get_image_for_phrase(word)
 
+    images = []
+    for img in image_result.get("images", []):
+        if img.get("image_bytes"):
+            images.append({**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None})
     return {
         "word": word,
         "phonemes": phonemes,
@@ -166,6 +172,7 @@ async def input_word(
         "image_found": image_result["found"],
         "image_base64": __import__("base64").b64encode(image_result["image_bytes"]).decode() if image_result.get("image_bytes") else None,
         "matched_word": image_result.get("matched_word"),
+        "images": images,
     }
 
 
