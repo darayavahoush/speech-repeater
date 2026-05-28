@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
-    WHISPER_MODEL: str = "base"
+    WHISPER_MODEL: str = "medium"
     WHISPER_DEVICE: str = "cpu"
     WHISPER_COMPUTE_TYPE: str = "int8"
     TARGET_RMS_MIN: float = 0.02
