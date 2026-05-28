@@ -30,7 +30,10 @@ export default function App() {
   };
 
   const handleWordReady = (data) => {
-    setWordData(data);
+    setWordData({
+      ...data,
+      images: data.images || (data.image_base64 ? [{ label: data.word, image_base64: data.image_base64 }] : [])
+    });
     setAttemptNumber(1);
     setScreen(SCREENS.PRACTICE);
   };
