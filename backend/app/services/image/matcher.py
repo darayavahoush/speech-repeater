@@ -284,6 +284,13 @@ def get_image_for_phrase(phrase: str) -> dict:
             if w not in (attrs.get("color") or "").split() and w not in (attrs.get("size") or "").split():
                 obj_words.append(w)
 
+    # Strip emotion from object if present
+    object_str = attrs["object"]
+    if emotion and object_str.startswith(emotion):
+        object_str = object_str[len(emotion):].strip()
+    if not object_str:
+        object_str = attrs["object"]
+
     # Build images list
     images = []
 
@@ -302,7 +309,7 @@ def get_image_for_phrase(phrase: str) -> dict:
                 })
 
     # Main object image
-    match = find_image(attrs["object"])
+    match = find_image(object_str)
     if match["path"]:
         if attrs["color"]:
             img = apply_color(match["path"], attrs["color"])

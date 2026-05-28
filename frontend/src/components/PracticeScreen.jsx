@@ -19,11 +19,23 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
     }
   }, []);
 
-  const playCharacterAudio = () => {
-    if (!wordData?.character_audio_base64) return;
+  const playCharacterAudio = async (speed = 1.0) => {
     setPlayingChar(true);
-    const audio = playBase64Audio(wordData.character_audio_base64);
-    audio.onended = () => setPlayingChar(false);
+    try {
+      const form = new FormData();
+      form.append("text", wordData.word);
+      form.append("character", character);
+      form.append("mood", "instruction");
+      form.append("speed", speed);
+      const res = await fetch("http://127.0.0.1:8000/speak", { method: "POST", body: form });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+      audio.onended = () => setPlayingChar(false);
+    } catch {
+      setPlayingChar(false);
+    }
   };
 
   const playChildAudio = () => {
@@ -96,7 +108,17 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
           display: "flex", flexDirection: "column", alignItems: "center", gap: "16px",
           minHeight: "200px", justifyContent: "center",
         }}>
-          {imageUrl ? (
+          {wordData?.images?.length > 1 ? (
+            <div style={{ display: "flex", gap: "16px", alignItems: "center", justifyContent: "center" }}>
+              {wordData.images.map((img, i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                  <img src={"data:image/png;base64," + img.image_base64} alt={img.label}
+                    style={{ width: "110px", height: "110px", objectFit: "contain" }} />
+                  <span style={{ color: "#4A5548", fontSize: "0.7rem", textTransform: "capitalize" }}>{img.label}</span>
+                </div>
+              ))}
+            </div>
+          ) : imageUrl ? (
             <img src={imageUrl} alt={wordData.word}
               style={{ width: "160px", height: "160px", objectFit: "contain" }} />
           ) : (
@@ -125,27 +147,27 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
           </div>
         </div>
 
-        {/* Character audio button */}
-        <button onClick={playCharacterAudio} disabled={playingChar}
-          style={{
-            background: playingChar ? char.accentColor : "#0D1117",
-            border: `1px solid ${char.color}44`,
-            borderRadius: "14px", padding: "14px",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
-            cursor: "pointer", color: char.color, fontWeight: 600, fontSize: "0.9rem",
-          }}>
-          {playingChar ? (
-            <>
-              <div style={{ width: "20px", height: "20px", border: `2px solid ${char.color}`, borderTop: "2px solid transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        {/* Character audio — two speeds */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <p style={{ color: "#4A5548", fontSize: "0.7rem", letterSpacing: "0.1em", margin: 0 }}>
+            HEAR {char.name.toUpperCase()} SAY IT
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => playCharacterAudio(1.0)} disabled={playingChar}
+              style={{ flex: 1, background: "#0D1117", border: `1px solid ${char.color}44`, borderRadius: "12px", padding: "12px", cursor: "pointer", color: char.color, fontWeight: 600, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              🔊 Normal
+            </button>
+            <button onClick={() => playCharacterAudio(0.65)} disabled={playingChar}
+              style={{ flex: 1, background: "#0D1117", border: `1px solid ${char.color}44`, borderRadius: "12px", padding: "12px", cursor: "pointer", color: char.color, fontWeight: 600, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              🐢 Slow
+            </button>
+          </div>
+          {playingChar && (
+            <p style={{ color: "#4A5548", fontSize: "0.75rem", textAlign: "center", margin: 0 }}>
               {char.name} is speaking...
-            </>
-          ) : (
-            <>
-              <span style={{ fontSize: "1.2rem" }}>🔊</span>
-              Hear {char.name} say it
-            </>
+            </p>
           )}
-        </button>
+        </div>
 
         {/* Record section */}
         {phase === "listen" && (

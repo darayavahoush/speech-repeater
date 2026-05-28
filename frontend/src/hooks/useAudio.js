@@ -17,11 +17,13 @@ export function useAudio() {
       const ctx = new AudioContext();
       const source = ctx.createMediaStreamSource(stream);
       const gain = ctx.createGain();
-      gain.gain.value = 1.8;
+      gain.gain.value = 3.5;
       const compressor = ctx.createDynamicsCompressor();
-      compressor.threshold.value = -24;
-      compressor.knee.value = 30;
-      compressor.ratio.value = 12;
+      compressor.threshold.value = -50;
+      compressor.knee.value = 40;
+      compressor.ratio.value = 20;
+      compressor.attack.value = 0.003;
+      compressor.release.value = 0.25;
       const dest = ctx.createMediaStreamDestination();
       source.connect(gain);
       gain.connect(compressor);

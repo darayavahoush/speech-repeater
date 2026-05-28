@@ -55,8 +55,8 @@ async def phonemes(word: str = Form(...), language: str = Form(default="english"
     return {"word": word, "phonemes": phones, "language": language}
 
 @app.post("/speak")
-async def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default")):
-    audio_bytes = speak(text, character, mood)
+async def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default"), speed: float = Form(default=1.0)):
+    audio_bytes = speak(text, character, mood, speed)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 @app.post("/image")
@@ -96,12 +96,12 @@ async def compare(
     raw.close()
     tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
     tmp_wav.close()
-    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", tmp_wav.name], capture_output=True)
+    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", "-af", "volume=3.0,highpass=f=100,lowpass=f=3000", tmp_wav.name], capture_output=True)
     os.unlink(raw.name)
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path)
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
@@ -143,7 +143,7 @@ async def input_word(
             tmp.write(await audio.read())
             tmp_path = tmp.name
         try:
-            segments, _ = whisper.transcribe(tmp_path)
+            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
             word = " ".join([s.text.strip() for s in segments]).strip().lower()
         finally:
             os.unlink(tmp_path)
@@ -203,12 +203,12 @@ async def evaluate(
     raw.close()
     tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
     tmp_wav.close()
-    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", tmp_wav.name], capture_output=True)
+    subprocess.run(["ffmpeg", "-y", "-i", raw.name, "-ar", "16000", "-ac", "1", "-af", "volume=3.0,highpass=f=100,lowpass=f=3000", tmp_wav.name], capture_output=True)
     os.unlink(raw.name)
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path)
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []

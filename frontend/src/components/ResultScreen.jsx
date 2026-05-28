@@ -123,24 +123,23 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
           </div>
         </div>
 
-        {/* Acoustic tips */}
-        {acousticTips.length > 0 && (
-          <div style={{ background: "#0D1117", border: "1px solid #1E2B1A", borderRadius: "14px", padding: "16px" }}>
-            <button onClick={() => setShowAcoustic(!showAcoustic)}
-              style={{ background: "transparent", border: "none", color: "#4A5548", fontSize: "0.75rem", cursor: "pointer", display: "flex", justifyContent: "space-between", width: "100%", letterSpacing: "0.1em" }}>
-              <span>VOICE TIPS</span>
-              <span>{showAcoustic ? "▲" : "▼"}</span>
-            </button>
-            {showAcoustic && (
-              <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                {acousticTips.map((tip, i) => (
-                  <p key={i} style={{ color: "#C8E8B8", fontSize: "0.85rem", margin: 0, lineHeight: 1.5, paddingLeft: "8px", borderLeft: `2px solid ${char.color}` }}>
-                    {tip.tip}
-                  </p>
-                ))}
-              </div>
-            )}
+        {/* Acoustic tips — always show on failure */}
+        {acousticTips.length > 0 && score < 80 && (
+          <div style={{ background: "#0D1117", border: `1px solid ${char.color}33`, borderRadius: "14px", padding: "16px" }}>
+            <p style={{ color: "#4A5548", fontSize: "0.7rem", letterSpacing: "0.1em", margin: "0 0 10px 0" }}>VOICE TIPS</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {acousticTips.map((tip, i) => (
+                <p key={i} style={{ color: "#C8E8B8", fontSize: "0.85rem", margin: 0, lineHeight: 1.5, paddingLeft: "8px", borderLeft: `2px solid ${char.color}` }}>
+                  {tip.tip}
+                </p>
+              ))}
+            </div>
           </div>
+        )}
+
+        {/* Phoneme diagrams on failure */}
+        {score < 80 && matches.filter(m => !m.correct).length > 0 && (
+          <PhonemeHelp matches={matches} char={char} />
         )}
 
         {/* Feedback */}
@@ -165,7 +164,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
                 style={{ background: char.color, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 800, color: "#07090F", cursor: "pointer" }}>
                 Try again
               </button>
-              {result?.enter_drill_mode && (
+              {result?.enter_drill_mode && result?.drill_sequence?.length > 0 && (
                 <button onClick={onDrill}
                   style={{ background: "transparent", border: `1px solid ${char.color}`, borderRadius: "14px", padding: "14px", color: char.color, fontSize: "0.9rem", fontWeight: 600, cursor: "pointer" }}>
                   Practise sounds separately
@@ -174,10 +173,18 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
             </>
           )}
           {encouragement.action === "support" && (
-            <button onClick={onDrill}
-              style={{ background: char.color, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 800, color: "#07090F", cursor: "pointer" }}>
-              Let me help you with the sounds
-            </button>
+            <>
+              <button onClick={onRetry}
+                style={{ background: char.color, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 800, color: "#07090F", cursor: "pointer" }}>
+                Try again
+              </button>
+              {result?.drill_sequence?.length > 0 && (
+                <button onClick={onDrill}
+                  style={{ background: "transparent", border: `1px solid ${char.color}`, borderRadius: "14px", padding: "14px", color: char.color, fontSize: "0.9rem", fontWeight: 600, cursor: "pointer" }}>
+                  Practise sounds separately
+                </button>
+              )}
+            </>
           )}
           <button onClick={onNextWord}
             style={{ background: "transparent", border: "1px solid #1E2B1A", borderRadius: "12px", padding: "12px", color: "#4A5548", fontSize: "0.85rem", cursor: "pointer" }}>
@@ -188,3 +195,54 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
     </div>
   );
 }
+
+function PhonemeHelp({ matches, char }) {
+  const [cards, setCards] = useState({});
+  const wrongPhonemes = matches.filter(m => !m.correct).map(m => m.expected);
+
+  useEffect(() => {
+    wrongPhonemes.forEach(async (ph) => {
+      if (!cards[ph]) {
+        try {
+          const res = await fetch(`http://127.0.0.1:8000/phoneme-card/${ph}`);
+          const data = await res.json();
+          setCards(prev => ({ ...prev, [ph]: data }));
+        } catch {}
+      }
+    });
+  }, []);
+
+  if (wrongPhonemes.length === 0) return null;
+
+  return (
+    <div style={{ background: "#0D1117", border: "1px solid #1E2B1A", borderRadius: "14px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <p style={{ color: "#4A5548", fontSize: "0.7rem", letterSpacing: "0.1em", margin: 0 }}>HOW TO FIX THESE SOUNDS</p>
+      {wrongPhonemes.map((ph, i) => {
+        const card = cards[ph];
+        return (
+          <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", paddingBottom: "14px", borderBottom: i < wrongPhonemes.length - 1 ? "1px solid #1E2B1A" : "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "1.4rem", color: char.color, fontWeight: 700 }}>/{ph}/</span>
+              {card && <span style={{ color: "#F0EFE8", fontSize: "0.85rem", fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.name}</span>}
+            </div>
+            {card?.mouth_svg && (
+              <div style={{ width: "200px", height: "120px", alignSelf: "center" }}
+                dangerouslySetInnerHTML={{ __html: card.mouth_svg }} />
+            )}
+            {card?.tip && (
+              <p style={{ color: "#C8E8B8", fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "8px", borderLeft: `2px solid ${char.color}` }}>
+                {card.tip}
+              </p>
+            )}
+            {card?.example_word && (
+              <p style={{ color: "#4A5548", fontSize: "0.75rem", margin: 0 }}>
+                Example: <span style={{ color: "#F0EFE8", fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.example_word}</span>
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
