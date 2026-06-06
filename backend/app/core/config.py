@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     SCORE_SUPPORT: int = 20
     MAX_ATTEMPTS: int = 3
     WEIGHTS: dict = {
-        "autism": {"phoneme": 0.35, "loudness": 0.15, "pitch": 0.20, "rate": 0.15, "voice_quality": 0.15},
-        "articulation": {"phoneme": 0.50, "loudness": 0.10, "pitch": 0.05, "rate": 0.10, "voice_quality": 0.25},
-        "stuttering": {"phoneme": 0.20, "loudness": 0.10, "pitch": 0.15, "rate": 0.35, "voice_quality": 0.20},
-        "seizure_meds": {"phoneme": 0.35, "loudness": 0.15, "pitch": 0.10, "rate": 0.20, "voice_quality": 0.20}
+        "autism":        {"phoneme": 0.65, "loudness": 0.10, "pitch": 0.10, "rate": 0.08, "voice_quality": 0.07},
+        "articulation":  {"phoneme": 0.75, "loudness": 0.06, "pitch": 0.05, "rate": 0.07, "voice_quality": 0.07},
+        "stuttering":    {"phoneme": 0.40, "loudness": 0.08, "pitch": 0.10, "rate": 0.30, "voice_quality": 0.12},
+        "seizure_meds":  {"phoneme": 0.60, "loudness": 0.10, "pitch": 0.10, "rate": 0.12, "voice_quality": 0.08}
     }
     OLLAMA_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "phi3:mini"

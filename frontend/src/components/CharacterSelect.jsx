@@ -9,11 +9,7 @@ export default function CharacterSelect({ onSelect }) {
   const handlePreview = async (charId) => {
     setPreviewing(charId);
     try {
-      const form = new FormData();
-      form.append("text", `Hi I am ${charId.charAt(0) + charId.slice(1).toLowerCase()}. Lets learn together`);
-      form.append("character", charId);
-      form.append("mood", "default");
-      const res = await fetch("http://127.0.0.1:8000/speak", { method: "POST", body: form });
+      const res = await fetch(`http://127.0.0.1:8000/speak/intro/${charId}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);

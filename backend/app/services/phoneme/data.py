@@ -99,7 +99,7 @@ PHONEME_DATA = {
         "tip": "Touch your top teeth gently to your bottom lip and blow air with your voice on.",
         "mouth_shape": "teeth_on_lip",
         "acoustic_target": {"min_duration_ms": 150, "voiced": True},
-        "common_errors": ["B", "F"],
+        "common_errors": ["B", "F", "W"],  # V/W merge is standard in Indian English
         "category": "fricative"
     },
     "S": {
@@ -209,7 +209,7 @@ PHONEME_DATA = {
         "tip": "Put the tip of your tongue gently between your teeth and blow air through.",
         "mouth_shape": "tongue_between_teeth",
         "acoustic_target": {"min_duration_ms": 150, "voiced": False},
-        "common_errors": ["S", "D", "F"],
+        "common_errors": ["S", "F"],  # D substitution is standard Indian English variant, not flagged
         "category": "fricative"
     },
     # ─── VOWELS ───────────────────────────────────────────────────

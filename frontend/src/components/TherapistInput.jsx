@@ -6,19 +6,19 @@ import { inputWord } from "../utils/api";
 export default function TherapistInput({ character, onWordReady }) {
   const [mode, setMode] = useState("text"); // text | voice
   const [text, setText] = useState("");
-  const [language, setLanguage] = useState("english");
   const [loading, setLoading] = useState(false);
   const { isRecording, audioBlob, startRecording, stopRecording, reset } = useAudio();
   const char = CHARACTERS[character];
 
   const handleSubmit = async () => {
+    console.log("Submit - mode:", mode, "text:", text, "audioBlob:", audioBlob);
     setLoading(true);
     try {
       const result = await inputWord({
         text: mode === "text" ? text : null,
         audio: mode === "voice" ? audioBlob : null,
         character,
-        language,
+        language: "english",
         mood: "instruction",
       });
       onWordReady(result);
@@ -42,23 +42,6 @@ export default function TherapistInput({ character, onWordReady }) {
               What word should {char.name} teach?
             </h2>
           </div>
-        </div>
-
-        {/* Language toggle */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-          {["english", "hindi"].map((lang) => (
-            <button key={lang} onClick={() => setLanguage(lang)}
-              style={{
-                background: language === lang ? char.color : "transparent",
-                color: language === lang ? "#07090F" : "#4A5548",
-                border: `1px solid ${language === lang ? char.color : "#1E2B1A"}`,
-                borderRadius: "8px", padding: "8px 20px",
-                fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
-                textTransform: "capitalize",
-              }}>
-              {lang}
-            </button>
-          ))}
         </div>
 
         {/* Mode toggle */}
