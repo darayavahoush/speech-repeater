@@ -83,6 +83,42 @@ def fetch_from_arasaac(word: str) -> str | None:
     return None
 
 
+def fetch_from_web(word: str) -> str | None:
+    """Fallback: scrape a real image from DuckDuckGo when ARASAAC fails or mismatches."""
+    try:
+        from duckduckgo_search import DDGS
+        with DDGS() as ddgs:
+            results = list(ddgs.images(
+                f"{word} simple clipart white background",
+                max_results=5,
+                type_image="clipart",
+            ))
+        for r in results:
+            img_url = r.get("image")
+            if not img_url:
+                continue
+            try:
+                resp = requests.get(img_url, timeout=6)
+                if resp.status_code == 200 and resp.headers.get("content-type", "").startswith("image"):
+                    filename = f"{word}_web.png"
+                    filepath = DATA_DIR / filename
+                    # Decode and re-encode to ensure valid PNG
+                    arr = np.frombuffer(resp.content, np.uint8)
+                    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                    if img is None:
+                        continue
+                    cv2.imwrite(str(filepath), img)
+                    _index[word] = filename
+                    save_index()
+                    print(f"Web scraped image for: {word}")
+                    return filename
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"Web scrape error for {word}: {e}")
+    return None
+
+
 def find_image(word: str) -> dict:
     if not _index:
         load_index()
@@ -94,19 +130,24 @@ def find_image(word: str) -> dict:
     if word in _index:
         return {"path": str(DATA_DIR / _index[word]), "word": word, "confidence": 100, "match_type": "exact"}
 
-    # 2. Fuzzy match
+    # 2. Fuzzy match — only trust high confidence (>=90) to avoid donkey→monkey style errors
     if words_in_index:
         result = process.extractOne(word, words_in_index, scorer=fuzz.token_sort_ratio)
-        if result and result[1] >= 75:
+        if result and result[1] >= 90:
             matched_word = result[0]
             return {"path": str(DATA_DIR / _index[matched_word]), "word": matched_word, "confidence": result[1], "match_type": "fuzzy"}
 
     # 3. Live ARASAAC API fetch
     filename = fetch_from_arasaac(word)
     if filename:
-        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 95, "match_type": "api"}
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 95, "match_type": "arasaac"}
 
-    # 4. Semantic match from existing index
+    # 4. Web scrape fallback (DuckDuckGo)
+    filename = fetch_from_web(word)
+    if filename:
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 85, "match_type": "web"}
+
+    # 5. Semantic match from existing index
     matched = semantic_match(word)
     if matched:
         return {"path": str(DATA_DIR / _index[matched]), "word": matched, "confidence": 70, "match_type": "semantic"}

@@ -16,7 +16,7 @@ from app.services.phoneme.drill import (
 )
 from app.services.audio.processor import analyse_audio
 from app.services.evaluation.scorer import build_attempt_result
-from app.services.voice.tts import speak, get_characters
+from app.services.voice.tts import speak_word, speak, speak_intro
 from app.services.image.matcher import get_image_for_phrase
 
 app = FastAPI(title="VaakSiddhi Autism", version="1.0.0")
@@ -41,13 +41,81 @@ def get_phonemes(word: str, language: str) -> list:
     phones = g2p(word)
     return [p.rstrip("012") for p in phones if p.strip() and p not in [" ", ""]]
 
+@app.on_event("startup")
+async def startup_event():
+    from app.services.voice.tts import warm_cache, precache_words, speak_intro, CHARACTERS
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, warm_cache)
+    COMMON_WORDS = [
+        "ball", "cat", "dog", "sun", "tree", "fish", "bird", "house",
+        "book", "cup", "bed", "car", "bus", "egg", "milk", "rice",
+        "happy", "sad", "run", "jump", "eat", "sleep", "play", "sit",
+        "red", "blue", "green", "big", "small", "one", "two", "three"
+    ]
+    loop.run_in_executor(None, precache_words, COMMON_WORDS)
+
+    def cache_intros():
+        for char in CHARACTERS:
+            try:
+                speak_intro(char)
+                print(f"Intro cached: {char}")
+            except Exception as e:
+                print(f"Intro cache failed: {char} — {e}")
+
+    loop.run_in_executor(None, cache_intros)
+
+
+INTRO_LINES = {
+    "BOLT": "Hi! I am Bolt, your brave space robot friend. Let us learn together!",
+    "ZARA": "Hello! I am Zara, from planet Zorb. I love learning new words with you!",
+    "NOVA": "Greetings. I am Nova, your calm and wise guide. Ready to begin?",
+    "BEEP": "Beep beep! I am Beep, your tiny helper robot. Let us have fun learning!",
+    "ECHO": "Hello there. I am Echo, an ancient computer from a distant galaxy. Shall we start?",
+    "MIRA": "Hi friend! I am Mira, your friendly underwater robot. Let us explore words today!",
+}
+
+CHAR_VOICES = {
+    "BOLT": ("af_heart", 0.9),
+    "ZARA": ("af_heart", 1.1),
+    "NOVA": ("af_heart", 0.85),
+    "BEEP": ("af_heart", 1.2),
+    "ECHO": ("af_heart", 0.8),
+    "MIRA": ("af_heart", 1.05),
+}
+
+@app.get("/speak/intro/{character}")
+async def speak_intro(character: str):
+    from app.services.voice.tts import speak_word, speak, speak_intro
+    char = character.upper()
+    line = INTRO_LINES.get(char, "Hello! Let us learn together!")
+    voice, speed = CHAR_VOICES.get(char, ("af_heart", 1.0))
+    audio_bytes = speak_word(line, speed=speed)
+    return Response(content=audio_bytes, media_type="audio/wav")
+
+
+@app.get("/speak/intro/{character}")
+async def speak_intro_endpoint(character: str):
+    audio_bytes = speak_intro(character)
+    return Response(content=audio_bytes, media_type="audio/wav")
+
+@app.get("/characters")
+async def get_characters_endpoint():
+    return {"characters": list(INTRO_LINES.keys())}
+
+@app.post("/speak/word")
+async def speak_word_endpoint(
+    word: str = Form(...),
+    speed: float = Form(default=1.0)
+):
+    """Pronounce a word using XTTS Indian accent voice."""
+    from app.services.voice.tts import speak_word, speak, speak_intro
+    audio_bytes = speak_word(word, speed)
+    return Response(content=audio_bytes, media_type="audio/wav")
+
 @app.get("/")
 def root():
     return {"status": "VaakSiddhi Autism backend running", "version": "1.0.0"}
-
-@app.get("/characters")
-def characters():
-    return {"characters": get_characters()}
 
 @app.post("/phonemes")
 async def phonemes(word: str = Form(...), language: str = Form(default="english")):
@@ -101,7 +169,7 @@ async def compare(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
@@ -143,7 +211,7 @@ async def input_word(
             tmp.write(await audio.read())
             tmp_path = tmp.name
         try:
-            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
+            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
             word = " ".join([s.text.strip() for s in segments]).strip().lower()
         finally:
             os.unlink(tmp_path)
@@ -154,7 +222,7 @@ async def input_word(
     phonemes = get_phonemes(word, language)
 
     # Step 3: generate character audio
-    prompt = f"Say this word: {word}"
+    prompt = f"The word is. {word}. {word}."
     audio_bytes = speak(prompt, character, mood)
 
     # Step 4: get image
@@ -208,7 +276,7 @@ async def evaluate(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, initial_prompt=f"Indian English. The word being spoken is similar to: {target_word}")
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []

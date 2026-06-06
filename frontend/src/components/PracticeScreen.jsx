@@ -12,11 +12,9 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
   const char = CHARACTERS[character];
   const childAudioRef = useRef(null);
 
-  // Auto-play character audio when screen loads
+  // Auto-play the word when screen loads
   useEffect(() => {
-    if (wordData?.character_audio_base64) {
-      setTimeout(() => playCharacterAudio(), 500);
-    }
+    // no auto-play
   }, []);
 
   const playCharacterAudio = async (speed = 1.0) => {
@@ -147,24 +145,50 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
           </div>
         </div>
 
-        {/* Character audio — two speeds */}
+        {/* Word pronunciation — XTTS Indian accent */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <p style={{ color: "#4A5548", fontSize: "0.7rem", letterSpacing: "0.1em", margin: 0 }}>
-            HEAR {char.name.toUpperCase()} SAY IT
+            HEAR THE WORD
           </p>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => playCharacterAudio(1.0)} disabled={playingChar}
+            <button onClick={async () => {
+              setPlayingChar(true);
+              try {
+                const form = new FormData();
+                form.append("word", wordData.word);
+                form.append("speed", "1.0");
+                const res = await fetch("http://127.0.0.1:8000/speak/word", { method: "POST", body: form });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play();
+                audio.onended = () => setPlayingChar(false);
+              } catch { setPlayingChar(false); }
+            }} disabled={playingChar}
               style={{ flex: 1, background: "#0D1117", border: `1px solid ${char.color}44`, borderRadius: "12px", padding: "12px", cursor: "pointer", color: char.color, fontWeight: 600, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
               🔊 Normal
             </button>
-            <button onClick={() => playCharacterAudio(0.65)} disabled={playingChar}
+            <button onClick={async () => {
+              setPlayingChar(true);
+              try {
+                const form = new FormData();
+                form.append("word", wordData.word);
+                form.append("speed", "0.65");
+                const res = await fetch("http://127.0.0.1:8000/speak/word", { method: "POST", body: form });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play();
+                audio.onended = () => setPlayingChar(false);
+              } catch { setPlayingChar(false); }
+            }} disabled={playingChar}
               style={{ flex: 1, background: "#0D1117", border: `1px solid ${char.color}44`, borderRadius: "12px", padding: "12px", cursor: "pointer", color: char.color, fontWeight: 600, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
               🐢 Slow
             </button>
           </div>
           {playingChar && (
             <p style={{ color: "#4A5548", fontSize: "0.75rem", textAlign: "center", margin: 0 }}>
-              {char.name} is speaking...
+              Playing...
             </p>
           )}
         </div>
@@ -210,7 +234,7 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
                 style={{ flex: 1, background: "transparent", border: "1px solid #1E2B1A", borderRadius: "10px", padding: "10px", color: "#F0EFE8", fontSize: "0.8rem", cursor: "pointer", fontWeight: 600 }}>
                 {playingChild ? "Playing..." : "🎧 Hear yourself"}
               </button>
-              <button onClick={playCharacterAudio} disabled={playingChar}
+              <button onClick={() => playCharacterAudio(1.0)} disabled={playingChar}
                 style={{ flex: 1, background: "transparent", border: `1px solid ${char.color}44`, borderRadius: "10px", padding: "10px", color: char.color, fontSize: "0.8rem", cursor: "pointer", fontWeight: 600 }}>
                 {playingChar ? "Playing..." : `🔊 Hear ${char.name}`}
               </button>

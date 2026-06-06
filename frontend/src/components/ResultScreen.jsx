@@ -52,15 +52,32 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
         </div>
 
         {/* Encouragement message */}
-        <div style={{ background: char.accentColor, border: `1px solid ${char.color}44`, borderRadius: "16px", padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "#F0EFE8", margin: 0, flex: 1 }}>
+        <div style={{ background: char.accentColor, border: `1px solid ${char.color}44`, borderRadius: "16px", padding: "20px" }}>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "#F0EFE8", margin: 0 }}>
             {encouragement.message}
           </p>
-          <button onClick={playCharAudio} disabled={playingChar}
-            style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: "1.4rem", marginLeft: "12px" }}>
-            {playingChar ? "🔊" : "▶️"}
-          </button>
         </div>
+
+        {/* Hear the word button */}
+        <button onClick={async () => {
+          setPlayingChar(true);
+          try {
+            const form = new FormData();
+            form.append("text", result.target_word);
+            form.append("character", character);
+            form.append("mood", "instruction");
+            form.append("speed", "1.0");
+            const res = await fetch("http://127.0.0.1:8000/speak", { method: "POST", body: form });
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audio.play();
+            audio.onended = () => setPlayingChar(false);
+          } catch { setPlayingChar(false); }
+        }} disabled={playingChar}
+          style={{ background: "#0D1117", border: `1px solid ${char.color}44`, borderRadius: "12px", padding: "12px", color: char.color, fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+          🔊 Hear {char.name} say "{result.target_word}"
+        </button>
 
         {/* Score card */}
         <div style={{ background: "#0D1117", border: "1px solid #1E2B1A", borderRadius: "20px", padding: "24px" }}>

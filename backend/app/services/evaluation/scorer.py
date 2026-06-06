@@ -16,26 +16,67 @@ def levenshtein(a: list, b: list) -> int:
     return dp[m][n]
 
 
+# Phoneme pairs that are acceptable substitutions in Indian English
+INDIAN_ACCENT_EQUIVALENTS = {
+    frozenset(["V", "W"]),       # Indian English merges v/w
+    frozenset(["T", "RT"]),      # retroflex/dental t
+    frozenset(["D", "RD"]),      # retroflex/dental d
+    frozenset(["TH", "D"]),      # th→d is standard in Indian English
+    frozenset(["TH", "T"]),      # th→t variant
+    frozenset(["Z", "J"]),       # z→j common substitution
+    frozenset(["AE", "EH"]),     # flat a vowel
+    frozenset(["AO", "AH"]),     # o vowel merge
+    frozenset(["IH", "IY"]),     # short/long i merge
+    frozenset(["UW", "UH"]),     # oo vowel
+    frozenset(["R", "RD"]),      # tapped r
+}
+
 def score_phonemes(expected: List[str], detected: List[str]) -> PhonemeScores:
     matches = []
     error_types = set()
 
-    for i, ep in enumerate(expected):
-        if i < len(detected):
-            dp = detected[i]
-            correct = ep.upper() == dp.upper()
+    # Normalise case
+    exp_upper = [p.upper() for p in expected]
+    det_upper = [p.upper() for p in detected]
+
+    for i, ep in enumerate(exp_upper):
+        if i < len(det_upper):
+            dp = det_upper[i]
+            correct = ep == dp
+            # Accept Indian accent equivalents as correct
             if not correct:
-                error_types.add("substitution")
-            matches.append(PhonemeMatch(expected=ep, detected=dp, correct=correct))
+                pair = frozenset([ep, dp])
+                if pair in INDIAN_ACCENT_EQUIVALENTS:
+                    correct = True
+                    error_types.add("indian_variant")
+            # Partial credit: single-char near miss
+            if not correct:
+                if len(ep) == len(dp) == 1 and abs(ord(ep) - ord(dp)) <= 3:
+                    error_types.add("near_miss")
+                else:
+                    error_types.add("substitution")
+            matches.append(PhonemeMatch(expected=expected[i], detected=detected[i] if i < len(detected) else None, correct=correct))
         else:
-            matches.append(PhonemeMatch(expected=ep, detected=None, correct=False))
+            matches.append(PhonemeMatch(expected=expected[i], detected=None, correct=False))
             error_types.add("omission")
 
     if len(detected) > len(expected):
         error_types.add("addition")
 
-    dist = levenshtein(expected, detected)
-    accuracy = max(0.0, round((1 - dist / max(len(expected), 1)) * 100, 2))
+    dist = levenshtein(exp_upper, det_upper)
+    max_len = max(len(expected), len(detected), 1)
+
+    # Base accuracy from edit distance
+    base_accuracy = max(0.0, (1 - dist / max_len) * 100)
+
+    # Bonus: if transcript word roughly matches target, boost by up to 10pts
+    correct_count = sum(1 for m in matches if m.correct)
+    total = max(len(expected), 1)
+    precision = correct_count / total
+
+    # Weighted blend: edit distance (70%) + precision (30%)
+    accuracy = round(base_accuracy * 0.7 + precision * 100 * 0.3, 2)
+    accuracy = min(100.0, accuracy)
 
     return PhonemeScores(
         matches=matches,
@@ -101,6 +142,22 @@ def get_feedback(phoneme_scores: PhonemeScores) -> str:
     return "Good try! Keep practising this sound."
 
 
+def get_tiered_feedback(phoneme_scores: PhonemeScores, composite_score: float, attempt_number: int) -> dict:
+    """Return feedback with severity tier for frontend to display differently."""
+    tip = get_feedback(phoneme_scores)
+
+    if composite_score >= 80:
+        return {"tier": "pass", "title": "Amazing!", "tip": tip, "mood": "celebrate"}
+    elif composite_score >= 65:
+        return {"tier": "close", "title": "So close!", "tip": tip, "mood": "encourage"}
+    elif composite_score >= 45:
+        if attempt_number >= 2:
+            return {"tier": "struggling", "title": "Let us slow it down", "tip": tip, "mood": "instruction"}
+        return {"tier": "retry", "title": "Good try, once more!", "tip": tip, "mood": "encourage"}
+    else:
+        return {"tier": "support", "title": "Let us practise this sound first", "tip": tip, "mood": "instruction"}
+
+
 def build_attempt_result(
     session_id: str,
     child_id: str,
@@ -116,7 +173,8 @@ def build_attempt_result(
     phoneme_scores = score_phonemes(target_phonemes, detected_phonemes)
     composite = compute_composite(phoneme_scores.accuracy, acoustic_raw, condition)
     repeat_needed, repeat_reason = should_repeat(composite, attempt_number)
-    feedback = get_feedback(phoneme_scores)
+    feedback_data = get_tiered_feedback(phoneme_scores, composite, attempt_number)
+    feedback = feedback_data["tip"]
 
     acoustic = AcousticMetrics(
         loudness_rms=acoustic_raw["loudness_rms"],

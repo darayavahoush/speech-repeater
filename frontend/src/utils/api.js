@@ -3,7 +3,11 @@ const BASE_URL = "http://127.0.0.1:8000";
 export async function inputWord({ text, audio, character = "BOLT", language = "english", mood = "instruction" }) {
   const form = new FormData();
   if (text) form.append("text", text);
-  if (audio) form.append("audio", audio, "recording.wav");
+  if (audio) {
+    // Convert blob to wav file for backend
+    const wavBlob = new Blob([audio], { type: "audio/webm" });
+    form.append("audio", wavBlob, "recording.webm");
+  }
   form.append("character", character);
   form.append("language", language);
   form.append("mood", mood);
