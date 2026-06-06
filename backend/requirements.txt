@@ -17,3 +17,4 @@ opencv-python
 Pillow
 httpx
 python-dotenv
+pydantic-settings
