@@ -18,3 +18,4 @@ Pillow
 httpx
 python-dotenv
 pydantic-settings
+kokoro-onnx
