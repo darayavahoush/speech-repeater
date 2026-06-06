@@ -9,7 +9,7 @@ export default function CharacterSelect({ onSelect }) {
   const handlePreview = async (charId) => {
     setPreviewing(charId);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/speak/intro/${charId}`);
+      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/speak/intro/${charId}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
