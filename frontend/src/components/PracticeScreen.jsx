@@ -25,7 +25,7 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
       form.append("character", character);
       form.append("mood", "instruction");
       form.append("speed", speed);
-      const res = await fetch("http://127.0.0.1:8000/speak", { method: "POST", body: form });
+      const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak", { method: "POST", body: form });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
@@ -157,7 +157,7 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
                 const form = new FormData();
                 form.append("word", wordData.word);
                 form.append("speed", "1.0");
-                const res = await fetch("http://127.0.0.1:8000/speak/word", { method: "POST", body: form });
+                const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak/word", { method: "POST", body: form });
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const audio = new Audio(url);
@@ -174,7 +174,7 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
                 const form = new FormData();
                 form.append("word", wordData.word);
                 form.append("speed", "0.65");
-                const res = await fetch("http://127.0.0.1:8000/speak/word", { method: "POST", body: form });
+                const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak/word", { method: "POST", body: form });
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const audio = new Audio(url);

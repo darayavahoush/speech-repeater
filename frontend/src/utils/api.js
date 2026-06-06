@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 export async function inputWord({ text, audio, character = "BOLT", language = "english", mood = "instruction" }) {
   const form = new FormData();
