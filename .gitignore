@@ -23,3 +23,6 @@ backend/voices-v1.0.bin
 backend/*.onnx
 backend/*.onnx.*
 backend/*.bin
+backend/*.onnx
+backend/*.onnx.*
+backend/*.bin
