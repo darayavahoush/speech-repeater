@@ -20,3 +20,6 @@ data/voices/reference.wav
 ~/.cache/whisper/
 backend/kokoro-v1.0.onnx
 backend/voices-v1.0.bin
+backend/*.onnx
+backend/*.onnx.*
+backend/*.bin
