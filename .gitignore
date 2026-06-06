@@ -28,3 +28,10 @@ backend/*.onnx.*
 backend/*.bin
 backend/*.bin.*
 backend/*.onnx.*
+data/voice_cache/
+data/voices/
+data/images/
+*.wav
+*.png
+*.jpg
+*.jpeg
