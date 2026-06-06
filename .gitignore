@@ -26,3 +26,5 @@ backend/*.bin
 backend/*.onnx
 backend/*.onnx.*
 backend/*.bin
+backend/*.bin.*
+backend/*.onnx.*
