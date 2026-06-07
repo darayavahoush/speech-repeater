@@ -113,6 +113,16 @@ async def speak_word_endpoint(
     audio_bytes = speak_word(word, speed)
     return Response(content=audio_bytes, media_type="audio/wav")
 
+
+@app.get("/debug/ffmpeg")
+def debug_ffmpeg():
+    import subprocess
+    try:
+        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+        return {"ffmpeg": result.stdout[:300], "available": True}
+    except Exception as e:
+        return {"ffmpeg": str(e), "available": False}
+
 @app.get("/")
 def root():
     return {"status": "VaakSiddhi Autism backend running", "version": "1.0.0"}
