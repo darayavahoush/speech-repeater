@@ -114,6 +114,18 @@ async def speak_word_endpoint(
     return Response(content=audio_bytes, media_type="audio/wav")
 
 
+
+@app.get("/debug/voice/{character}")
+def debug_voice(character: str):
+    from app.services.voice.tts import _render, CHARACTERS
+    import traceback
+    try:
+        cfg = CHARACTERS.get(character.upper(), CHARACTERS["BOLT"])
+        audio = _render("Hello I am a test", cfg["voice"], 1.0, cfg["ffmpeg"])
+        return {"success": True, "bytes": len(audio), "character": character}
+    except Exception as e:
+        return {"success": False, "error": str(e), "trace": traceback.format_exc()}
+
 @app.get("/debug/ffmpeg")
 def debug_ffmpeg():
     import subprocess
