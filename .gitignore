@@ -35,3 +35,4 @@ data/images/
 *.png
 *.jpg
 *.jpeg
+.vercel

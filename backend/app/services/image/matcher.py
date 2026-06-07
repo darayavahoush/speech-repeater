@@ -84,9 +84,12 @@ def fetch_from_arasaac(word: str) -> str | None:
 
 
 def fetch_from_web(word: str) -> str | None:
-    """Fallback: scrape a real image from DuckDuckGo when ARASAAC fails or mismatches."""
+    """Fallback: scrape a real image from DuckDuckGo when ARASAAC fails."""
     try:
-        from duckduckgo_search import DDGS
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            from duckduckgo_search import DDGS
         with DDGS() as ddgs:
             results = list(ddgs.images(
                 f"{word} simple clipart white background",
@@ -102,7 +105,6 @@ def fetch_from_web(word: str) -> str | None:
                 if resp.status_code == 200 and resp.headers.get("content-type", "").startswith("image"):
                     filename = f"{word}_web.png"
                     filepath = DATA_DIR / filename
-                    # Decode and re-encode to ensure valid PNG
                     arr = np.frombuffer(resp.content, np.uint8)
                     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
                     if img is None:
@@ -152,6 +154,13 @@ def find_image(word: str) -> dict:
     if matched:
         return {"path": str(DATA_DIR / _index[matched]), "word": matched, "confidence": 70, "match_type": "semantic"}
 
+    # Final fallback: generate a simple text image
+    img = _make_text_image(word)
+    if img is not None:
+        filename = f"{word}_text.png"
+        filepath = DATA_DIR / filename
+        cv2.imwrite(str(filepath), img)
+        return {"path": str(filepath), "word": word, "confidence": 50, "match_type": "generated"}
     return {"path": None, "word": word, "confidence": 0, "match_type": "none"}
 
 
