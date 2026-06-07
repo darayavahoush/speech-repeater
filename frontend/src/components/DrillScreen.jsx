@@ -32,7 +32,7 @@ export default function DrillScreen({ character, drillSequence, onComplete }) {
     form.append("text", current.example_word || current.phoneme);
     form.append("character", character);
     form.append("mood", "instruction");
-    const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak", { method: "POST", body: form });
+    const res = await fetch("http://localhost:8000/speak", { method: "POST", body: form });
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);

@@ -1,4 +1,4 @@
-const BASE_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BASE_URL = "http://localhost:8000";
 
 export async function inputWord({ text, audio, character = "BOLT", language = "english", mood = "instruction" }) {
   const form = new FormData();

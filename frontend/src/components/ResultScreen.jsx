@@ -67,7 +67,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
             form.append("character", character);
             form.append("mood", "instruction");
             form.append("speed", "1.0");
-            const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak", { method: "POST", body: form });
+            const res = await fetch("http://localhost:8000/speak", { method: "POST", body: form });
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
             const audio = new Audio(url);
@@ -221,7 +221,7 @@ function PhonemeHelp({ matches, char }) {
     wrongPhonemes.forEach(async (ph) => {
       if (!cards[ph]) {
         try {
-          const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/phoneme-card/${ph}`);
+          const res = await fetch(`http://localhost:8000/phoneme-card/${ph}`);
           const data = await res.json();
           setCards(prev => ({ ...prev, [ph]: data }));
         } catch {}
