@@ -11,6 +11,16 @@ from app.services.image.matcher import get_image_for_phrase
 
 router = APIRouter()
 
+@router.get("/debug/ffmpeg")
+def debug_ffmpeg():
+    import subprocess
+    try:
+        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+        return {"ffmpeg": result.stdout[:200], "available": True}
+    except Exception as e:
+        return {"ffmpeg": str(e), "available": False}
+
+
 
 @router.get("/characters")
 def characters():
