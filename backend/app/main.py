@@ -85,16 +85,6 @@ CHAR_VOICES = {
 }
 
 @app.get("/speak/intro/{character}")
-async def speak_intro(character: str):
-    from app.services.voice.tts import speak_word, speak, speak_intro
-    char = character.upper()
-    line = INTRO_LINES.get(char, "Hello! Let us learn together!")
-    voice, speed = CHAR_VOICES.get(char, ("af_heart", 1.0))
-    audio_bytes = speak_word(line, speed=speed)
-    return Response(content=audio_bytes, media_type="audio/wav")
-
-
-@app.get("/speak/intro/{character}")
 async def speak_intro_endpoint(character: str):
     audio_bytes = speak_intro(character)
     return Response(content=audio_bytes, media_type="audio/wav")
