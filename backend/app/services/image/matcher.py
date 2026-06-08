@@ -121,6 +121,25 @@ def fetch_from_web(word: str) -> str | None:
     return None
 
 
+
+def _make_text_image(word: str):
+    """Generate a simple white image with the word written on it as final fallback."""
+    try:
+        import cv2
+        import numpy as np
+        img = np.ones((300, 400, 3), dtype=np.uint8) * 255  # white background
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        text = word.upper()
+        font_scale = min(3.0, 10.0 / max(len(text), 1))
+        thickness = max(2, int(font_scale * 2))
+        (tw, th), _ = cv2.getTextSize(text, font, font_scale, thickness)
+        x = (400 - tw) // 2
+        y = (300 + th) // 2
+        cv2.putText(img, text, (x, y), font, font_scale, (50, 50, 50), thickness, cv2.LINE_AA)
+        return img
+    except Exception:
+        return None
+
 def find_image(word: str) -> dict:
     if not _index:
         load_index()
