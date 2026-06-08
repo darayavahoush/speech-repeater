@@ -20,7 +20,10 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [childAudioUrl, setChildAudioUrl] = useState(null);
   const [drillSequence, setDrillSequence] = useState([]);
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId] = useState(() => {
+  if (crypto?.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+});
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
 
