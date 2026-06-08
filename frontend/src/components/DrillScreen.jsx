@@ -3,7 +3,7 @@ import { CHARACTERS } from "../assets/characters";
 import { getPhonemeCard } from "../utils/api";
 import { useAudio } from "../hooks/useAudio";
 
-const BASE = "http://localhost:8000";
+const BASE = "https://anabaena-vaaksiddhi.hf.space";
 
 export default function DrillScreen({ character, drillSequence, onComplete }) {
   const char = CHARACTERS[character];
