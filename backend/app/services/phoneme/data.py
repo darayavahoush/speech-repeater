@@ -17,7 +17,7 @@ PHONEME_DATA = {
         "name": "p sound",
         "example_word": "pen",
         "tip": "Press both lips together firmly, then pop them open with a puff of air. No voice.",
-        "mouth_shape": "lips_closed_puff",
+        "mouth_shape": "lips_closed_puff_voiceless",
         "acoustic_target": {"min_duration_ms": 100, "voiced": False},
         "common_errors": ["B", "F"],
         "category": "stop"
@@ -47,7 +47,7 @@ PHONEME_DATA = {
         "name": "t sound",
         "example_word": "tree",
         "tip": "Touch the tip of your tongue just behind your top teeth, then flick it down with a puff of air.",
-        "mouth_shape": "tongue_tip_up",
+        "mouth_shape": "tongue_tip_up_voiceless",
         "acoustic_target": {"min_duration_ms": 100, "voiced": False},
         "common_errors": ["D", "K"],
         "category": "stop"
@@ -77,7 +77,7 @@ PHONEME_DATA = {
         "name": "k sound",
         "example_word": "cat",
         "tip": "Let the back of your tongue touch the roof of your mouth, then drop it with a puff of air.",
-        "mouth_shape": "tongue_back_up",
+        "mouth_shape": "tongue_back_up_voiceless",
         "acoustic_target": {"min_duration_ms": 100, "voiced": False},
         "common_errors": ["T", "G"],
         "category": "stop"
@@ -97,7 +97,7 @@ PHONEME_DATA = {
         "name": "v sound",
         "example_word": "van",
         "tip": "Touch your top teeth gently to your bottom lip and blow air with your voice on.",
-        "mouth_shape": "teeth_on_lip",
+        "mouth_shape": "teeth_on_lip_voiced",
         "acoustic_target": {"min_duration_ms": 150, "voiced": True},
         "common_errors": ["B", "F", "W"],  # V/W merge is standard in Indian English
         "category": "fricative"
@@ -117,7 +117,7 @@ PHONEME_DATA = {
         "name": "z sound",
         "example_word": "zebra",
         "tip": "Same as S but turn your voice on. Feel the buzz.",
-        "mouth_shape": "teeth_together_hiss",
+        "mouth_shape": "teeth_together_hiss_voiced",
         "acoustic_target": {"min_duration_ms": 150, "voiced": True},
         "common_errors": ["S", "D"],
         "category": "fricative"
@@ -147,7 +147,7 @@ PHONEME_DATA = {
         "name": "j sound",
         "example_word": "jump",
         "tip": "Same as CH but with your voice on.",
-        "mouth_shape": "lips_rounded_push",
+        "mouth_shape": "lips_rounded_push_voiced",
         "acoustic_target": {"min_duration_ms": 150, "voiced": True},
         "common_errors": ["CH", "D"],
         "category": "affricate"
@@ -289,7 +289,7 @@ PHONEME_DATA = {
         "name": "retroflex d sound",
         "example_word": "daal",
         "tip": "Curl your tongue back and touch the roof of your mouth further back, then drop it with voice.",
-        "mouth_shape": "tongue_curled_back_touch",
+        "mouth_shape": "tongue_curled_back_touch_voiced",
         "acoustic_target": {"min_duration_ms": 100, "voiced": True},
         "common_errors": ["D"],
         "category": "stop"
