@@ -223,7 +223,7 @@ async def input_word(
             tmp.write(await audio.read())
             tmp_path = tmp.name
         try:
-            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
+            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="A single English word spoken clearly. Indian English accent.")
             word = " ".join([s.text.strip() for s in segments]).strip().lower()
         finally:
             os.unlink(tmp_path)
