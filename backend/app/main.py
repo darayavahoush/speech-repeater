@@ -44,6 +44,10 @@ def get_phonemes(word: str, language: str) -> list:
     phones = g2p(word)
     return [p.rstrip("012") for p in phones if p.strip() and p not in [" ", ""]]
 
+import nltk
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
+nltk.download('cmudict', quiet=True)
+
 @app.on_event("startup")
 async def startup_event():
     from app.services.voice.tts import warm_cache, precache_words, speak_intro, CHARACTERS
