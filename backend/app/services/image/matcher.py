@@ -122,6 +122,43 @@ def fetch_from_web(word: str) -> str | None:
 
 
 
+
+def fetch_from_pixabay(word: str) -> str | None:
+    """Fallback: fetch image from Pixabay free API."""
+    try:
+        import os
+        api_key = os.environ.get("PIXABAY_API_KEY", "")
+        if not api_key:
+            return None
+        url = f"https://pixabay.com/api/?key={api_key}&q={word}&image_type=clipart&safesearch=true&per_page=5"
+        resp = requests.get(url, timeout=6)
+        if resp.status_code != 200:
+            return None
+        hits = resp.json().get("hits", [])
+        for hit in hits:
+            img_url = hit.get("webformatURL")
+            if not img_url:
+                continue
+            try:
+                img_resp = requests.get(img_url, timeout=6)
+                if img_resp.status_code == 200:
+                    filename = f"{word}_pixabay.png"
+                    filepath = DATA_DIR / filename
+                    arr = np.frombuffer(img_resp.content, np.uint8)
+                    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                    if img is None:
+                        continue
+                    cv2.imwrite(str(filepath), img)
+                    _index[word] = filename
+                    save_index()
+                    print(f"Pixabay image for: {word}")
+                    return filename
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"Pixabay error for {word}: {e}")
+    return None
+
 def _make_text_image(word: str):
     """Generate a simple white image with the word written on it as final fallback."""
     try:
@@ -172,6 +209,11 @@ def find_image(word: str) -> dict:
     matched = semantic_match(word)
     if matched:
         return {"path": str(DATA_DIR / _index[matched]), "word": matched, "confidence": 70, "match_type": "semantic"}
+
+    # 6. Pixabay fallback
+    filename = fetch_from_pixabay(word)
+    if filename:
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 80, "match_type": "pixabay"}
 
     # Final fallback: generate a simple text image
     img = _make_text_image(word)
