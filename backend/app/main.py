@@ -1,3 +1,6 @@
+import nltk
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
+nltk.download('cmudict', quiet=True)
 from fastapi import FastAPI, UploadFile, File, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
