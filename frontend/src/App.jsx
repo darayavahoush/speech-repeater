@@ -76,7 +76,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07090F" }}>
+    <div style={{ minHeight: "100vh", background: "transparent" }}>
       {screen === SCREENS.CHARACTER_SELECT && (
         <CharacterSelect onSelect={handleCharacterSelect} />
       )}
