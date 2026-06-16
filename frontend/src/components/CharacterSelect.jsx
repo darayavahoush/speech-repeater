@@ -64,7 +64,8 @@ export default function CharacterSelect({ onSelect }) {
                 )}
 
                 {/* Character icon */}
-                <img src={char.image} alt={char.name} style={{ width: "80px", height: "80px", objectFit: "contain", animation: isSelected ? "float 3s ease-in-out infinite" : "none" }} />
+                <div style={{ width: "80px", height: "80px", animation: isSelected ? "float 3s ease-in-out infinite" : "none" }}
+                  dangerouslySetInnerHTML={{ __html: char.icon }} />
 
                 {/* Name */}
                 <div style={{ textAlign: "center" }}>
