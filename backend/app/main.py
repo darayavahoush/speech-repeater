@@ -184,7 +184,7 @@ async def compare(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
@@ -291,7 +291,7 @@ async def evaluate(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="The child is saying the word: " + target_word + ". Indian English accent. Single word only.")
+        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
