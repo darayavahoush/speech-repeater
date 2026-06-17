@@ -81,7 +81,7 @@ export default function App() {
         <CharacterSelect onSelect={handleCharacterSelect} />
       )}
       {screen === SCREENS.THERAPIST_INPUT && (
-        <TherapistInput character={character} onWordReady={handleWordReady} />
+        <TherapistInput character={character} onWordReady={handleWordReady} onSwitchCharacter={setCharacter} />
       )}
       {screen === SCREENS.PRACTICE && (
         <PracticeScreen
@@ -108,6 +108,7 @@ export default function App() {
           character={character}
           drillSequence={drillSequence}
           onComplete={handleDrillComplete}
+          onSwitchCharacter={setCharacter}
         />
       )}
     </div>
