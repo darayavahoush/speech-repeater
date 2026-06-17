@@ -91,6 +91,7 @@ export default function App() {
           attemptNumber={attemptNumber}
           attemptHistory={attemptHistory}
           onResult={handleResult}
+          onSwitchCharacter={setCharacter}
         />
       )}
       {screen === SCREENS.RESULT && (

@@ -12,13 +12,14 @@ const THEMES = {
   MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
 };
 
-export default function PracticeScreen({ character, wordData, sessionId, attemptNumber, attemptHistory = [], onResult }) {
+export default function PracticeScreen({ character, wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter }) {
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
   const { isRecording, audioBlob, audioUrl, startRecording, stopRecording, reset } = useAudio();
   const char = CHARACTERS[character];
   const t = THEMES[character];
+  const [showSwitcher, setShowSwitcher] = useState(false);
 
   document.body.style.background = t.bg;
   document.body.style.transition = "background 0.5s ease";
@@ -84,10 +85,25 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
             <img src={char.image} alt={char.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
             <span style={{ color: t.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name}</span>
           </div>
-          <div style={{ background: t.card, border: `1px solid ${t.accent}44`, borderRadius: "20px", padding: "4px 14px", fontSize: "0.75rem", color: t.sub, fontWeight: 700 }}>
-            Attempt {attemptNumber}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <button onClick={() => setShowSwitcher(!showSwitcher)} style={{ background: t.card, border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "5px 12px", color: t.sub, fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>Switch</button>
+            <div style={{ background: t.card, border: `1px solid ${t.accent}44`, borderRadius: "20px", padding: "4px 14px", fontSize: "0.75rem", color: t.sub, fontWeight: 700 }}>Attempt {attemptNumber}</div>
           </div>
         </div>
+
+        {showSwitcher && (
+          <div style={{ background: "rgba(255,255,255,0.9)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "14px", boxShadow: `0 4px 20px ${t.accent}18` }}>
+            <p style={{ color: t.sub, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Switch character</p>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {Object.values(CHARACTERS).map(c => (
+                <button key={c.id} onClick={() => { onSwitchCharacter(c.id); setShowSwitcher(false); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: c.id === character ? THEMES[c.id].card : "transparent", border: `1.5px solid ${c.id === character ? THEMES[c.id].accent : "rgba(0,0,0,0.08)"}`, borderRadius: "10px", padding: "8px 10px", cursor: "pointer" }}>
+                  <img src={c.image} alt={c.name} style={{ width: "32px", height: "32px", objectFit: "contain" }} />
+                  <span style={{ fontSize: "0.62rem", fontWeight: 700, color: THEMES[c.id].text, fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${t.accent}18` }}>
           {wordData?.images?.length > 1 ? (
