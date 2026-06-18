@@ -311,20 +311,30 @@ def find_image(word: str) -> dict:
     if filename:
         return {"path": str(DATA_DIR / filename), "word": word, "confidence": 95, "match_type": "arasaac"}
 
-    # 4. Web scrape fallback (DuckDuckGo)
-    filename = fetch_from_web(word)
+    # 4. OpenClipart
+    filename = fetch_from_openclipart(word)
     if filename:
-        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 85, "match_type": "web"}
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 88, "match_type": "openclipart"}
 
-    # 5. Semantic match from existing index
+    # 5. Pixabay vector
+    filename = fetch_from_pixabay_hq(word)
+    if filename:
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 82, "match_type": "pixabay_vector"}
+
+    # 6. Semantic match from existing index
     matched = semantic_match(word)
     if matched:
         return {"path": str(DATA_DIR / _index[matched]), "word": matched, "confidence": 70, "match_type": "semantic"}
 
-    # 6. Pixabay fallback
+    # 7. DuckDuckGo web scrape (last resort before text)
+    filename = fetch_from_web(word)
+    if filename:
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 60, "match_type": "web"}
+
+    # 8. Pixabay general fallback
     filename = fetch_from_pixabay(word)
     if filename:
-        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 80, "match_type": "pixabay"}
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 55, "match_type": "pixabay"}
 
     # Final fallback: generate a simple text image
     img = _make_text_image(word)
