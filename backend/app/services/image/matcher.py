@@ -381,73 +381,132 @@ EMOTION_WORDS = {
     "tired", "confused", "proud", "worried", "calm", "nervous"
 }
 
-def get_image_for_phrase(phrase: str) -> dict:
-    attrs = parse_attributes(phrase)
+COLORS = ["red", "blue", "green", "yellow", "orange", "purple",
+          "pink", "white", "black", "brown", "grey", "gray", "golden", "silver"]
+SIZES = ["big", "large", "small", "tiny", "huge", "little"]
+STOP_WORDS = {"a", "an", "the", "is", "are", "was", "were", "this", "that", "these",
+              "those", "it", "its", "of", "in", "on", "at", "to", "for", "with", "and", "or"}
+
+def extract_key_words(phrase: str) -> dict:
+    import nltk
     words = phrase.lower().strip().split()
-
-    # Detect if phrase has an emotion modifier + object (e.g. "angry lemon")
-    emotion = None
-    obj_words = []
+    words = [w for w in words if w not in STOP_WORDS]
+    color = None
+    adjectives = []
+    nouns = []
+    remaining = []
     for w in words:
-        if w in EMOTION_WORDS and emotion is None:
-            emotion = w
-        elif w not in [attrs.get("color"), attrs.get("size")] or attrs.get("color") is None:
-            if w not in (attrs.get("color") or "").split() and w not in (attrs.get("size") or "").split():
-                obj_words.append(w)
+        if w in COLORS and color is None:
+            color = w
+        else:
+            remaining.append(w)
+    try:
+        tagged = nltk.pos_tag(remaining)
+        for word, tag in tagged:
+            if tag.startswith("NN"):
+                nouns.append(word)
+            elif tag.startswith("JJ") or tag.startswith("VBG"):
+                adjectives.append(word)
+    except Exception:
+        nouns = remaining
+    return {
+        "color": color,
+        "adjective": adjectives[0] if adjectives else None,
+        "nouns": nouns,
+        "primary_noun": nouns[-1] if nouns else (remaining[-1] if remaining else phrase),
+        "size": next((w for w in words if w in ["big","large","small","tiny","huge","little"]), None),
+    }
 
-    # Strip emotion from object if present
-    object_str = attrs["object"]
-    if emotion and object_str.startswith(emotion):
-        object_str = object_str[len(emotion):].strip()
-    if not object_str:
-        object_str = attrs["object"]
 
-    # Build images list
+def _img_to_b64(img):
+    if img is None:
+        return None
+    img = make_transparent(img)
+    _, buf = cv2.imencode(".png", img)
+    return buf.tobytes()
+
+
+def _color_swatch_bytes(color_name: str):
+    COLOR_BGR = {
+        "red": (0, 0, 200), "blue": (200, 100, 0), "green": (0, 180, 0),
+        "yellow": (0, 220, 220), "orange": (0, 140, 255), "purple": (180, 0, 180),
+        "pink": (180, 100, 200), "white": (240, 240, 240), "black": (30, 30, 30),
+        "brown": (30, 80, 130), "grey": (150, 150, 150), "gray": (150, 150, 150),
+        "golden": (0, 200, 230), "silver": (180, 180, 190),
+    }
+    bgr = COLOR_BGR.get(color_name, (128, 128, 128))
+    img = np.ones((200, 200, 3), dtype=np.uint8) * 255
+    cv2.circle(img, (100, 100), 80, bgr, -1)
+    rgba = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+    mask = np.zeros(img.shape[:2], np.uint8)
+    cv2.circle(mask, (100, 100), 80, 255, -1)
+    rgba[:, :, 3] = mask
+    _, buf = cv2.imencode(".png", rgba)
+    return buf.tobytes()
+
+
+def get_image_for_phrase(phrase: str) -> dict:
+    kw = extract_key_words(phrase)
+    color = kw["color"]
+    adjective = kw["adjective"]
+    primary_noun = kw["primary_noun"]
+    nouns = kw["nouns"]
+    size = kw["size"]
     images = []
 
-    # Emotion image
-    if emotion:
-        emotion_match = find_image(emotion)
-        if emotion_match["path"]:
-            img = cv2.imread(emotion_match["path"])
-            if img is not None:
-                img = make_transparent(img)
-                _, buf = cv2.imencode(".png", img)
-                images.append({
-                    "label": emotion,
-                    "image_bytes": buf.tobytes(),
-                    "match_type": emotion_match["match_type"]
-                })
+    if color and primary_noun:
+        combined_query = f"{color} {primary_noun}"
+        pixabay_combined = fetch_from_pixabay(combined_query)
+        if pixabay_combined:
+            img = cv2.imread(str(DATA_DIR / pixabay_combined))
+            b = _img_to_b64(img)
+            if b:
+                images.append({"label": combined_query, "image_bytes": b, "match_type": "pixabay_combined"})
+        images.append({"label": color, "image_bytes": _color_swatch_bytes(color), "match_type": "color_swatch"})
+        noun_match = find_image(primary_noun)
+        if noun_match["path"]:
+            colored = apply_color(noun_match["path"], color)
+            b = _img_to_b64(colored)
+            if b:
+                images.append({"label": f"{color} {primary_noun}", "image_bytes": b, "match_type": "colored"})
+        if not images:
+            return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
+        primary = images[-1]
+        return {"found": True, "phrase": phrase, "matched_word": primary["label"], "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
 
-    # Main object image
-    match = find_image(object_str)
+    if adjective and primary_noun:
+        adj_match = find_image(adjective)
+        if adj_match["path"]:
+            b = _img_to_b64(cv2.imread(adj_match["path"]))
+            if b:
+                images.append({"label": adjective, "image_bytes": b, "match_type": adj_match["match_type"]})
+        noun_match = find_image(primary_noun)
+        if noun_match["path"]:
+            img = apply_size(noun_match["path"], size) if size else cv2.imread(noun_match["path"])
+            b = _img_to_b64(img)
+            if b:
+                images.append({"label": primary_noun, "image_bytes": b, "match_type": noun_match["match_type"]})
+        if images:
+            primary = images[-1]
+            return {"found": True, "phrase": phrase, "matched_word": primary["label"], "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
+
+    if len(nouns) > 1:
+        for noun in nouns[-2:]:
+            match = find_image(noun)
+            if match["path"]:
+                b = _img_to_b64(cv2.imread(match["path"]))
+                if b:
+                    images.append({"label": noun, "image_bytes": b, "match_type": match["match_type"]})
+        if images:
+            primary = images[-1]
+            return {"found": True, "phrase": phrase, "matched_word": primary["label"], "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
+
+    match = find_image(primary_noun)
     if match["path"]:
-        if attrs["color"]:
-            img = apply_color(match["path"], attrs["color"])
-        elif attrs["size"]:
-            img = apply_size(match["path"], attrs["size"])
-        else:
-            img = cv2.imread(match["path"])
+        img = apply_size(match["path"], size) if size else cv2.imread(match["path"])
+        b = _img_to_b64(img)
+        if b:
+            images.append({"label": match["word"], "image_bytes": b, "match_type": match["match_type"]})
+            return {"found": True, "phrase": phrase, "matched_word": match["word"], "match_type": match["match_type"], "image_bytes": b, "images": images}
 
-        if img is not None:
-            img = make_transparent(img)
-            _, buf = cv2.imencode(".png", img)
-            images.append({
-                "label": match["word"],
-                "image_bytes": buf.tobytes(),
-                "match_type": match["match_type"]
-            })
-
-    if not images:
-        return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
-
-    # Return primary image as before + full images list
-    primary = images[-1]  # object is primary
-    return {
-        "found": True,
-        "phrase": phrase,
-        "matched_word": primary["label"],
-        "match_type": primary["match_type"],
-        "image_bytes": primary["image_bytes"],
-        "images": images,  # all images for multi-display
-    }
+    return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
