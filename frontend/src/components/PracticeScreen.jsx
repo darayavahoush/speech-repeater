@@ -114,14 +114,28 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
             const current = imgs[idx];
             return (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
-                <div style={{ width: "180px", height: "180px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {current ? (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", minHeight: "180px" }}>
+                  {current?.pair ? (
+                    <>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                        <img src={"data:image/png;base64," + current.image_base64} alt={current.label_1} style={{ width: "120px", height: "120px", objectFit: "contain", borderRadius: "12px" }} />
+                        <span style={{ color: t.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_1}</span>
+                      </div>
+                      <span style={{ color: t.accent, fontSize: "1.4rem", fontWeight: 900 }}>+</span>
+                      {current.image_base64_2 && (
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+                          <img src={"data:image/png;base64," + current.image_base64_2} alt={current.label_2} style={{ width: "120px", height: "120px", objectFit: "contain", borderRadius: "12px" }} />
+                          <span style={{ color: t.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_2}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : current ? (
                     <img src={"data:image/png;base64," + current.image_base64} alt={current.label} style={{ width: "180px", height: "180px", objectFit: "contain", borderRadius: "16px" }} />
                   ) : (
                     <div style={{ width: "140px", height: "140px", background: t.card, borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>🖼️</div>
                   )}
                 </div>
-                {current && <p style={{ color: t.sub, fontSize: "0.72rem", fontWeight: 700, margin: 0, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label}</p>}
+                {current && !current.pair && <p style={{ color: t.sub, fontSize: "0.72rem", fontWeight: 700, margin: 0, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label}</p>}
                 {imgs.length > 1 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <button onClick={() => setImageIndex(i => Math.max(0, i - 1))} disabled={idx === 0} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${t.accent}44`, background: idx === 0 ? "transparent" : t.card, color: t.accent, cursor: idx === 0 ? "not-allowed" : "pointer", opacity: idx === 0 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
