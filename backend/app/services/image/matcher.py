@@ -131,7 +131,7 @@ def fetch_from_pixabay_hq(word: str) -> str | None:
         api_key = os.environ.get("PIXABAY_API_KEY", "")
         if not api_key:
             return None
-        url = f"https://pixabay.com/api/?key={api_key}&q={word}&image_type=photo&safesearch=true&per_page=10&min_width=500&min_height=500&order=popular"
+        url = f"https://pixabay.com/api/?key={api_key}&q={word}&image_type=vector&safesearch=true&per_page=10&min_width=500&min_height=500&order=popular"
         resp = requests.get(url, timeout=6)
         if resp.status_code != 200:
             return None

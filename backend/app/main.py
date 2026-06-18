@@ -154,7 +154,7 @@ async def image_endpoint(phrase: str = Form(...)):
         "confidence": result.get("confidence", 100),
         "image_base64": __import__("base64").b64encode(result["image_bytes"]).decode(),
         "images": [
-            {**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None}
+            {**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None, "image_base64_2": __import__("base64").b64encode(img["image_bytes_2"]).decode() if img.get("image_bytes_2") else None, "image_bytes_2": None}
             for img in result.get("images", [])
         ]
     }
@@ -246,7 +246,7 @@ async def input_word(
     images = []
     for img in image_result.get("images", []):
         if img.get("image_bytes"):
-            images.append({**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None})
+            images.append({**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None, "image_base64_2": __import__("base64").b64encode(img["image_bytes_2"]).decode() if img.get("image_bytes_2") else None, "image_bytes_2": None})
     return {
         "word": word,
         "phonemes": phonemes,
