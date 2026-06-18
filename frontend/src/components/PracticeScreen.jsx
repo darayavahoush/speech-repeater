@@ -108,20 +108,34 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
         )}
 
         <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${t.accent}18` }}>
-          {wordData?.images?.length > 1 ? (
-            <div style={{ display: "flex", gap: "16px", alignItems: "center", justifyContent: "center" }}>
-              {wordData.images.map((img, i) => (
-                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-                  <img src={"data:image/png;base64," + img.image_base64} alt={img.label} style={{ width: "110px", height: "110px", objectFit: "contain", borderRadius: "12px" }} />
-                  <span style={{ color: t.sub, fontSize: "0.7rem", textTransform: "capitalize" }}>{img.label}</span>
+          {(() => {
+            const imgs = wordData?.images?.length > 0 ? wordData.images : imageUrl ? [{ label: wordData?.word, image_base64: wordData?.image_base64 }] : [];
+            const idx = Math.min(imageIndex, Math.max(imgs.length - 1, 0));
+            const current = imgs[idx];
+            return (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
+                <div style={{ width: "180px", height: "180px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {current ? (
+                    <img src={"data:image/png;base64," + current.image_base64} alt={current.label} style={{ width: "180px", height: "180px", objectFit: "contain", borderRadius: "16px" }} />
+                  ) : (
+                    <div style={{ width: "140px", height: "140px", background: t.card, borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>🖼️</div>
+                  )}
                 </div>
-              ))}
-            </div>
-          ) : imageUrl ? (
-            <img src={imageUrl} alt={wordData.word} style={{ width: "180px", height: "180px", objectFit: "contain", borderRadius: "16px" }} />
-          ) : (
-            <div style={{ width: "140px", height: "140px", background: t.card, borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>🖼️</div>
-          )}
+                {current && <p style={{ color: t.sub, fontSize: "0.72rem", fontWeight: 700, margin: 0, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label}</p>}
+                {imgs.length > 1 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <button onClick={() => setImageIndex(i => Math.max(0, i - 1))} disabled={idx === 0} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${t.accent}44`, background: idx === 0 ? "transparent" : t.card, color: t.accent, cursor: idx === 0 ? "not-allowed" : "pointer", opacity: idx === 0 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
+                    <div style={{ display: "flex", gap: "5px" }}>
+                      {imgs.map((_, i) => (
+                        <div key={i} onClick={() => setImageIndex(i)} style={{ width: i === idx ? "16px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? t.accent : `${t.accent}33`, transition: "all 0.2s", cursor: "pointer" }} />
+                      ))}
+                    </div>
+                    <button onClick={() => setImageIndex(i => Math.min(imgs.length - 1, i + 1))} disabled={idx === imgs.length - 1} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${t.accent}44`, background: idx === imgs.length - 1 ? "transparent" : t.card, color: t.accent, cursor: idx === imgs.length - 1 ? "not-allowed" : "pointer", opacity: idx === imgs.length - 1 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>→</button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div style={{ textAlign: "center" }}>
             <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 6px 0", fontWeight: 700, textTransform: "uppercase" }}>Target Word</p>
