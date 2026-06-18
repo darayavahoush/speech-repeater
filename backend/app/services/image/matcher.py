@@ -123,6 +123,43 @@ def fetch_from_web(word: str) -> str | None:
 
 
 
+
+def fetch_from_pixabay_hq(word: str) -> str | None:
+    """Fetch high quality image from Pixabay — filters for larger images only."""
+    try:
+        import os
+        api_key = os.environ.get("PIXABAY_API_KEY", "")
+        if not api_key:
+            return None
+        url = f"https://pixabay.com/api/?key={api_key}&q={word}&image_type=illustration&safesearch=true&per_page=10&min_width=400&min_height=400&order=popular"
+        resp = requests.get(url, timeout=6)
+        if resp.status_code != 200:
+            return None
+        hits = resp.json().get("hits", [])
+        for hit in hits:
+            # Prefer larger web format
+            img_url = hit.get("webformatURL")
+            w, h = hit.get("webformatWidth", 0), hit.get("webformatHeight", 0)
+            if not img_url or w < 300 or h < 300:
+                continue
+            try:
+                img_resp = requests.get(img_url, timeout=6)
+                if img_resp.status_code == 200:
+                    filename = f"{word.replace(' ', '_')}_pixabay_hq.png"
+                    filepath = DATA_DIR / filename
+                    arr = np.frombuffer(img_resp.content, np.uint8)
+                    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                    if img is None:
+                        continue
+                    cv2.imwrite(str(filepath), img)
+                    print(f"Pixabay HQ image for: {word}")
+                    return filename
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"Pixabay HQ error for {word}: {e}")
+    return None
+
 def fetch_from_pixabay(word: str) -> str | None:
     """Fallback: fetch image from Pixabay free API."""
     try:
@@ -455,20 +492,32 @@ def get_image_for_phrase(phrase: str) -> dict:
     images = []
 
     if color and primary_noun:
+        noun_match = find_image(primary_noun)
+
+        # 1. Plain noun + color swatch (always first)
+        if noun_match["path"]:
+            plain_img = cv2.imread(noun_match["path"])
+            b = _img_to_b64(plain_img)
+            if b:
+                images.append({"label": primary_noun, "image_bytes": b, "match_type": noun_match["match_type"]})
+        images.append({"label": color, "image_bytes": _color_swatch_bytes(color), "match_type": "color_swatch"})
+
+        # 2. Pixabay combined (only if found, shown in middle)
         combined_query = f"{color} {primary_noun}"
-        pixabay_combined = fetch_from_pixabay(combined_query)
+        pixabay_combined = fetch_from_pixabay_hq(combined_query)
         if pixabay_combined:
             img = cv2.imread(str(DATA_DIR / pixabay_combined))
             b = _img_to_b64(img)
             if b:
-                images.append({"label": combined_query, "image_bytes": b, "match_type": "pixabay_combined"})
-        images.append({"label": color, "image_bytes": _color_swatch_bytes(color), "match_type": "color_swatch"})
-        noun_match = find_image(primary_noun)
+                images.append({"label": f"{color} {primary_noun} (photo)", "image_bytes": b, "match_type": "pixabay_combined"})
+
+        # 3. Artificially colored noun (always last)
         if noun_match["path"]:
             colored = apply_color(noun_match["path"], color)
             b = _img_to_b64(colored)
             if b:
                 images.append({"label": f"{color} {primary_noun}", "image_bytes": b, "match_type": "colored"})
+
         if not images:
             return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
         primary = images[-1]
