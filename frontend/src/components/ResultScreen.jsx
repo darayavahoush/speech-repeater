@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { playBase64Audio } from "../utils/api";
+import { friendlyPhoneme } from "../utils/phonemeMap";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
@@ -82,9 +83,10 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
           <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Phoneme Breakdown</p>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             {matches.map((m, i) => (
-              <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "6px 12px", textAlign: "center" }}>
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 700 }}>{m.detected || "—"}</p>
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.7rem", color: t.sub, margin: "2px 0 0 0" }}>/{m.expected}/</p>
+              <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "8px 12px", textAlign: "center", minWidth: "48px" }}>
+                <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{friendlyPhoneme(m.detected || m.expected)}</p>
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: t.sub, margin: "2px 0 0 0", opacity: 0.7 }}>/{m.expected}/</p>
+                {!m.correct && <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.6rem", color: "#E05555", margin: "2px 0 0 0" }}>heard: {friendlyPhoneme(m.detected || "—")}</p>}
               </div>
             ))}
           </div>

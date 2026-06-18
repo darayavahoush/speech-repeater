@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 import { evaluateAttempt } from "../utils/api";
+import { friendlyPhoneme, phonemeExample } from "../utils/phonemeMap";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
@@ -128,7 +129,10 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
             {(wordData?.phonemes || []).map((p, i) => (
-              <span key={i} style={{ background: t.card, border: `1px solid ${t.accent}55`, color: t.accent, fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", padding: "4px 10px", borderRadius: "8px", fontWeight: 700 }}>{p}</span>
+              <div key={i} title={phonemeExample(p)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", background: t.card, border: `1px solid ${t.accent}55`, borderRadius: "10px", padding: "6px 10px", cursor: "default" }}>
+                <span style={{ color: t.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>{friendlyPhoneme(p)}</span>
+                <span style={{ color: t.sub, fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", opacity: 0.7 }}>{p}</span>
+              </div>
             ))}
           </div>
         </div>
