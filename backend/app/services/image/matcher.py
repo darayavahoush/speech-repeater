@@ -524,17 +524,18 @@ def get_image_for_phrase(phrase: str) -> dict:
         return {"found": True, "phrase": phrase, "matched_word": primary["label"], "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
 
     if adjective and primary_noun:
-        adj_match = find_image(adjective)
-        if adj_match["path"]:
-            b = _img_to_b64(cv2.imread(adj_match["path"]))
-            if b:
-                images.append({"label": adjective, "image_bytes": b, "match_type": adj_match["match_type"]})
+        # Adjective first, then noun
         noun_match = find_image(primary_noun)
         if noun_match["path"]:
             img = apply_size(noun_match["path"], size) if size else cv2.imread(noun_match["path"])
             b = _img_to_b64(img)
             if b:
-                images.append({"label": primary_noun, "image_bytes": b, "match_type": noun_match["match_type"]})
+                images.insert(0, {"label": primary_noun, "image_bytes": b, "match_type": noun_match["match_type"]})
+        adj_match = find_image(adjective)
+        if adj_match["path"]:
+            b = _img_to_b64(cv2.imread(adj_match["path"]))
+            if b:
+                images.insert(0, {"label": adjective, "image_bytes": b, "match_type": adj_match["match_type"]})
         if images:
             primary = images[-1]
             return {"found": True, "phrase": phrase, "matched_word": primary["label"], "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
