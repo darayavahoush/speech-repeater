@@ -373,3 +373,4 @@ async def playback_compare(
         "character_audio": __import__("base64").b64encode(character_audio).decode(),
         "target_word": target_word,
     }
+# force rebuild
