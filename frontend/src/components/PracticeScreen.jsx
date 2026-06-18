@@ -21,6 +21,7 @@ export default function PracticeScreen({ character, wordData, sessionId, attempt
   const char = CHARACTERS[character];
   const t = THEMES[character];
   const [showSwitcher, setShowSwitcher] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
 
   document.body.style.background = t.bg;
   document.body.style.transition = "background 0.5s ease";
