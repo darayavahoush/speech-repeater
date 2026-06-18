@@ -82,6 +82,80 @@ def fetch_from_arasaac(word: str) -> str | None:
         print(f"ARASAAC fetch error for {word}: {e}")
     return None
 
+def fetch_from_arasaac_colored(word: str, color: str) -> str | None:
+    """Fetch ARASAAC pictogram with color applied via their API."""
+    try:
+        url = f"{ARASAAC_API}/pictograms/en/search/{word}"
+        res = requests.get(url, timeout=8)
+        if res.status_code == 200:
+            results = res.json()
+            if results:
+                pic_id = results[0]["_id"]
+                # ARASAAC supports color parameter directly
+                img_url = f"{ARASAAC_API}/pictograms/{pic_id}?download=false&color=true"
+                img_res = requests.get(img_url, timeout=8)
+                if img_res.status_code == 200:
+                    filename = f"{color}_{word}_arasaac.png"
+                    filepath = DATA_DIR / filename
+                    with open(filepath, "wb") as f:
+                        f.write(img_res.content)
+                    return filename
+    except Exception as e:
+        print(f"ARASAAC color fetch error for {word}: {e}")
+    return None
+
+
+def fetch_from_openclipart(word: str) -> str | None:
+    """Fetch SVG clipart from OpenClipart API and rasterize to PNG."""
+    try:
+        url = f"https://openclipart.org/search/json/?query={word}&amount=5&offset=0"
+        res = requests.get(url, timeout=8, headers={"User-Agent": "VaakSiddhi/1.0"})
+        if res.status_code != 200:
+            return None
+        results = res.json().get("resources", [])
+        for r in results:
+            svg_url = r.get("svg", {}).get("url")
+            if not svg_url:
+                continue
+            try:
+                svg_res = requests.get(svg_url, timeout=8)
+                if svg_res.status_code == 200:
+                    # Rasterize SVG to PNG using cairosvg if available, else skip
+                    try:
+                        import cairosvg
+                        png_bytes = cairosvg.svg2png(bytestring=svg_res.content, output_width=400, output_height=400)
+                        filename = f"{word}_openclipart.png"
+                        filepath = DATA_DIR / filename
+                        with open(filepath, "wb") as f:
+                            f.write(png_bytes)
+                        _index[word] = filename
+                        save_index()
+                        print(f"OpenClipart image for: {word}")
+                        return filename
+                    except ImportError:
+                        # cairosvg not available — save SVG directly and convert with cv2
+                        import tempfile
+                        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp:
+                            tmp.write(svg_res.content)
+                            tmp_path = tmp.name
+                        # Try imagemagick via subprocess
+                        import subprocess, os
+                        png_path = tmp_path.replace(".svg", ".png")
+                        result = subprocess.run(["convert", "-background", "none", tmp_path, png_path], capture_output=True, timeout=10)
+                        if result.returncode == 0 and os.path.exists(png_path):
+                            filename = f"{word}_openclipart.png"
+                            filepath = DATA_DIR / filename
+                            import shutil
+                            shutil.copy(png_path, filepath)
+                            _index[word] = filename
+                            save_index()
+                            return filename
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"OpenClipart error for {word}: {e}")
+    return None
+
 
 def fetch_from_web(word: str) -> str | None:
     """Fallback: scrape a real image from DuckDuckGo when ARASAAC fails."""
@@ -494,29 +568,43 @@ def get_image_for_phrase(phrase: str) -> dict:
     if color and primary_noun:
         noun_match = find_image(primary_noun)
 
-        # 1. Plain noun + color swatch (always first)
+        # Slide 1: color swatch + plain noun side by side
+        swatch_bytes = _color_swatch_bytes(color)
+        plain_bytes = None
         if noun_match["path"]:
-            plain_img = cv2.imread(noun_match["path"])
-            b = _img_to_b64(plain_img)
-            if b:
-                images.append({"label": primary_noun, "image_bytes": b, "match_type": noun_match["match_type"]})
-        images.append({"label": color, "image_bytes": _color_swatch_bytes(color), "match_type": "color_swatch"})
+            plain_bytes = _img_to_b64(cv2.imread(noun_match["path"]))
+        images.append({
+            "label": f"{color} + {primary_noun}",
+            "image_bytes": swatch_bytes,
+            "image_bytes_2": plain_bytes,
+            "pair": True,
+            "label_1": color,
+            "label_2": primary_noun,
+            "match_type": "color_pair",
+        })
 
-        # 2. Pixabay combined (only if found, shown in middle)
-        combined_query = f"{color} {primary_noun}"
-        pixabay_combined = fetch_from_pixabay_hq(combined_query)
-        if pixabay_combined:
-            img = cv2.imread(str(DATA_DIR / pixabay_combined))
+        # Slide 2: ARASAAC with color param
+        arasaac_col = fetch_from_arasaac_colored(primary_noun, color)
+        if arasaac_col:
+            img = cv2.imread(str(DATA_DIR / arasaac_col))
             b = _img_to_b64(img)
             if b:
-                images.append({"label": f"{color} {primary_noun} (photo)", "image_bytes": b, "match_type": "pixabay_combined"})
+                images.append({"label": f"{color} {primary_noun} (ARASAAC)", "image_bytes": b, "match_type": "arasaac_colored", "pair": False})
 
-        # 3. Artificially colored noun (always last)
+        # Slide 3: OpenClipart
+        oc = fetch_from_openclipart(f"{color} {primary_noun}")
+        if oc:
+            img = cv2.imread(str(DATA_DIR / oc))
+            b = _img_to_b64(img)
+            if b:
+                images.append({"label": f"{color} {primary_noun} (clipart)", "image_bytes": b, "match_type": "openclipart", "pair": False})
+
+        # Slide 4: artificially colored noun
         if noun_match["path"]:
             colored = apply_color(noun_match["path"], color)
             b = _img_to_b64(colored)
             if b:
-                images.append({"label": f"{color} {primary_noun}", "image_bytes": b, "match_type": "colored"})
+                images.append({"label": f"{color} {primary_noun}", "image_bytes": b, "match_type": "colored", "pair": False})
 
         if not images:
             return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
