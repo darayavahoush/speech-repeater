@@ -615,6 +615,27 @@ def get_image_for_phrase(phrase: str) -> dict:
     size = kw["size"]
     images = []
 
+    # Pure color word (e.g. "yellow", "red") — just show swatch + reference
+    if color and (not primary_noun or primary_noun == color):
+        images.append({
+            "label": color,
+            "image_bytes": _color_swatch_bytes(color),
+            "image_bytes_2": None,
+            "pair": False,
+            "match_type": "color_swatch",
+        })
+        # Try to find a reference image for this color
+        wiki = fetch_from_wikimedia(color)
+        if wiki:
+            img = cv2.imread(str(DATA_DIR / wiki))
+            b = _img_to_b64(img)
+            if b:
+                images.append({"label": f"{color} (reference)", "image_bytes": b, "match_type": "wikimedia", "pair": False})
+        if not images:
+            return {"found": False, "phrase": phrase, "match_type": "none", "image_bytes": None, "images": []}
+        primary = images[0]
+        return {"found": True, "phrase": phrase, "matched_word": color, "match_type": primary["match_type"], "image_bytes": primary["image_bytes"], "images": images}
+
     if color and primary_noun:
         noun_match = find_image(primary_noun)
 
