@@ -633,23 +633,15 @@ def get_image_for_phrase(phrase: str) -> dict:
             "match_type": "color_pair",
         })
 
-        # Slide 2: ARASAAC with color param
-        arasaac_col = fetch_from_arasaac_colored(primary_noun, color)
-        if arasaac_col:
-            img = cv2.imread(str(DATA_DIR / arasaac_col))
-            b = _img_to_b64(img)
-            if b:
-                images.append({"label": f"{color} {primary_noun} (ARASAAC)", "image_bytes": b, "match_type": "arasaac_colored", "pair": False})
-
-        # Slide 3: Wikimedia
+        # Slide 2: Wikimedia
         wiki = fetch_from_wikimedia(primary_noun)
         if wiki:
             img = cv2.imread(str(DATA_DIR / wiki))
             b = _img_to_b64(img)
             if b:
-                images.append({"label": f"{color} {primary_noun} (wikimedia)", "image_bytes": b, "match_type": "wikimedia", "pair": False})
+                images.append({"label": f"{primary_noun} (reference)", "image_bytes": b, "match_type": "wikimedia", "pair": False})
 
-        # Slide 4: artificially colored noun
+        # Slide 3: artificially colored noun
         if noun_match["path"]:
             colored = apply_color(noun_match["path"], color)
             b = _img_to_b64(colored)
