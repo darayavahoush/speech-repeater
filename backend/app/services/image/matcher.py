@@ -543,7 +543,10 @@ EMOTION_WORDS = {
 }
 
 COLORS = ["red", "blue", "green", "yellow", "orange", "purple",
-          "pink", "white", "black", "brown", "grey", "gray", "golden", "silver"]
+          "pink", "white", "black", "brown", "grey", "gray", "golden", "silver",
+          "cyan", "magenta", "violet", "indigo", "teal", "turquoise", "maroon",
+          "navy", "olive", "coral", "salmon", "beige", "cream", "ivory",
+          "gold", "bronze", "copper", "lime", "mint", "lavender", "peach"]
 SIZES = ["big", "large", "small", "tiny", "huge", "little"]
 STOP_WORDS = {"a", "an", "the", "is", "are", "was", "were", "this", "that", "these",
               "those", "it", "its", "of", "in", "on", "at", "to", "for", "with", "and", "or"}
@@ -589,11 +592,18 @@ def _img_to_b64(img):
 
 def _color_swatch_bytes(color_name: str):
     COLOR_BGR = {
-        "red": (0, 0, 200), "blue": (200, 100, 0), "green": (0, 180, 0),
+        "red": (0, 0, 210), "blue": (210, 80, 0), "green": (0, 180, 0),
         "yellow": (0, 220, 220), "orange": (0, 140, 255), "purple": (180, 0, 180),
-        "pink": (180, 100, 200), "white": (240, 240, 240), "black": (30, 30, 30),
+        "pink": (180, 100, 220), "white": (240, 240, 240), "black": (30, 30, 30),
         "brown": (30, 80, 130), "grey": (150, 150, 150), "gray": (150, 150, 150),
-        "golden": (0, 200, 230), "silver": (180, 180, 190),
+        "golden": (0, 200, 230), "silver": (180, 180, 190), "gold": (0, 200, 230),
+        "cyan": (220, 210, 0), "magenta": (210, 0, 210), "violet": (200, 0, 150),
+        "indigo": (180, 0, 80), "teal": (160, 160, 0), "turquoise": (180, 200, 0),
+        "maroon": (0, 0, 130), "navy": (140, 30, 0), "olive": (0, 130, 80),
+        "coral": (80, 100, 240), "salmon": (100, 130, 240), "beige": (180, 210, 230),
+        "cream": (200, 230, 240), "ivory": (210, 240, 245), "bronze": (40, 110, 180),
+        "copper": (60, 120, 190), "lime": (0, 220, 100), "mint": (160, 220, 170),
+        "lavender": (220, 170, 200), "peach": (160, 190, 240),
     }
     bgr = COLOR_BGR.get(color_name, (128, 128, 128))
     img = np.ones((200, 200, 3), dtype=np.uint8) * 255
