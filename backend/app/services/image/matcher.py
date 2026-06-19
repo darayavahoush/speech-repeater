@@ -105,6 +105,46 @@ def fetch_from_arasaac_colored(word: str, color: str) -> str | None:
     return None
 
 
+
+def fetch_from_wikimedia(word: str) -> str | None:
+    """Fetch clipart/illustration from Wikimedia Commons — free, no key needed."""
+    try:
+        search_query = f"{word} clipart"
+        url = (
+            f"https://commons.wikimedia.org/w/api.php"
+            f"?action=query&generator=search&gsrnamespace=6"
+            f"&gsrsearch={requests.utils.quote(search_query)}&gsrlimit=5"
+            f"&prop=imageinfo&iiprop=url|mime&format=json"
+        )
+        res = requests.get(url, timeout=8, headers={"User-Agent": "VaakSiddhi/1.0"})
+        if res.status_code != 200:
+            return None
+        pages = res.json().get("query", {}).get("pages", {})
+        for page in pages.values():
+            info = page.get("imageinfo", [{}])[0]
+            img_url = info.get("url", "")
+            mime = info.get("mime", "")
+            # Only use PNG/JPG — skip SVG and PDF
+            if not img_url or mime not in ("image/png", "image/jpeg"):
+                continue
+            try:
+                img_res = requests.get(img_url, timeout=10, headers={"User-Agent": "VaakSiddhi/1.0"})
+                if img_res.status_code == 200:
+                    filename = f"{word.replace(' ', '_')}_wikimedia.png"
+                    filepath = DATA_DIR / filename
+                    arr = np.frombuffer(img_res.content, np.uint8)
+                    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                    if img is None:
+                        continue
+                    cv2.imwrite(str(filepath), img)
+                    print(f"Wikimedia image for: {word}")
+                    return filename
+            except Exception:
+                continue
+    except Exception as e:
+        print(f"Wikimedia error for {word}: {e}")
+    return None
+
 def fetch_from_openclipart(word: str) -> str | None:
     """Fetch SVG clipart from OpenClipart API and rasterize to PNG."""
     try:
@@ -311,10 +351,10 @@ def find_image(word: str) -> dict:
     if filename:
         return {"path": str(DATA_DIR / filename), "word": word, "confidence": 95, "match_type": "arasaac"}
 
-    # 4. OpenClipart
-    filename = fetch_from_openclipart(word)
+    # 4. Wikimedia Commons
+    filename = fetch_from_wikimedia(word)
     if filename:
-        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 88, "match_type": "openclipart"}
+        return {"path": str(DATA_DIR / filename), "word": word, "confidence": 88, "match_type": "wikimedia"}
 
     # 5. Pixabay vector
     filename = fetch_from_pixabay_hq(word)
@@ -601,13 +641,13 @@ def get_image_for_phrase(phrase: str) -> dict:
             if b:
                 images.append({"label": f"{color} {primary_noun} (ARASAAC)", "image_bytes": b, "match_type": "arasaac_colored", "pair": False})
 
-        # Slide 3: OpenClipart
-        oc = fetch_from_openclipart(f"{color} {primary_noun}")
-        if oc:
-            img = cv2.imread(str(DATA_DIR / oc))
+        # Slide 3: Wikimedia
+        wiki = fetch_from_wikimedia(f"{color} {primary_noun}")
+        if wiki:
+            img = cv2.imread(str(DATA_DIR / wiki))
             b = _img_to_b64(img)
             if b:
-                images.append({"label": f"{color} {primary_noun} (clipart)", "image_bytes": b, "match_type": "openclipart", "pair": False})
+                images.append({"label": f"{color} {primary_noun} (wikimedia)", "image_bytes": b, "match_type": "wikimedia", "pair": False})
 
         # Slide 4: artificially colored noun
         if noun_match["path"]:
