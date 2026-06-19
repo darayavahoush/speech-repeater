@@ -116,7 +116,7 @@ def fetch_from_wikimedia(word: str) -> str | None:
             f"&gsrsearch={requests.utils.quote(search_query)}&gsrlimit=5"
             f"&prop=imageinfo&iiprop=url|mime&format=json"
         )
-        res = requests.get(url, timeout=8, headers={"User-Agent": "VaakSiddhi/1.0"})
+        res = requests.get(url, timeout=4, headers={"User-Agent": "VaakSiddhi/1.0"})
         if res.status_code != 200:
             return None
         pages = res.json().get("query", {}).get("pages", {})
@@ -128,7 +128,7 @@ def fetch_from_wikimedia(word: str) -> str | None:
             if not img_url or mime not in ("image/png", "image/jpeg"):
                 continue
             try:
-                img_res = requests.get(img_url, timeout=10, headers={"User-Agent": "VaakSiddhi/1.0"})
+                img_res = requests.get(img_url, timeout=5, headers={"User-Agent": "VaakSiddhi/1.0"})
                 if img_res.status_code == 200:
                     filename = f"{word.replace(' ', '_')}_wikimedia.png"
                     filepath = DATA_DIR / filename
@@ -149,7 +149,7 @@ def fetch_from_openclipart(word: str) -> str | None:
     """Fetch SVG clipart from OpenClipart API and rasterize to PNG."""
     try:
         url = f"https://openclipart.org/search/json/?query={word}&amount=5&offset=0"
-        res = requests.get(url, timeout=8, headers={"User-Agent": "VaakSiddhi/1.0"})
+        res = requests.get(url, timeout=4, headers={"User-Agent": "VaakSiddhi/1.0"})
         if res.status_code != 200:
             return None
         results = res.json().get("resources", [])
@@ -642,7 +642,7 @@ def get_image_for_phrase(phrase: str) -> dict:
                 images.append({"label": f"{color} {primary_noun} (ARASAAC)", "image_bytes": b, "match_type": "arasaac_colored", "pair": False})
 
         # Slide 3: Wikimedia
-        wiki = fetch_from_wikimedia(f"{color} {primary_noun}")
+        wiki = fetch_from_wikimedia(primary_noun)
         if wiki:
             img = cv2.imread(str(DATA_DIR / wiki))
             b = _img_to_b64(img)
