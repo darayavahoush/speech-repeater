@@ -72,6 +72,24 @@ WORD_DICT = {
     "ಮಲಗು": "sleep", "ಆಡು": "play", "ನಡೆ": "walk", "ಹಾಡು": "sing",
 }
 
+
+def translate_to_language(text: str, language: str) -> str:
+    """Translate text to target language using MyMemory API."""
+    if language == "english" or not text:
+        return text
+    try:
+        lang_code = "hi" if language == "hindi" else "kn"
+        import urllib.parse
+        url = f"https://api.mymemory.translated.net/get?q={urllib.parse.quote(text)}&langpair=en|{lang_code}"
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            translated = res.json().get("responseData", {}).get("translatedText", "")
+            if translated and translated.lower() != text.lower():
+                return translated
+    except Exception as e:
+        print(f"Translation error: {e}")
+    return text
+
 def word_to_english(word: str, language: str) -> str:
     """Translate a word to English for image lookup."""
     if language == "english":
@@ -417,6 +435,7 @@ async def evaluate(
             drill_sequence = build_drill_sequence(struggling, condition)
 
         # Generate character response audio
+        encouragement["message"] = translate_to_language(encouragement["message"], language)
         response_audio = speak(encouragement["message"], character, encouragement["mood"], language=language)
 
         return {
