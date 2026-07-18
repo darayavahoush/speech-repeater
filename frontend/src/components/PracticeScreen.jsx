@@ -160,8 +160,8 @@ export default function PracticeScreen({ character, language = "english", wordDa
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
             {(wordData?.phonemes || []).map((p, i) => (
               <div key={i} title={phonemeExample(p)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", background: t.card, border: `1px solid ${t.accent}55`, borderRadius: "10px", padding: "6px 10px", cursor: "default" }}>
-                <span style={{ color: t.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>{friendlyPhoneme(p)}</span>
-                <span style={{ color: t.sub, fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", opacity: 0.7 }}>{p}</span>
+                <span style={{ color: t.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>{language === "english" ? friendlyPhoneme(p) : p}</span>
+                {language === "english" && <span style={{ color: t.sub, fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", opacity: 0.7 }}>{p}</span>}
               </div>
             ))}
           </div>
