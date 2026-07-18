@@ -42,7 +42,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
             {t(language, "chooseCharacter")}
           </h1>
           <p style={{ color: theme.sub, fontSize: "0.9rem", transition: "color 0.5s ease" }}>
-            {selected ? `${CHARACTERS[selected].tagline} ✨` : t(language, "chooseCharacterSub")}
+            {selected ? `${CHARACTERS[selected][language === "hindi" ? "tagline_hindi" : language === "kannada" ? "tagline_kannada" : "tagline"] || CHARACTERS[selected].tagline} ✨` : t(language, "chooseCharacterSub")}
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
                     {char.name}
                   </p>
                   <p style={{ color: isSelected ? ct.sub : "#888", fontSize: "0.78rem", margin: "0 0 10px 0", lineHeight: 1.4, transition: "color 0.35s" }}>
-                    {char.tagline}
+                    {char[language === "hindi" ? "tagline_hindi" : language === "kannada" ? "tagline_kannada" : "tagline"] || char.tagline}
                   </p>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{
