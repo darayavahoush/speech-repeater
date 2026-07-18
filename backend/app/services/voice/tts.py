@@ -57,6 +57,27 @@ INTRO_LINES = {
     "MIRA": "Hi friend! I am Mira, your friendly underwater robot. Let us explore words today!",
 }
 
+
+def _romanize(text: str, language: str) -> str:
+    """Convert Hindi/Kannada script to romanized form for Kokoro TTS."""
+    if language == "english":
+        return text
+    try:
+        from indic_transliteration import sanscript
+        from indic_transliteration.sanscript import transliterate
+        if language == "hindi":
+            result = transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
+        elif language == "kannada":
+            result = transliterate(text, sanscript.KANNADA, sanscript.ITRANS)
+        else:
+            return text
+        result = result.lower().replace("aa", "a").replace("ii", "ee").replace("uu", "oo")
+        print(f"Romanized '{text}' -> '{result}'")
+        return result
+    except Exception as e:
+        print(f"Romanize error: {e}")
+        return text
+
 def _is_question(text: str) -> bool:
     t = text.strip()
     question_words = ("shall", "can", "could", "would", "should", "is", "are", "do", "does", "did", "ready", "want")
@@ -82,6 +103,7 @@ def _apply_ffmpeg(raw_bytes: bytes, filters: str) -> bytes:
             os.unlink(out_tmp.name)
 
 def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpeg_question: str = "", language: str = "english") -> bytes:
+    text = _romanize(text, language)
     samples, sample_rate = kokoro.create(text, voice=voice, speed=speed, lang="en-us")
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wf:
