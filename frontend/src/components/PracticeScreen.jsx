@@ -3,6 +3,7 @@ import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 import { evaluateAttempt } from "../utils/api";
 import { friendlyPhoneme, phonemeExample } from "../utils/phonemeMap";
+import { t } from "../utils/i18n";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
@@ -13,7 +14,7 @@ const THEMES = {
   MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
 };
 
-export default function PracticeScreen({ character, wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter }) {
+export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter }) {
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
