@@ -121,7 +121,7 @@ def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpe
     return raw_bytes
 
 def speak_word(word: str, speed: float = 1.0, voice: str = "hf_alpha", language: str = "english") -> bytes:
-    key = f"word_{word}_{speed}_{voice}"
+    key = f"word_{word}_{speed}_{voice}_{language}"
     if key not in _cache:
         _cache[key] = _render(word, voice, speed, language=language)
     return _cache[key]
@@ -139,7 +139,7 @@ def speak(text: str, character: str = "BOLT", mood: str = "default", speed: floa
     char = character.upper()
     cfg = CHARACTERS.get(char, CHARACTERS["BOLT"])
     s = speed if speed is not None else cfg["speed"]
-    key = f"speak_{char}_{mood}_{text[:30]}_{s}"
+    key = f"speak_{char}_{mood}_{language}_{text[:30]}_{s}"
     if key not in _cache:
         _cache[key] = _render(text, cfg["voice"], s, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""), language=language)
     return _cache[key]

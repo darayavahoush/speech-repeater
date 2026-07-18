@@ -183,11 +183,12 @@ async def get_characters_endpoint():
 @app.post("/speak/word")
 async def speak_word_endpoint(
     word: str = Form(...),
-    speed: float = Form(default=1.0)
+    speed: float = Form(default=1.0),
+    language: str = Form(default="english")
 ):
     """Pronounce a word using XTTS Indian accent voice."""
     from app.services.voice.tts import speak_word, speak, speak_intro
-    audio_bytes = speak_word(word, speed)
+    audio_bytes = speak_word(word, speed, language=language)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 
@@ -222,8 +223,8 @@ async def phonemes(word: str = Form(...), language: str = Form(default="english"
     return {"word": word, "phonemes": phones, "language": language}
 
 @app.post("/speak")
-async def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default"), speed: float = Form(default=1.0)):
-    audio_bytes = speak(text, character, mood, speed)
+async def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default"), speed: float = Form(default=1.0), language: str = Form(default="english")):
+    audio_bytes = speak(text, character, mood, speed, language=language)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 @app.post("/image")
@@ -323,7 +324,7 @@ async def input_word(
 
     # Step 3: generate character audio
     prompt = f"The word is. {word}. {word}."
-    audio_bytes = speak(prompt, character, mood)
+    audio_bytes = speak(prompt, character, mood, language=language)
 
     # Step 4: get image
     english_word = word_to_english(word, language)
@@ -416,7 +417,7 @@ async def evaluate(
             drill_sequence = build_drill_sequence(struggling, condition)
 
         # Generate character response audio
-        response_audio = speak(encouragement["message"], character, encouragement["mood"])
+        response_audio = speak(encouragement["message"], character, encouragement["mood"], language=language)
 
         return {
             **result_dict,
