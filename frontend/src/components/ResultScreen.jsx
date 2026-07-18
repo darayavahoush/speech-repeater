@@ -4,7 +4,6 @@ import { playBase64Audio } from "../utils/api";
 import { t } from "../utils/i18n";
 import { friendlyPhoneme } from "../utils/phonemeMap";
 import { displayPhoneme } from "../utils/phonemeMapIndic";
-import { friendlyPhoneme } from "../utils/phonemeMap";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
