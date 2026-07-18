@@ -39,7 +39,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
       <div style={{ width: "100%", maxWidth: "520px" }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2rem", fontWeight: 900, color: theme.text, marginBottom: "6px", transition: "color 0.5s ease" }}>
-            Choose Your Friend
+            {t(language, "chooseCharacter")}
           </h1>
           <p style={{ color: theme.sub, fontSize: "0.9rem", transition: "color 0.5s ease" }}>
             {selected ? `${CHARACTERS[selected].tagline} ✨` : t(language, "chooseCharacterSub")}
