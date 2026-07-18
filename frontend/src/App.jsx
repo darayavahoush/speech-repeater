@@ -1,11 +1,13 @@
 import { useState } from "react";
 import CharacterSelect from "./components/CharacterSelect";
+import LanguageSelect from "./components/LanguageSelect";
 import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
 import DrillScreen from "./components/DrillScreen";
 
 const SCREENS = {
+  LANGUAGE_SELECT: "language_select",
   CHARACTER_SELECT: "character_select",
   THERAPIST_INPUT: "therapist_input",
   PRACTICE: "practice",
@@ -14,7 +16,8 @@ const SCREENS = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState(SCREENS.CHARACTER_SELECT);
+  const [screen, setScreen] = useState(SCREENS.LANGUAGE_SELECT);
+  const [language, setLanguage] = useState("english");
   const [character, setCharacter] = useState(null);
   const [wordData, setWordData] = useState(null);
   const [result, setResult] = useState(null);
@@ -26,6 +29,11 @@ export default function App() {
 });
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
+
+  const handleLanguageSelect = (lang) => {
+    setLanguage(lang);
+    setScreen(SCREENS.CHARACTER_SELECT);
+  };
 
   const handleCharacterSelect = (charId) => {
     setCharacter(charId);
@@ -77,15 +85,19 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", background: "transparent" }}>
+      {screen === SCREENS.LANGUAGE_SELECT && (
+        <LanguageSelect onSelect={handleLanguageSelect} />
+      )}
       {screen === SCREENS.CHARACTER_SELECT && (
         <CharacterSelect onSelect={handleCharacterSelect} />
       )}
       {screen === SCREENS.THERAPIST_INPUT && (
-        <TherapistInput character={character} onWordReady={handleWordReady} onSwitchCharacter={setCharacter} />
+        <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={setCharacter} />
       )}
       {screen === SCREENS.PRACTICE && (
         <PracticeScreen
           character={character}
+          language={language}
           wordData={wordData}
           sessionId={sessionId}
           attemptNumber={attemptNumber}
@@ -97,6 +109,7 @@ export default function App() {
       {screen === SCREENS.RESULT && (
         <ResultScreen
           character={character}
+          language={language}
           result={result}
           childAudioUrl={childAudioUrl}
           onRetry={handleRetry}
@@ -107,6 +120,7 @@ export default function App() {
       {screen === SCREENS.DRILL && (
         <DrillScreen
           character={character}
+          language={language}
           drillSequence={drillSequence}
           onComplete={handleDrillComplete}
           onSwitchCharacter={setCharacter}
