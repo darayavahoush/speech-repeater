@@ -39,6 +39,28 @@ g2p = G2p()
 epi_hindi = epitran.Epitran("hin-Deva")
 epi_kannada = epitran.Epitran("kan-Knda")
 
+
+def word_to_english(word: str, language: str) -> str:
+    """Translate a word to English for image lookup."""
+    if language == "english":
+        return word
+    try:
+        from transformers import pipeline
+        if language == "hindi":
+            model = "Helsinki-NLP/opus-mt-hi-en"
+        elif language == "kannada":
+            model = "Helsinki-NLP/opus-mt-dra-en"
+        else:
+            return word
+        translator = pipeline("translation", model=model)
+        result = translator(word, max_length=50)
+        translated = result[0]["translation_text"].lower().strip()
+        print(f"Translated '{word}' ({language}) -> '{translated}'")
+        return translated
+    except Exception as e:
+        print(f"Translation error: {e}")
+        return word
+
 def get_phonemes(word: str, language: str) -> list:
     if language == "hindi":
         return list(epi_hindi.trans_list(word))
@@ -269,7 +291,8 @@ async def input_word(
     audio_bytes = speak(prompt, character, mood)
 
     # Step 4: get image
-    image_result = get_image_for_phrase(word)
+    english_word = word_to_english(word, language)
+    image_result = get_image_for_phrase(english_word)
 
     images = []
     for img in image_result.get("images", []):
