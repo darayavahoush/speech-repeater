@@ -40,26 +40,61 @@ epi_hindi = epitran.Epitran("hin-Deva")
 epi_kannada = epitran.Epitran("kan-Knda")
 
 
+# Common word dictionary for image lookup
+WORD_DICT = {
+    # Hindi
+    "बिल्ली": "cat", "कुत्ता": "dog", "पक्षी": "bird", "मछली": "fish",
+    "गाय": "cow", "हाथी": "elephant", "शेर": "lion", "बाघ": "tiger",
+    "बंदर": "monkey", "खरगोश": "rabbit", "बतख": "duck", "मेंढक": "frog",
+    "सेब": "apple", "केला": "banana", "आम": "mango", "चावल": "rice",
+    "रोटी": "bread", "दूध": "milk", "अंडा": "egg", "पानी": "water",
+    "संतरा": "orange", "अंगूर": "grape", "लाल": "red", "नीला": "blue",
+    "हरा": "green", "पीला": "yellow", "नारंगी": "orange", "सफेद": "white",
+    "काला": "black", "माँ": "mother", "पापा": "father", "बच्चा": "baby",
+    "बहन": "sister", "भाई": "brother", "दादी": "grandmother", "दादा": "grandfather",
+    "गेंद": "ball", "किताब": "book", "बैग": "bag", "कुर्सी": "chair",
+    "मेज़": "table", "कप": "cup", "जूता": "shoe", "पेड़": "tree", "फूल": "flower",
+    "दौड़ना": "run", "कूदना": "jump", "खाना": "eat", "पीना": "drink",
+    "सोना": "sleep", "खेलना": "play", "चलना": "walk", "गाना": "sing",
+    # Kannada
+    "ಬೆಕ್ಕು": "cat", "ನಾಯಿ": "dog", "ಹಕ್ಕಿ": "bird", "ಮೀನು": "fish",
+    "ಹಸು": "cow", "ಆನೆ": "elephant", "ಸಿಂಹ": "lion", "ಹುಲಿ": "tiger",
+    "ಕೋತಿ": "monkey", "ಮೊಲ": "rabbit", "ಬಾತುಕೋಳಿ": "duck", "ಕಪ್ಪೆ": "frog",
+    "ಸೇಬು": "apple", "ಬಾಳೆಹಣ್ಣು": "banana", "ಮಾವಿನಹಣ್ಣು": "mango", "ಅನ್ನ": "rice",
+    "ರೊಟ್ಟಿ": "bread", "ಹಾಲು": "milk", "ಮೊಟ್ಟೆ": "egg", "ನೀರು": "water",
+    "ಕಿತ್ತಳೆ": "orange", "ದ್ರಾಕ್ಷಿ": "grape", "ಕೆಂಪು": "red", "ನೀಲಿ": "blue",
+    "ಹಸಿರು": "green", "ಹಳದಿ": "yellow", "ಬಿಳಿ": "white", "ಕಪ್ಪು": "black",
+    "ಅಮ್ಮ": "mother", "ಅಪ್ಪ": "father", "ಮಗು": "baby", "ತಂಗಿ": "sister",
+    "ಅಣ್ಣ": "brother", "ಅಜ್ಜಿ": "grandmother", "ತಾತ": "grandfather",
+    "ಚೆಂಡು": "ball", "ಪುಸ್ತಕ": "book", "ಚೀಲ": "bag", "ಕುರ್ಚಿ": "chair",
+    "ಮೇಜು": "table", "ಕಪ್": "cup", "ಚಪ್ಪಲಿ": "shoe", "ಮರ": "tree", "ಹೂವು": "flower",
+    "ಓಡು": "run", "ಜಿಗಿ": "jump", "ತಿನ್ನು": "eat", "ಕುಡಿ": "drink",
+    "ಮಲಗು": "sleep", "ಆಡು": "play", "ನಡೆ": "walk", "ಹಾಡು": "sing",
+}
+
 def word_to_english(word: str, language: str) -> str:
     """Translate a word to English for image lookup."""
     if language == "english":
         return word
-    try:
-        from transformers import pipeline
-        if language == "hindi":
-            model = "Helsinki-NLP/opus-mt-hi-en"
-        elif language == "kannada":
-            model = "Helsinki-NLP/opus-mt-dra-en"
-        else:
-            return word
-        translator = pipeline("translation", model=model)
-        result = translator(word, max_length=50)
-        translated = result[0]["translation_text"].lower().strip()
-        print(f"Translated '{word}' ({language}) -> '{translated}'")
+    # Check dictionary first
+    if word in WORD_DICT:
+        translated = WORD_DICT[word]
+        print(f"Dict translated '{word}' -> '{translated}'")
         return translated
+    # Try MyMemory free translation API as fallback
+    try:
+        lang_code = "hi" if language == "hindi" else "kn"
+        url = f"https://api.mymemory.translated.net/get?q={word}&langpair={lang_code}|en"
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            translated = data.get("responseData", {}).get("translatedText", "").lower().strip()
+            if translated and translated != word:
+                print(f"API translated '{word}' -> '{translated}'")
+                return translated
     except Exception as e:
-        print(f"Translation error: {e}")
-        return word
+        print(f"Translation API error: {e}")
+    return word
 
 def get_phonemes(word: str, language: str) -> list:
     if language == "hindi":
