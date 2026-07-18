@@ -81,7 +81,7 @@ def _apply_ffmpeg(raw_bytes: bytes, filters: str) -> bytes:
         if os.path.exists(out_tmp.name):
             os.unlink(out_tmp.name)
 
-def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpeg_question: str = "") -> bytes:
+def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpeg_question: str = "", language: str = "english") -> bytes:
     samples, sample_rate = kokoro.create(text, voice=voice, speed=speed, lang="en-us")
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wf:
