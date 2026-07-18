@@ -1,0 +1,48 @@
+// IPA → Hindi (Devanagari) phoneme display
+export const IPA_TO_HINDI = {
+  // Vowels
+  'a': 'अ', 'aː': 'आ', 'i': 'इ', 'iː': 'ई',
+  'u': 'उ', 'uː': 'ऊ', 'e': 'ए', 'o': 'ओ',
+  'ə': 'अ', 'ɛ': 'ए', 'ɔ': 'ओ',
+  // Consonants
+  'b': 'ब', 'bʱ': 'भ', 'p': 'प', 'pʱ': 'फ',
+  'd': 'द', 'dʱ': 'ध', 't': 'त', 'tʱ': 'थ',
+  'ɖ': 'ड', 'ɖʱ': 'ढ', 'ʈ': 'ट', 'ʈʱ': 'ठ',
+  'g': 'ग', 'gʱ': 'घ', 'k': 'क', 'kʱ': 'ख',
+  'm': 'म', 'n': 'न', 'ŋ': 'ङ', 'ɳ': 'ण',
+  'l': 'ल', 'r': 'र', 'ɾ': 'र', 'ɽ': 'ड़',
+  'v': 'व', 'w': 'व', 'j': 'य',
+  's': 'स', 'ʃ': 'श', 'ʂ': 'ष', 'z': 'ज़',
+  'h': 'ह', 'f': 'फ़', 'x': 'ख़',
+  'tʃ': 'च', 'tʃʱ': 'छ', 'dʒ': 'ज', 'dʒʱ': 'झ',
+};
+
+// IPA → Kannada script phoneme display  
+export const IPA_TO_KANNADA = {
+  // Vowels
+  'a': 'ಅ', 'aː': 'ಆ', 'i': 'ಇ', 'iː': 'ಈ',
+  'u': 'ಉ', 'uː': 'ಊ', 'e': 'ಎ', 'eː': 'ಏ',
+  'o': 'ಒ', 'oː': 'ಓ', 'ə': 'ಅ',
+  // Consonants
+  'b': 'ಬ', 'bʱ': 'ಭ', 'p': 'ಪ', 'pʱ': 'ಫ',
+  'd': 'ದ', 'dʱ': 'ಧ', 't': 'ತ', 'tʱ': 'ಥ',
+  'ɖ': 'ಡ', 'ɖʱ': 'ಢ', 'ʈ': 'ಟ', 'ʈʱ': 'ಠ',
+  'g': 'ಗ', 'gʱ': 'ಘ', 'k': 'ಕ', 'kʱ': 'ಖ',
+  'm': 'ಮ', 'n': 'ನ', 'ŋ': 'ಙ', 'ɳ': 'ಣ',
+  'l': 'ಲ', 'ɭ': 'ಳ', 'r': 'ರ', 'ɾ': 'ರ',
+  'v': 'ವ', 'w': 'ವ', 'j': 'ಯ',
+  's': 'ಸ', 'ʃ': 'ಶ', 'ʂ': 'ಷ',
+  'h': 'ಹ', 'f': 'ಫ',
+  'tʃ': 'ಚ', 'tʃʱ': 'ಛ', 'dʒ': 'ಜ', 'dʒʱ': 'ಝ',
+};
+
+export function displayPhoneme(p, language) {
+  if (language === "hindi") {
+    return IPA_TO_HINDI[p] || p;
+  }
+  if (language === "kannada") {
+    return IPA_TO_KANNADA[p] || p;
+  }
+  // English — use existing ARPAbet friendly map
+  return null; // will fall through to existing friendlyPhoneme
+}

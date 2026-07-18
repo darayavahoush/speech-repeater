@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { playBase64Audio } from "../utils/api";
+import { t } from "../utils/i18n";
+import { friendlyPhoneme } from "../utils/phonemeMap";
+import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { friendlyPhoneme } from "../utils/phonemeMap";
 
 const THEMES = {
@@ -12,7 +15,7 @@ const THEMES = {
   MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
 };
 
-export default function ResultScreen({ character, result, onRetry, onNextWord, onDrill, childAudioUrl }) {
+export default function ResultScreen({ character, language = "english", result, onRetry, onNextWord, onDrill, childAudioUrl }) {
   const char = CHARACTERS[character];
   const t = THEMES[character];
   const score = result?.composite_score ?? 0;
@@ -27,7 +30,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
 
   const scoreColor = score >= 80 ? "#4CAF7D" : score >= 60 ? "#E8A020" : "#E05555";
   const scoreBg = score >= 80 ? "#E8F7EE" : score >= 60 ? "#FDF3E0" : "#FDEAEA";
-  const scoreLabel = score >= 80 ? "🌟 Excellent!" : score >= 60 ? "👍 Good effort!" : "💪 Keep trying!";
+  const scoreLabel = score >= 80 ? t(language, "excellent") : score >= 60 ? t(language, "goodEffort") : t(language, "keepTrying");
 
   useEffect(() => {
     if (result?.character_response_audio) {
@@ -84,7 +87,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             {matches.map((m, i) => (
               <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "8px 12px", textAlign: "center", minWidth: "48px" }}>
-                <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{friendlyPhoneme(m.detected || m.expected)}</p>
+                <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{language === "english" ? friendlyPhoneme(m.detected || m.expected) : (displayPhoneme(m.detected || m.expected, language) || m.detected || m.expected)}</p>
                 <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: t.sub, margin: "2px 0 0 0", opacity: 0.7 }}>/{m.expected}/</p>
                 {!m.correct && <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.6rem", color: "#E05555", margin: "2px 0 0 0" }}>heard: {friendlyPhoneme(m.detected || "—")}</p>}
               </div>
@@ -101,10 +104,10 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
           <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: "uppercase" }}>Compare Voices</p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={playChildAudio} disabled={playingChild || !childAudioUrl} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "12px", color: t.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
-              {playingChild ? "Playing..." : "🎧 Your voice"}
+              {playingChild ? "..." : t(language, "yourVoice")}
             </button>
             <button onClick={playCharAudio} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}66`, borderRadius: "10px", padding: "12px", color: t.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
-              {playingChar ? "Playing..." : `🔊 ${char.name}`}
+              {playingChar ? "..." : `🔊 ${char.name}`}
             </button>
           </div>
         </div>
@@ -121,7 +124,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
         )}
 
         {score < 80 && matches.filter(m => !m.correct).length > 0 && (
-          <PhonemeHelp matches={matches} char={char} t={t} />
+          <PhonemeHelp matches={matches} char={char} t={t} language={language} />
         )}
 
         {result?.feedback && (
@@ -158,7 +161,7 @@ export default function ResultScreen({ character, result, onRetry, onNextWord, o
   );
 }
 
-function PhonemeHelp({ matches, char, t }) {
+function PhonemeHelp({ matches, char, t, language = "english" }) {
   const [cards, setCards] = useState({});
   const wrongPhonemes = matches.filter(m => !m.correct).map(m => m.expected);
 
