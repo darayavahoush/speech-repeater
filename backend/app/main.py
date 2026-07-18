@@ -37,10 +37,13 @@ print("Whisper loaded.")
 
 g2p = G2p()
 epi_hindi = epitran.Epitran("hin-Deva")
+epi_kannada = epitran.Epitran("kan-Knda")
 
 def get_phonemes(word: str, language: str) -> list:
     if language == "hindi":
         return list(epi_hindi.trans_list(word))
+    if language == "kannada":
+        return list(epi_kannada.trans_list(word))
     phones = g2p(word)
     return [p.rstrip("012") for p in phones if p.strip() and p not in [" ", ""]]
 
@@ -91,6 +94,30 @@ CHAR_VOICES = {
 async def speak_intro_endpoint(character: str):
     audio_bytes = speak_intro(character)
     return Response(content=audio_bytes, media_type="audio/wav")
+
+
+@app.post("/translate")
+async def translate_word(
+    text: str = Form(...),
+    target_language: str = Form(default="hindi"),
+):
+    """Translate English word to target language using Helsinki-NLP."""
+    try:
+        from transformers import pipeline
+        if target_language == "hindi":
+            model = "Helsinki-NLP/opus-mt-en-hi"
+        elif target_language == "kannada":
+            model = "Helsinki-NLP/opus-mt-en-dra"
+        else:
+            return {"translated": text}
+        
+        translator = pipeline("translation", model=model)
+        result = translator(text, max_length=100)
+        translated = result[0]["translation_text"]
+        return {"translated": translated, "original": text, "language": target_language}
+    except Exception as e:
+        print(f"Translation error: {e}")
+        return {"translated": text, "error": str(e)}
 
 @app.get("/characters")
 async def get_characters_endpoint():
@@ -184,7 +211,8 @@ async def compare(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
+        whisper_lang = "hi" if language == "hindi" else "kn" if language == "kannada" else "en"
+        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
@@ -291,7 +319,8 @@ async def evaluate(
     tmp_path = tmp_wav.name
 
     try:
-        segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
+        whisper_lang = "hi" if language == "hindi" else "kn" if language == "kannada" else "en"
+        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
