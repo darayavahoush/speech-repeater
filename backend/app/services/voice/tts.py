@@ -102,8 +102,39 @@ def _apply_ffmpeg(raw_bytes: bytes, filters: str) -> bytes:
         if os.path.exists(out_tmp.name):
             os.unlink(out_tmp.name)
 
+def _render_gtts(text: str, language: str, ffmpeg_filters: str = "") -> bytes:
+    """Use gTTS for Hindi/Kannada TTS."""
+    from gtts import gTTS
+    import io
+    lang_code = "hi" if language == "hindi" else "kn"
+    tts = gTTS(text, lang=lang_code, slow=False)
+    mp3_buf = io.BytesIO()
+    tts.write_to_fp(mp3_buf)
+    mp3_buf.seek(0)
+    # Convert mp3 to wav using ffmpeg
+    in_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+    in_tmp.write(mp3_buf.read())
+    in_tmp.close()
+    out_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    out_tmp.close()
+    try:
+        cmd = ["ffmpeg", "-y", "-i", in_tmp.name, "-ar", "24000", out_tmp.name]
+        subprocess.run(cmd, check=True, capture_output=True)
+        with open(out_tmp.name, "rb") as f:
+            wav_bytes = f.read()
+        if ffmpeg_filters:
+            wav_bytes = _apply_ffmpeg(wav_bytes, ffmpeg_filters)
+        return wav_bytes
+    finally:
+        os.unlink(in_tmp.name)
+        if os.path.exists(out_tmp.name):
+            os.unlink(out_tmp.name)
+
+
 def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpeg_question: str = "", language: str = "english") -> bytes:
-    text = _romanize(text, language)
+    if language in ("hindi", "kannada"):
+        filters = ffmpeg_question if (ffmpeg_question and _is_question(text)) else ffmpeg_filters
+        return _render_gtts(text, language, filters)
     samples, sample_rate = kokoro.create(text, voice=voice, speed=speed, lang="en-us")
     buf = io.BytesIO()
     with wave.open(buf, "wb") as wf:
