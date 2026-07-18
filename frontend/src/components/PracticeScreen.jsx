@@ -33,6 +33,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
       const form = new FormData();
       form.append("word", wordData.word);
       form.append("speed", String(speed));
+      form.append("language", language);
       const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak/word", { method: "POST", body: form });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
