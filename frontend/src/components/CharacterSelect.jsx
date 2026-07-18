@@ -67,7 +67,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
                 {isSelected && (
                   <div style={{
                     position: "absolute", inset: 0, borderRadius: "20px",
-                    background: `radial-gradient(circle at 15% 50%, ${t.accent}20 0%, transparent 65%)`,
+                    background: `radial-gradient(circle at 15% 50%, ${THEMES[char.id].accent}20 0%, transparent 65%)`,
                     pointerEvents: "none",
                   }} />
                 )}
