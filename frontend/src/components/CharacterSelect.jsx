@@ -50,24 +50,24 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
           {Object.values(CHARACTERS).map((char) => {
             const isSelected = selected === char.id;
             const isPreviewing = previewing === char.id;
-            const t = THEMES[char.id];
+            const ct = THEMES[char.id];
             return (
               <div key={char.id}
                 onClick={() => setSelected(char.id)}
                 style={{
-                  background: isSelected ? t.card : "rgba(255,255,255,0.6)",
-                  border: `2px solid ${isSelected ? t.accent : "rgba(0,0,0,0.08)"}`,
+                  background: isSelected ? ct.card : "rgba(255,255,255,0.6)",
+                  border: `2px solid ${isSelected ? ct.accent : "rgba(0,0,0,0.08)"}`,
                   borderRadius: "22px", padding: "14px 20px 14px 14px",
                   cursor: "pointer", transition: "all 0.35s ease",
                   display: "flex", flexDirection: "row", alignItems: "center", gap: "16px",
                   position: "relative", overflow: "hidden",
-                  boxShadow: isSelected ? `0 4px 24px ${t.accent}33` : "0 2px 8px rgba(0,0,0,0.06)",
+                  boxShadow: isSelected ? `0 4px 24px ${ct.accent}33` : "0 2px 8px rgba(0,0,0,0.06)",
                 }}>
 
                 {isSelected && (
                   <div style={{
                     position: "absolute", inset: 0, borderRadius: "20px",
-                    background: `radial-gradient(circle at 15% 50%, ${THEMES[char.id].accent}20 0%, transparent 65%)`,
+                    background: `radial-gradient(circle at 15% 50%, ${ct.accent}20 0%, transparent 65%)`,
                     pointerEvents: "none",
                   }} />
                 )}
@@ -81,25 +81,25 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
                 }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.25rem", fontWeight: 900, color: isSelected ? t.text : "#2C2C2A", margin: "0 0 4px 0", transition: "color 0.35s" }}>
+                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.25rem", fontWeight: 900, color: isSelected ? ct.text : "#2C2C2A", margin: "0 0 4px 0", transition: "color 0.35s" }}>
                     {char.name}
                   </p>
-                  <p style={{ color: isSelected ? t.sub : "#888", fontSize: "0.78rem", margin: "0 0 10px 0", lineHeight: 1.4, transition: "color 0.35s" }}>
+                  <p style={{ color: isSelected ? ct.sub : "#888", fontSize: "0.78rem", margin: "0 0 10px 0", lineHeight: 1.4, transition: "color 0.35s" }}>
                     {char.tagline}
                   </p>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{
-                      background: `${t.accent}22`, border: `1px solid ${t.accent}55`,
+                      background: `${ct.accent}22`, border: `1px solid ${ct.accent}55`,
                       borderRadius: "20px", padding: "3px 10px",
-                      fontSize: "0.62rem", color: t.sub, fontWeight: 700,
+                      fontSize: "0.62rem", color: ct.sub, fontWeight: 700,
                       textTransform: "uppercase", letterSpacing: "0.06em",
                     }}>{char.type}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); handlePreview(char.id); }}
                       style={{
-                        background: isPreviewing ? t.accent : "transparent",
-                        color: isPreviewing ? "#fff" : t.accent,
-                        border: `1.5px solid ${t.accent}`,
+                        background: isPreviewing ? ct.accent : "transparent",
+                        color: isPreviewing ? "#fff" : ct.accent,
+                        border: `1.5px solid ${ct.accent}`,
                         borderRadius: "10px", padding: "4px 12px",
                         fontSize: "0.7rem", fontWeight: 700, cursor: "pointer",
                         transition: "all 0.2s", fontFamily: "Nunito, sans-serif",
@@ -112,9 +112,9 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
                 {isSelected && (
                   <div style={{
                     width: "30px", height: "30px", borderRadius: "50%",
-                    background: t.accent, display: "flex", alignItems: "center",
+                    background: ct.accent, display: "flex", alignItems: "center",
                     justifyContent: "center", flexShrink: 0,
-                    boxShadow: `0 2px 8px ${t.accent}55`,
+                    boxShadow: `0 2px 8px ${ct.accent}55`,
                   }}>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                       <path d="M2 7l4 4 6-6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
