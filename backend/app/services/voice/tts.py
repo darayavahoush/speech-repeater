@@ -98,10 +98,10 @@ def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpe
         return _apply_ffmpeg(raw_bytes, ffmpeg_filters)
     return raw_bytes
 
-def speak_word(word: str, speed: float = 1.0, voice: str = "hf_alpha") -> bytes:
+def speak_word(word: str, speed: float = 1.0, voice: str = "hf_alpha", language: str = "english") -> bytes:
     key = f"word_{word}_{speed}_{voice}"
     if key not in _cache:
-        _cache[key] = _render(word, voice, speed)
+        _cache[key] = _render(word, voice, speed, language=language)
     return _cache[key]
 
 def speak_intro(character: str) -> bytes:
@@ -113,13 +113,13 @@ def speak_intro(character: str) -> bytes:
         _cache[key] = _render(line, cfg["voice"], cfg["speed"], cfg["ffmpeg"], cfg.get("ffmpeg_question", ""))
     return _cache[key]
 
-def speak(text: str, character: str = "BOLT", mood: str = "default", speed: float = None) -> bytes:
+def speak(text: str, character: str = "BOLT", mood: str = "default", speed: float = None, language: str = "english") -> bytes:
     char = character.upper()
     cfg = CHARACTERS.get(char, CHARACTERS["BOLT"])
     s = speed if speed is not None else cfg["speed"]
     key = f"speak_{char}_{mood}_{text[:30]}_{s}"
     if key not in _cache:
-        _cache[key] = _render(text, cfg["voice"], s, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""))
+        _cache[key] = _render(text, cfg["voice"], s, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""), language=language)
     return _cache[key]
 
 def get_characters():

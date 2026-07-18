@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
+import { t } from "../utils/i18n";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
@@ -11,7 +12,7 @@ const THEMES = {
   DEFAULT: { bg: "#F4F2EF", card: "#ECEAE6", text: "#2C2C2A", sub: "#888780", accent: "#888780" },
 };
 
-export default function CharacterSelect({ onSelect }) {
+export default function CharacterSelect({ onSelect, language = "english" }) {
   const [selected, setSelected] = useState(null);
   const [previewing, setPreviewing] = useState(null);
 
@@ -41,7 +42,7 @@ export default function CharacterSelect({ onSelect }) {
             Choose Your Friend
           </h1>
           <p style={{ color: theme.sub, fontSize: "0.9rem", transition: "color 0.5s ease" }}>
-            {selected ? `${CHARACTERS[selected].tagline} ✨` : "Tap a character to feel their world"}
+            {selected ? `${CHARACTERS[selected].tagline} ✨` : t(language, "chooseCharacterSub")}
           </p>
         </div>
 
@@ -103,7 +104,7 @@ export default function CharacterSelect({ onSelect }) {
                         fontSize: "0.7rem", fontWeight: 700, cursor: "pointer",
                         transition: "all 0.2s", fontFamily: "Nunito, sans-serif",
                       }}>
-                      {isPreviewing ? "Playing..." : "Hear Voice"}
+                      {isPreviewing ? t(language, "hearVoice") : t(language, "hearVoice")}
                     </button>
                   </div>
                 </div>
@@ -137,7 +138,7 @@ export default function CharacterSelect({ onSelect }) {
             cursor: selected ? "pointer" : "not-allowed", transition: "all 0.4s ease",
             boxShadow: selected ? `0 4px 20px ${THEMES[selected]?.accent}55` : "none",
           }}>
-          {selected ? `Let's go with ${CHARACTERS[selected]?.name}! 🚀` : "Pick a character to continue"}
+          {selected ? t(language, "letsGo", CHARACTERS[selected]?.name) : t(language, "pickCharacter")}
         </button>
       </div>
 

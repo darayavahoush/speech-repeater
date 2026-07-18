@@ -89,7 +89,7 @@ export default function App() {
         <LanguageSelect onSelect={handleLanguageSelect} />
       )}
       {screen === SCREENS.CHARACTER_SELECT && (
-        <CharacterSelect onSelect={handleCharacterSelect} />
+        <CharacterSelect onSelect={handleCharacterSelect} language={language} />
       )}
       {screen === SCREENS.THERAPIST_INPUT && (
         <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={setCharacter} />
