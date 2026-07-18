@@ -16,7 +16,7 @@ const THEMES = {
 
 export default function ResultScreen({ character, language = "english", result, onRetry, onNextWord, onDrill, childAudioUrl }) {
   const char = CHARACTERS[character];
-  const t = THEMES[character];
+  const th = THEMES[character];
   const score = result?.composite_score ?? 0;
   const matches = result?.phoneme_scores?.matches ?? [];
   const encouragement = result?.encouragement ?? {};
@@ -24,7 +24,7 @@ export default function ResultScreen({ character, language = "english", result, 
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
 
-  document.body.style.background = t.bg;
+  document.body.style.background = th.bg;
   document.body.style.transition = "background 0.5s ease";
 
   const scoreColor = score >= 80 ? "#4CAF7D" : score >= 60 ? "#E8A020" : "#E05555";
@@ -62,19 +62,19 @@ export default function ResultScreen({ character, language = "english", result, 
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src={char.image} alt={char.name} style={{ width: "44px", height: "44px", objectFit: "contain" }} />
-          <span style={{ color: t.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name} says...</span>
+          <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name} says...</span>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "18px", padding: "20px", boxShadow: `0 4px 20px ${t.accent}15` }}>
-          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: t.text, margin: 0, lineHeight: 1.5 }}>
+        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "18px", padding: "20px", boxShadow: `0 4px 20px ${th.accent}15` }}>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: th.text, margin: 0, lineHeight: 1.5 }}>
             {encouragement.message}
           </p>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "20px", padding: "22px", boxShadow: `0 4px 20px ${t.accent}15` }}>
+        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "20px", padding: "22px", boxShadow: `0 4px 20px ${th.accent}15` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
-              <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Overall Score</p>
+              <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Overall Score</p>
               <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "3rem", fontWeight: 900, color: scoreColor, margin: 0, lineHeight: 1 }}>{Math.round(score)}%</p>
             </div>
             <div style={{ background: scoreBg, borderRadius: "14px", padding: "10px 16px", textAlign: "center" }}>
@@ -82,76 +82,76 @@ export default function ResultScreen({ character, language = "english", result, 
             </div>
           </div>
 
-          <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Phoneme Breakdown</p>
+          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Phoneme Breakdown</p>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             {matches.map((m, i) => (
               <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "8px 12px", textAlign: "center", minWidth: "48px" }}>
                 <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{language === "english" ? friendlyPhoneme(m.detected || m.expected) : (displayPhoneme(m.detected || m.expected, language) || m.detected || m.expected)}</p>
-                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: t.sub, margin: "2px 0 0 0", opacity: 0.7 }}>/{m.expected}/</p>
+                <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: th.sub, margin: "2px 0 0 0", opacity: 0.7 }}>/{m.expected}/</p>
                 {!m.correct && <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.6rem", color: "#E05555", margin: "2px 0 0 0" }}>heard: {friendlyPhoneme(m.detected || "—")}</p>}
               </div>
             ))}
           </div>
 
-          <div style={{ borderTop: `1px solid ${t.accent}22`, paddingTop: "14px" }}>
-            <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Heard</p>
-            <p style={{ fontFamily: "Nunito, sans-serif", color: t.text, fontSize: "1rem", margin: 0, fontWeight: 700 }}>"{result?.transcript}"</p>
+          <div style={{ borderTop: `1px solid ${th.accent}22`, paddingTop: "14px" }}>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Heard</p>
+            <p style={{ fontFamily: "Nunito, sans-serif", color: th.text, fontSize: "1rem", margin: 0, fontWeight: 700 }}>"{result?.transcript}"</p>
           </div>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "16px" }}>
-          <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: "uppercase" }}>Compare Voices</p>
+        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: "uppercase" }}>Compare Voices</p>
           <div style={{ display: "flex", gap: "10px" }}>
-            <button onClick={playChildAudio} disabled={playingChild || !childAudioUrl} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "12px", color: t.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
+            <button onClick={playChildAudio} disabled={playingChild || !childAudioUrl} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "12px", color: th.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
               {playingChild ? "..." : t(language, "yourVoice")}
             </button>
-            <button onClick={playCharAudio} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}66`, borderRadius: "10px", padding: "12px", color: t.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
+            <button onClick={playCharAudio} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}66`, borderRadius: "10px", padding: "12px", color: th.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
               {playingChar ? "..." : `🔊 ${char.name}`}
             </button>
           </div>
         </div>
 
         {acousticTips.length > 0 && score < 80 && (
-          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "16px" }}>
-            <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Voice Tips</p>
+          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Voice Tips</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {acousticTips.map((tip, i) => (
-                <p key={i} style={{ color: t.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${t.accent}` }}>{tip.tip}</p>
+                <p key={i} style={{ color: th.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${th.accent}` }}>{tip.tip}</p>
               ))}
             </div>
           </div>
         )}
 
         {score < 80 && matches.filter(m => !m.correct).length > 0 && (
-          <PhonemeHelp matches={matches} char={char} t={t} language={language} />
+          <PhonemeHelp matches={matches} char={char} th={th} language={language} />
         )}
 
         {result?.feedback && (
-          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "16px" }}>
-            <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 8px 0", fontWeight: 700, textTransform: "uppercase" }}>Feedback</p>
-            <p style={{ color: t.text, fontSize: "0.875rem", margin: 0, lineHeight: 1.6 }}>{result.feedback}</p>
+          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 8px 0", fontWeight: 700, textTransform: "uppercase" }}>Feedback</p>
+            <p style={{ color: th.text, fontSize: "0.875rem", margin: 0, lineHeight: 1.6 }}>{result.feedback}</p>
           </div>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
           {encouragement.action === "next_word" && (
-            <button onClick={onNextWord} style={{ background: t.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${t.accent}44` }}>
+            <button onClick={onNextWord} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Next word! →
             </button>
           )}
           {(encouragement.action === "retry" || encouragement.action === "drill" || encouragement.action === "support") && (
             <>
-              <button onClick={onRetry} style={{ background: t.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${t.accent}44` }}>
+              <button onClick={onRetry} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
                 Try again
               </button>
               {result?.drill_sequence?.length > 0 && (
-                <button onClick={onDrill} style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}66`, borderRadius: "14px", padding: "14px", color: t.accent, fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                <button onClick={onDrill} style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}66`, borderRadius: "14px", padding: "14px", color: th.accent, fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                   Practise sounds separately
                 </button>
               )}
             </>
           )}
-          <button onClick={onNextWord} style={{ background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "12px", padding: "12px", color: t.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
+          <button onClick={onNextWord} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
             Skip to next word
           </button>
         </div>
@@ -160,7 +160,7 @@ export default function ResultScreen({ character, language = "english", result, 
   );
 }
 
-function PhonemeHelp({ matches, char, t, language = "english" }) {
+function PhonemeHelp({ matches, char, th, language = "english" }) {
   const [cards, setCards] = useState({});
   const wrongPhonemes = matches.filter(m => !m.correct).map(m => m.expected);
 
@@ -179,19 +179,19 @@ function PhonemeHelp({ matches, char, t, language = "english" }) {
   if (wrongPhonemes.length === 0) return null;
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
-      <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: 0, fontWeight: 700, textTransform: "uppercase" }}>How to fix these sounds</p>
+    <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+      <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: 0, fontWeight: 700, textTransform: "uppercase" }}>How to fix these sounds</p>
       {wrongPhonemes.map((ph, i) => {
         const card = cards[ph];
         return (
-          <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", paddingBottom: "14px", borderBottom: i < wrongPhonemes.length - 1 ? `1px solid ${t.accent}22` : "none" }}>
+          <div key={i} style={{ display: "flex", flexDirection: "column", gap: "10px", paddingBottom: "14px", borderBottom: i < wrongPhonemes.length - 1 ? `1px solid ${th.accent}22` : "none" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "1.4rem", color: t.accent, fontWeight: 700 }}>/{ph}/</span>
-              {card && <span style={{ color: t.text, fontSize: "0.85rem", fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.name}</span>}
+              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "1.4rem", color: th.accent, fontWeight: 700 }}>/{ph}/</span>
+              {card && <span style={{ color: th.text, fontSize: "0.85rem", fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.name}</span>}
             </div>
             {card?.mouth_svg && <div style={{ width: "200px", height: "120px", alignSelf: "center" }} dangerouslySetInnerHTML={{ __html: card.mouth_svg }} />}
-            {card?.tip && <p style={{ color: t.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${t.accent}` }}>{card.tip}</p>}
-            {card?.example_word && <p style={{ color: t.sub, fontSize: "0.75rem", margin: 0 }}>Example: <span style={{ color: t.text, fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.example_word}</span></p>}
+            {card?.tip && <p style={{ color: th.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${th.accent}` }}>{card.tip}</p>}
+            {card?.example_word && <p style={{ color: th.sub, fontSize: "0.75rem", margin: 0 }}>Example: <span style={{ color: th.text, fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.example_word}</span></p>}
           </div>
         );
       })}
