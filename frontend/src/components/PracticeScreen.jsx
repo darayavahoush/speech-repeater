@@ -209,7 +209,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "14px", display: "flex", gap: "10px" }}>
               <button onClick={playChildAudio} disabled={playingChild} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "10px", color: t.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
-                {playingChild ? "Playing..." : "🎧 Hear yourself"}
+                {playingChild ? "Playing..." : t(language, "hearYourself")}
               </button>
               <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}66`, borderRadius: "10px", padding: "10px", color: t.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
                 {playingChar ? "Playing..." : `🔊 Hear ${char.name}`}
