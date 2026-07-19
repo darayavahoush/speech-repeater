@@ -35,3 +35,4 @@ audioread==3.1.0
 noisereduce==3.0.3
 cairosvg
 gTTS
+deep-translator
