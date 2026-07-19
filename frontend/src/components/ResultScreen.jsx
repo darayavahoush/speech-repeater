@@ -86,7 +86,7 @@ export default function ResultScreen({ character, language = "english", result, 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             {matches.map((m, i) => (
               <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "8px 12px", textAlign: "center", minWidth: "48px" }}>
-                <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{language === "english" ? friendlyPhoneme(m.detected || m.expected) : (displayPhoneme(m.detected || m.expected, language) || m.detected || m.expected)}</p>
+                <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: m.correct ? "#4CAF7D" : "#E05555", margin: 0, fontWeight: 900 }}>{language === "english" ? friendlyPhoneme(m.detected || m.expected) : (displayPhoneme(m.detected || m.expected, language)?.label || m.detected || m.expected)}</p>
                 <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: th.sub, margin: "2px 0 0 0", opacity: 0.7 }}>/{m.expected}/</p>
                 {!m.correct && <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.6rem", color: "#E05555", margin: "2px 0 0 0" }}>heard: {friendlyPhoneme(m.detected || "—")}</p>}
               </div>
