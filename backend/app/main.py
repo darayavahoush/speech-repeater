@@ -438,6 +438,14 @@ async def evaluate(
         encouragement["message"] = translate_to_language(encouragement["message"], language)
         response_audio = speak(encouragement["message"], character, encouragement["mood"], language=language)
 
+        # Translate feedback and tips
+        if result_dict.get("feedback"):
+            result_dict["feedback"] = translate_to_language(result_dict["feedback"], language)
+        translated_tips = []
+        for tip in acoustic_tips:
+            translated_tips.append({**tip, "tip": translate_to_language(tip.get("tip", ""), language)})
+        acoustic_tips = translated_tips
+
         return {
             **result_dict,
             "acoustic_tips": acoustic_tips,
