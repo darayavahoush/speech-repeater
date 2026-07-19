@@ -1,6 +1,7 @@
 import { useState } from "react";
 import CharacterSelect from "./components/CharacterSelect";
 import LanguageSelect from "./components/LanguageSelect";
+import Navigator from "./components/Navigator";
 import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
@@ -29,6 +30,20 @@ export default function App() {
 });
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
+
+  const handleHome = () => {
+    setScreen(SCREENS.LANGUAGE_SELECT);
+    setCharacter(null);
+    setWordData(null);
+    setResult(null);
+    setAttemptNumber(1);
+    setAttemptHistory([]);
+  };
+
+  const handleSwitchLanguage = (lang) => {
+    setLanguage(lang);
+    setScreen(SCREENS.CHARACTER_SELECT);
+  };
 
   const handleLanguageSelect = (lang) => {
     setLanguage(lang);
@@ -126,6 +141,14 @@ export default function App() {
           onSwitchCharacter={setCharacter}
         />
       )}
+      <Navigator
+        character={character || "BOLT"}
+        language={language}
+        currentScreen={screen}
+        onSwitchCharacter={setCharacter}
+        onSwitchLanguage={handleSwitchLanguage}
+        onHome={handleHome}
+      />
     </div>
   );
 }
