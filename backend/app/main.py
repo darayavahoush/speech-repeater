@@ -77,22 +77,20 @@ WORD_DICT = {
 _translation_cache = {}
 
 def translate_to_language(text: str, language: str) -> str:
-    """Translate text to target language using MyMemory API with caching."""
+    """Translate text to target language using Google Translate (deep-translator)."""
     if language == "english" or not text:
         return text
     cache_key = f"{language}:{text}"
     if cache_key in _translation_cache:
         return _translation_cache[cache_key]
     try:
+        from deep_translator import GoogleTranslator
         lang_code = "hi" if language == "hindi" else "kn"
-        import urllib.parse
-        url = f"https://api.mymemory.translated.net/get?q={urllib.parse.quote(text)}&langpair=en|{lang_code}"
-        res = requests.get(url, timeout=8)
-        if res.status_code == 200:
-            translated = res.json().get("responseData", {}).get("translatedText", "")
-            if translated and translated.lower() != text.lower() and "MYMEMORY" not in translated:
-                _translation_cache[cache_key] = translated
-                return translated
+        translated = GoogleTranslator(source="en", target=lang_code).translate(text)
+        if translated and translated != text:
+            _translation_cache[cache_key] = translated
+            print(f"Translated: '{text}' -> '{translated}'")
+            return translated
     except Exception as e:
         print(f"Translation error: {e}")
     return text
@@ -431,7 +429,7 @@ async def evaluate(
 
         # Encouragement + next action
         encouragement = get_encouragement_message(
-            result.composite_score, attempt_number, condition
+            result.composite_score, attempt_number, condition, language=language
         )
 
         # Drill mode detection
@@ -442,16 +440,11 @@ async def evaluate(
             drill_sequence = build_drill_sequence(struggling, condition)
 
         # Generate character response audio
-        encouragement["message"] = translate_to_language(encouragement["message"], language)
         response_audio = speak(encouragement["message"], character, encouragement["mood"], language=language)
 
-        # Translate feedback and tips
+        # Translate feedback
         if result_dict.get("feedback"):
             result_dict["feedback"] = translate_to_language(result_dict["feedback"], language)
-        translated_tips = []
-        for tip in acoustic_tips:
-            translated_tips.append({**tip, "tip": translate_to_language(tip.get("tip", ""), language)})
-        acoustic_tips = translated_tips
 
         return {
             **result_dict,

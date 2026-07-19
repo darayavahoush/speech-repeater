@@ -60,36 +60,112 @@ def should_enter_drill_mode(attempt_history: list) -> bool:
     return avg_score < DRILL_SEQUENCE_RULES["accuracy_threshold"]
 
 
-def get_encouragement_message(score: float, attempt_number: int, condition: str) -> dict:
+ENCOURAGEMENT_MESSAGES = {
+    "excellent": {
+        "english": "Excellent! You got it!",
+        "hindi": "शाबाश! आपने कर दिखाया!",
+        "kannada": "ಭಲೇ! ನೀವು ಮಾಡಿದಿರಿ!",
+    },
+    "retry": {
+        "english": "Good try! Let us try one more time.",
+        "hindi": "अच्छा प्रयास! एक बार और करके देखते हैं।",
+        "kannada": "ಒಳ್ಳೆಯ ಪ್ರಯತ್ನ! ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸೋಣ।",
+    },
+    "drill": {
+        "english": "Well done for trying. Let us practise the sounds separately.",
+        "hindi": "प्रयास करने के लिए शाबाश। आइए ध्वनियों को अलग से सीखें।",
+        "kannada": "ಪ್ರಯತ್ನಿಸಿದ್ದಕ್ಕೆ ಭಲೇ. ಧ್ವನಿಗಳನ್ನು ಪ್ರತ್ಯೇಕವಾಗಿ ಅಭ್ಯಾಸ ಮಾಡೋಣ।",
+    },
+    "breakdown": {
+        "english": "Keep going. Let us break this down together.",
+        "hindi": "जारी रखें। आइए इसे मिलकर समझते हैं।",
+        "kannada": "ಮುಂದುವರಿಯಿರಿ. ಇದನ್ನು ಒಟ್ಟಿಗೆ ಅರ್ಥ ಮಾಡಿಕೊಳ್ಳೋಣ।",
+    },
+    "support": {
+        "english": "Let me show you how to make this sound.",
+        "hindi": "मैं आपको यह ध्वनि बनाना सिखाता हूँ।",
+        "kannada": "ಈ ಧ್ವನಿಯನ್ನು ಹೇಗೆ ಮಾಡುವುದು ಎಂದು ತೋರಿಸುತ್ತೇನೆ।",
+    },
+}
+
+FEEDBACK_MESSAGES = {
+    "good_try": {
+        "english": "Good try! Keep practising this sound.",
+        "hindi": "अच्छा प्रयास! इस ध्वनि का अभ्यास जारी रखें।",
+        "kannada": "ಒಳ್ಳೆಯ ಪ್ರಯತ್ನ! ಈ ಧ್ವನಿಯ ಅಭ್ಯಾಸ ಮುಂದುವರಿಸಿ।",
+    },
+    "flow": {
+        "english": "Good try. Now let the sounds flow together more smoothly.",
+        "hindi": "अच्छा प्रयास। अब ध्वनियों को एक साथ और सहजता से बोलने की कोशिश करें।",
+        "kannada": "ಒಳ್ಳೆಯ ಪ್ರಯತ್ನ. ಈಗ ಧ್ವನಿಗಳನ್ನು ಒಟ್ಟಿಗೆ ಸರಳವಾಗಿ ಹೇಳಿ.",
+    },
+    "breath": {
+        "english": "Take a breath and try again. Make sure your voice is nice and clear.",
+        "hindi": "एक सांस लें और फिर कोशिश करें। आपकी आवाज़ साफ़ और स्पष्ट होनी चाहिए।",
+        "kannada": "ಉಸಿರು ತೆಗೆದುಕೊಂಡು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ನಿಮ್ಮ ಧ್ವನಿ ಸ್ಪಷ್ಟವಾಗಿರಲಿ.",
+    },
+    "steady": {
+        "english": "Try to keep your voice steady and smooth, like a long smooth train track.",
+        "hindi": "अपनी आवाज़ को स्थिर और सहज रखने की कोशिश करें।",
+        "kannada": "ನಿಮ್ಮ ಧ್ವನಿಯನ್ನು ಸ್ಥಿರ ಮತ್ತು ಸರಳವಾಗಿ ಇಡಿ.",
+    },
+}
+
+ACOUSTIC_TIPS = {
+    "english": [
+        "Good try. Now let the sounds flow together more smoothly.",
+        "Take a breath and try again. Make sure your voice is nice and clear.",
+        "Try to keep your voice steady and smooth, like a long smooth train track.",
+        "Slow down a little. Take it one sound at a time.",
+        "Open your mouth a little more when you speak.",
+    ],
+    "hindi": [
+        "अच्छा प्रयास। अब ध्वनियों को एक साथ सहजता से बोलें।",
+        "एक सांस लें और फिर कोशिश करें। आवाज़ साफ़ होनी चाहिए।",
+        "अपनी आवाज़ को स्थिर और सहज रखें।",
+        "थोड़ा धीरे बोलें। एक-एक ध्वनि पर ध्यान दें।",
+        "बोलते समय मुँह थोड़ा और खोलें।",
+    ],
+    "kannada": [
+        "ಒಳ್ಳೆಯ ಪ್ರಯತ್ನ. ಧ್ವನಿಗಳನ್ನು ಒಟ್ಟಿಗೆ ಸರಳವಾಗಿ ಹೇಳಿ.",
+        "ಉಸಿರು ತೆಗೆದುಕೊಂಡು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ಧ್ವನಿ ಸ್ಪಷ್ಟವಾಗಿರಲಿ.",
+        "ನಿಮ್ಮ ಧ್ವನಿಯನ್ನು ಸ್ಥಿರ ಮತ್ತು ಸರಳವಾಗಿ ಇಡಿ.",
+        "ಸ್ವಲ್ಪ ನಿಧಾನವಾಗಿ ಮಾತನಾಡಿ. ಒಂದೊಂದು ಧ್ವನಿಯನ್ನು ಗಮನಿಸಿ.",
+        "ಮಾತನಾಡುವಾಗ ಬಾಯಿಯನ್ನು ಸ್ವಲ್ಪ ಹೆಚ್ಚು ತೆರೆಯಿರಿ.",
+    ],
+}
+
+def get_encouragement_message(score: float, attempt_number: int, condition: str, language: str = "english") -> dict:
     """Get contextual encouragement based on score and attempt number."""
+    lang = language if language in ("english", "hindi", "kannada") else "english"
     if score >= 80:
         return {
-            "message": "Excellent! You got it!",
+            "message": ENCOURAGEMENT_MESSAGES["excellent"][lang],
             "mood": "celebrate",
             "action": "next_word"
         }
     elif score >= 60:
         if attempt_number < 3:
             return {
-                "message": "Good try! Let us try one more time.",
+                "message": ENCOURAGEMENT_MESSAGES["retry"][lang],
                 "mood": "encourage",
                 "action": "retry"
             }
         else:
             return {
-                "message": "Well done for trying. Let us practise the sounds separately.",
+                "message": ENCOURAGEMENT_MESSAGES["drill"][lang],
                 "mood": "encourage",
                 "action": "drill"
             }
     elif score >= 40:
         return {
-            "message": "Keep going. Let us break this down together.",
+            "message": ENCOURAGEMENT_MESSAGES["breakdown"][lang],
             "mood": "instruction",
             "action": "drill"
         }
     else:
         return {
-            "message": "Let me show you how to make this sound.",
+            "message": ENCOURAGEMENT_MESSAGES["support"][lang],
             "mood": "instruction",
             "action": "support"
         }
