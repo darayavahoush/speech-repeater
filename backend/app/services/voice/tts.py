@@ -8,6 +8,7 @@ import os
 
 kokoro = Kokoro("kokoro-v1.0.onnx", "voices-v1.0.bin")
 _cache = {}
+_CACHE_VERSION = "v2"  # bump to clear cache
 
 CHARACTERS = {
     "BOLT": {
@@ -152,14 +153,14 @@ def _render(text: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpe
     return raw_bytes
 
 def speak_word(word: str, speed: float = 1.0, voice: str = "hf_alpha", language: str = "english") -> bytes:
-    key = f"word_{word}_{speed}_{voice}_{language}"
+    key = f"{_CACHE_VERSION}_word_{word}_{speed}_{voice}_{language}"
     if key not in _cache:
         _cache[key] = _render(word, voice, speed, language=language)
     return _cache[key]
 
 def speak_intro(character: str) -> bytes:
     char = character.upper()
-    key = f"intro_{char}"
+    key = f"{_CACHE_VERSION}_intro_{char}"
     if key not in _cache:
         cfg = CHARACTERS.get(char, CHARACTERS["BOLT"])
         line = INTRO_LINES.get(char, "Hello! Let us learn together!")
@@ -170,7 +171,7 @@ def speak(text: str, character: str = "BOLT", mood: str = "default", speed: floa
     char = character.upper()
     cfg = CHARACTERS.get(char, CHARACTERS["BOLT"])
     s = speed if speed is not None else cfg["speed"]
-    key = f"speak_{char}_{mood}_{language}_{text[:30]}_{s}"
+    key = f"{_CACHE_VERSION}_speak_{char}_{mood}_{language}_{text[:30]}_{s}"
     if key not in _cache:
         _cache[key] = _render(text, cfg["voice"], s, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""), language=language)
     return _cache[key]
