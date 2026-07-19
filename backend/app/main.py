@@ -73,18 +73,25 @@ WORD_DICT = {
 }
 
 
+# Translation cache to avoid repeated API calls
+_translation_cache = {}
+
 def translate_to_language(text: str, language: str) -> str:
-    """Translate text to target language using MyMemory API."""
+    """Translate text to target language using MyMemory API with caching."""
     if language == "english" or not text:
         return text
+    cache_key = f"{language}:{text}"
+    if cache_key in _translation_cache:
+        return _translation_cache[cache_key]
     try:
         lang_code = "hi" if language == "hindi" else "kn"
         import urllib.parse
         url = f"https://api.mymemory.translated.net/get?q={urllib.parse.quote(text)}&langpair=en|{lang_code}"
-        res = requests.get(url, timeout=5)
+        res = requests.get(url, timeout=8)
         if res.status_code == 200:
             translated = res.json().get("responseData", {}).get("translatedText", "")
-            if translated and translated.lower() != text.lower():
+            if translated and translated.lower() != text.lower() and "MYMEMORY" not in translated:
+                _translation_cache[cache_key] = translated
                 return translated
     except Exception as e:
         print(f"Translation error: {e}")
