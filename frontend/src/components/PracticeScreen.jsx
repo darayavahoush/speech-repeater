@@ -21,11 +21,11 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const [playingChild, setPlayingChild] = useState(false);
   const { isRecording, audioBlob, audioUrl, startRecording, stopRecording, reset } = useAudio();
   const char = CHARACTERS[character];
-  const t = THEMES[character];
+  const th = THEMES[character];
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
 
-  document.body.style.background = t.bg;
+  document.body.style.background = th.bg;
   document.body.style.transition = "background 0.5s ease";
 
   const playWord = async (speed = 1.0) => {
@@ -88,17 +88,17 @@ export default function PracticeScreen({ character, language = "english", wordDa
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img src={char.image} alt={char.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-            <span style={{ color: t.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name}</span>
+            <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name}</span>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <button onClick={() => setShowSwitcher(!showSwitcher)} style={{ background: t.card, border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "5px 12px", color: t.sub, fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>Switch</button>
-            <div style={{ background: t.card, border: `1px solid ${t.accent}44`, borderRadius: "20px", padding: "4px 14px", fontSize: "0.75rem", color: t.sub, fontWeight: 700 }}>Attempt {attemptNumber}</div>
+            <button onClick={() => setShowSwitcher(!showSwitcher)} style={{ background: th.card, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "5px 12px", color: th.sub, fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>Switch</button>
+            <div style={{ background: th.card, border: `1px solid ${th.accent}44`, borderRadius: "20px", padding: "4px 14px", fontSize: "0.75rem", color: th.sub, fontWeight: 700 }}>Attempt {attemptNumber}</div>
           </div>
         </div>
 
         {showSwitcher && (
-          <div style={{ background: "rgba(255,255,255,0.9)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "14px", boxShadow: `0 4px 20px ${t.accent}18` }}>
-            <p style={{ color: t.sub, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Switch character</p>
+          <div style={{ background: "rgba(255,255,255,0.9)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", boxShadow: `0 4px 20px ${th.accent}18` }}>
+            <p style={{ color: th.sub, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Switch character</p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {Object.values(CHARACTERS).map(c => (
                 <button key={c.id} onClick={() => { onSwitchCharacter(c.id); setShowSwitcher(false); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: c.id === character ? THEMES[c.id].card : "transparent", border: `1.5px solid ${c.id === character ? THEMES[c.id].accent : "rgba(0,0,0,0.08)"}`, borderRadius: "10px", padding: "8px 10px", cursor: "pointer" }}>
@@ -110,7 +110,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
           </div>
         )}
 
-        <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${t.accent}18` }}>
+        <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${th.accent}18` }}>
           {(() => {
             const imgs = wordData?.images?.length > 0 ? wordData.images : imageUrl ? [{ label: wordData?.word, image_base64: wordData?.image_base64 }] : [];
             const idx = Math.min(imageIndex, Math.max(imgs.length - 1, 0));
@@ -122,32 +122,32 @@ export default function PracticeScreen({ character, language = "english", wordDa
                     <>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
                         <img src={"data:image/png;base64," + current.image_base64} alt={current.label_1} style={{ width: "120px", height: "120px", objectFit: "contain", borderRadius: "12px" }} />
-                        <span style={{ color: t.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_1}</span>
+                        <span style={{ color: th.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_1}</span>
                       </div>
-                      <span style={{ color: t.accent, fontSize: "1.4rem", fontWeight: 900 }}>+</span>
+                      <span style={{ color: th.accent, fontSize: "1.4rem", fontWeight: 900 }}>+</span>
                       {current.image_base64_2 && (
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
                           <img src={"data:image/png;base64," + current.image_base64_2} alt={current.label_2} style={{ width: "120px", height: "120px", objectFit: "contain", borderRadius: "12px" }} />
-                          <span style={{ color: t.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_2}</span>
+                          <span style={{ color: th.sub, fontSize: "0.7rem", fontWeight: 700, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label_2}</span>
                         </div>
                       )}
                     </>
                   ) : current ? (
                     <img src={"data:image/png;base64," + current.image_base64} alt={current.label} style={{ width: "180px", height: "180px", objectFit: "contain", borderRadius: "16px" }} />
                   ) : (
-                    <div style={{ width: "140px", height: "140px", background: t.card, borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>🖼️</div>
+                    <div style={{ width: "140px", height: "140px", background: th.card, borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>🖼️</div>
                   )}
                 </div>
-                {current && !current.pair && <p style={{ color: t.sub, fontSize: "0.72rem", fontWeight: 700, margin: 0, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label}</p>}
+                {current && !current.pair && <p style={{ color: th.sub, fontSize: "0.72rem", fontWeight: 700, margin: 0, textTransform: "capitalize", fontFamily: "Nunito, sans-serif" }}>{current.label}</p>}
                 {imgs.length > 1 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <button onClick={() => setImageIndex(i => Math.max(0, i - 1))} disabled={idx === 0} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${t.accent}44`, background: idx === 0 ? "transparent" : t.card, color: t.accent, cursor: idx === 0 ? "not-allowed" : "pointer", opacity: idx === 0 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
+                    <button onClick={() => setImageIndex(i => Math.max(0, i - 1))} disabled={idx === 0} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${th.accent}44`, background: idx === 0 ? "transparent" : th.card, color: th.accent, cursor: idx === 0 ? "not-allowed" : "pointer", opacity: idx === 0 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
                     <div style={{ display: "flex", gap: "5px" }}>
                       {imgs.map((_, i) => (
-                        <div key={i} onClick={() => setImageIndex(i)} style={{ width: i === idx ? "16px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? t.accent : `${t.accent}33`, transition: "all 0.2s", cursor: "pointer" }} />
+                        <div key={i} onClick={() => setImageIndex(i)} style={{ width: i === idx ? "16px" : "7px", height: "7px", borderRadius: "4px", background: i === idx ? th.accent : `${th.accent}33`, transition: "all 0.2s", cursor: "pointer" }} />
                       ))}
                     </div>
-                    <button onClick={() => setImageIndex(i => Math.min(imgs.length - 1, i + 1))} disabled={idx === imgs.length - 1} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${t.accent}44`, background: idx === imgs.length - 1 ? "transparent" : t.card, color: t.accent, cursor: idx === imgs.length - 1 ? "not-allowed" : "pointer", opacity: idx === imgs.length - 1 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>→</button>
+                    <button onClick={() => setImageIndex(i => Math.min(imgs.length - 1, i + 1))} disabled={idx === imgs.length - 1} style={{ width: "30px", height: "30px", borderRadius: "50%", border: `1.5px solid ${th.accent}44`, background: idx === imgs.length - 1 ? "transparent" : th.card, color: th.accent, cursor: idx === imgs.length - 1 ? "not-allowed" : "pointer", opacity: idx === imgs.length - 1 ? 0.3 : 1, fontSize: "1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>→</button>
                   </div>
                 )}
               </div>
@@ -155,34 +155,34 @@ export default function PracticeScreen({ character, language = "english", wordDa
           })()}
 
           <div style={{ textAlign: "center" }}>
-            <p style={{ color: t.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 6px 0", fontWeight: 700, textTransform: "uppercase" }}>Target Word</p>
-            <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "2.4rem", fontWeight: 900, color: t.text, margin: 0 }}>{wordData?.word}</p>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 6px 0", fontWeight: 700, textTransform: "uppercase" }}>Target Word</p>
+            <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "2.4rem", fontWeight: 900, color: th.text, margin: 0 }}>{wordData?.word}</p>
           </div>
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
             {(wordData?.phonemes || []).map((p, i) => (
-              <div key={i} title={phonemeExample(p)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", background: t.card, border: `1px solid ${t.accent}55`, borderRadius: "10px", padding: "6px 10px", cursor: "default" }}>
-                <span style={{ color: t.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>
+              <div key={i} title={phonemeExample(p)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", background: th.card, border: `1px solid ${th.accent}55`, borderRadius: "10px", padding: "6px 10px", cursor: "default" }}>
+                <span style={{ color: th.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>
                   {language === "english" ? friendlyPhoneme(p) : (displayPhoneme(p, language)?.label || p)}
                 </span>
-                <span style={{ color: t.sub, fontFamily: "JetBrains Mono, monospace", fontSize: "0.55rem", opacity: 0.6 }}>{p}</span>
+                <span style={{ color: th.sub, fontFamily: "JetBrains Mono, monospace", fontSize: "0.55rem", opacity: 0.6 }}>{p}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: t.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
+          <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
             🔊 Normal
           </button>
-          <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: t.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
+          <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
             🐢 Slow
           </button>
         </div>
-        {playingChar && <p style={{ color: t.sub, fontSize: "0.75rem", textAlign: "center", margin: "-8px 0 0 0" }}>Playing...</p>}
+        {playingChar && <p style={{ color: th.sub, fontSize: "0.75rem", textAlign: "center", margin: "-8px 0 0 0" }}>Playing...</p>}
 
         {phase === "listen" && (
-          <button onClick={handleRecord} style={{ background: t.accent, border: "none", borderRadius: "18px", padding: "22px", fontFamily: "Nunito, sans-serif", fontSize: "1.15rem", fontWeight: 900, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: `0 4px 20px ${t.accent}44` }}>
+          <button onClick={handleRecord} style={{ background: th.accent, border: "none", borderRadius: "18px", padding: "22px", fontFamily: "Nunito, sans-serif", fontSize: "1.15rem", fontWeight: 900, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: `0 4px 20px ${th.accent}44` }}>
             <span style={{ fontSize: "1.4rem" }}>🎙️</span>
             Now you try!
           </button>
@@ -201,24 +201,24 @@ export default function PracticeScreen({ character, language = "english", wordDa
                 </svg>
               </button>
             </div>
-            <p style={{ color: t.sub, fontSize: "0.85rem", fontWeight: 600 }}>Recording... tap to stop</p>
+            <p style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 600 }}>Recording... tap to stop</p>
           </div>
         )}
 
         {phase === "record" && !isRecording && audioBlob && (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${t.accent}33`, borderRadius: "16px", padding: "14px", display: "flex", gap: "10px" }}>
-              <button onClick={playChildAudio} disabled={playingChild} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "10px", padding: "10px", color: t.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
+            <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", display: "flex", gap: "10px" }}>
+              <button onClick={playChildAudio} disabled={playingChild} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "10px", color: th.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
                 {playingChild ? "Playing..." : t(language, "hearYourself")}
               </button>
-              <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${t.accent}66`, borderRadius: "10px", padding: "10px", color: t.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
+              <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}66`, borderRadius: "10px", padding: "10px", color: th.accent, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
                 {playingChar ? "Playing..." : `🔊 Hear ${char.name}`}
               </button>
             </div>
-            <button onClick={handleSubmit} style={{ background: t.accent, border: "none", borderRadius: "16px", padding: "20px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${t.accent}44` }}>
+            <button onClick={handleSubmit} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "20px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Check my answer! ✨
             </button>
-            <button onClick={() => { reset(); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${t.accent}44`, borderRadius: "12px", padding: "12px", color: t.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
+            <button onClick={() => { reset(); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
               Try again
             </button>
           </div>
@@ -226,8 +226,8 @@ export default function PracticeScreen({ character, language = "english", wordDa
 
         {phase === "loading" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", padding: "32px" }}>
-            <div style={{ width: "44px", height: "44px", border: `3px solid ${t.accent}33`, borderTop: `3px solid ${t.accent}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-            <p style={{ color: t.sub, fontSize: "0.85rem", fontWeight: 600 }}>Analysing your voice...</p>
+            <div style={{ width: "44px", height: "44px", border: `3px solid ${th.accent}33`, borderTop: `3px solid ${th.accent}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <p style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 600 }}>Analysing your voice...</p>
           </div>
         )}
       </div>
