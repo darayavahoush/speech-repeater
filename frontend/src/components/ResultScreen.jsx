@@ -62,7 +62,7 @@ export default function ResultScreen({ character, language = "english", result, 
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src={char.image} alt={char.name} style={{ width: "44px", height: "44px", objectFit: "contain" }} />
-          <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name} says...</span>
+          <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{t(language, "characterSays", char.name)}</span>
         </div>
 
         <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "18px", padding: "20px", boxShadow: `0 4px 20px ${th.accent}15` }}>
@@ -74,7 +74,7 @@ export default function ResultScreen({ character, language = "english", result, 
         <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "20px", padding: "22px", boxShadow: `0 4px 20px ${th.accent}15` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
-              <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Overall Score</p>
+              <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Overall Score</p>
               <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "3rem", fontWeight: 900, color: scoreColor, margin: 0, lineHeight: 1 }}>{Math.round(score)}%</p>
             </div>
             <div style={{ background: scoreBg, borderRadius: "14px", padding: "10px 16px", textAlign: "center" }}>
@@ -82,7 +82,7 @@ export default function ResultScreen({ character, language = "english", result, 
             </div>
           </div>
 
-          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Phoneme Breakdown</p>
+          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Phoneme Breakdown</p>
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
             {matches.map((m, i) => (
               <div key={i} style={{ background: m.correct ? "#E8F7EE" : "#FDEAEA", border: `1.5px solid ${m.correct ? "#4CAF7D44" : "#E0555544"}`, borderRadius: "10px", padding: "8px 12px", textAlign: "center", minWidth: "48px" }}>
@@ -94,13 +94,13 @@ export default function ResultScreen({ character, language = "english", result, 
           </div>
 
           <div style={{ borderTop: `1px solid ${th.accent}22`, paddingTop: "14px" }}>
-            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: "uppercase" }}>Heard</p>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Heard</p>
             <p style={{ fontFamily: "Nunito, sans-serif", color: th.text, fontSize: "1rem", margin: 0, fontWeight: 700 }}>"{result?.transcript}"</p>
           </div>
         </div>
 
         <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
-          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: "uppercase" }}>Compare Voices</p>
+          <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Compare Voices</p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={playChildAudio} disabled={playingChild || !childAudioUrl} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "12px", color: th.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
               {playingChild ? "..." : t(language, "yourVoice")}
@@ -113,7 +113,7 @@ export default function ResultScreen({ character, language = "english", result, 
 
         {acousticTips.length > 0 && score < 80 && (
           <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
-            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: "uppercase" }}>Voice Tips</p>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Voice Tips</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {acousticTips.map((tip, i) => (
                 <p key={i} style={{ color: th.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${th.accent}` }}>{tip.tip}</p>
@@ -128,7 +128,7 @@ export default function ResultScreen({ character, language = "english", result, 
 
         {result?.feedback && (
           <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
-            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 8px 0", fontWeight: 700, textTransform: "uppercase" }}>Feedback</p>
+            <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 8px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Feedback</p>
             <p style={{ color: th.text, fontSize: "0.875rem", margin: 0, lineHeight: 1.6 }}>{result.feedback}</p>
           </div>
         )}
@@ -180,7 +180,7 @@ function PhonemeHelp({ matches, char, th, language = "english" }) {
 
   return (
     <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
-      <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: 0, fontWeight: 700, textTransform: "uppercase" }}>How to fix these sounds</p>
+      <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: 0, fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>How to fix these sounds</p>
       {wrongPhonemes.map((ph, i) => {
         const card = cards[ph];
         return (
