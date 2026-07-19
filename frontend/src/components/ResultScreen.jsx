@@ -168,7 +168,7 @@ function PhonemeHelp({ matches, char, th, language = "english" }) {
     wrongPhonemes.forEach(async (ph) => {
       if (!cards[ph]) {
         try {
-          const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/phoneme-card/${ph}`);
+          const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/phoneme-card/${ph}?language=${language}`);
           const data = await res.json();
           setCards(prev => ({ ...prev, [ph]: data }));
         } catch {}

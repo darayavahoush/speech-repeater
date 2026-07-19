@@ -262,7 +262,7 @@ async def image_endpoint(phrase: str = Form(...)):
         "confidence": result.get("confidence", 100),
         "image_base64": __import__("base64").b64encode(result["image_bytes"]).decode(),
         "images": [
-            {**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None, "image_base64_2": __import__("base64").b64encode(img["image_bytes_2"]).decode() if img.get("image_bytes_2") else None, "image_bytes_2": None}
+            {**img, "label": word, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None, "image_base64_2": __import__("base64").b64encode(img["image_bytes_2"]).decode() if img.get("image_bytes_2") else None, "image_bytes_2": None}
             for img in result.get("images", [])
         ]
     }
@@ -442,9 +442,13 @@ async def evaluate(
         # Generate character response audio
         response_audio = speak(encouragement["message"], character, encouragement["mood"], language=language)
 
-        # Translate feedback
+        # Translate feedback and tips
         if result_dict.get("feedback"):
             result_dict["feedback"] = translate_to_language(result_dict["feedback"], language)
+        acoustic_tips = [
+            {**tip, "tip": translate_to_language(tip.get("tip", ""), language)}
+            for tip in acoustic_tips
+        ]
 
         return {
             **result_dict,
@@ -460,11 +464,17 @@ async def evaluate(
 
 
 @app.get("/phoneme-card/{phoneme}")
-def phoneme_card(phoneme: str):
+def phoneme_card(phoneme: str, language: str = "english"):
     """Get the phoneme card with SVG mouth diagram and tip."""
     card = get_phoneme_card(phoneme.upper())
     if not card:
         return {"error": f"Phoneme {phoneme} not found"}
+    if language != "english":
+        card = dict(card)
+        if card.get("tip"):
+            card["tip"] = translate_to_language(card["tip"], language)
+        if card.get("name"):
+            card["name"] = translate_to_language(card["name"], language)
     return card
 
 
