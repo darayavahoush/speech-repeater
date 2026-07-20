@@ -1,7 +1,8 @@
 import { useState } from "react";
 import CharacterSelect from "./components/CharacterSelect";
 import LanguageSelect from "./components/LanguageSelect";
-import Navigator from "./components/Navigator";
+import Sidebar from "./components/Sidebar";
+import AIAssistant from "./components/AIAssistant";
 import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
@@ -141,13 +142,19 @@ export default function App() {
           onSwitchCharacter={setCharacter}
         />
       )}
-      <Navigator
+      <Sidebar
         character={character || "BOLT"}
         language={language}
         currentScreen={screen}
         onSwitchCharacter={setCharacter}
         onSwitchLanguage={handleSwitchLanguage}
         onHome={handleHome}
+      />
+      <AIAssistant
+        character={character || "BOLT"}
+        language={language}
+        currentScreen={screen}
+        wordData={wordData}
       />
     </div>
   );
