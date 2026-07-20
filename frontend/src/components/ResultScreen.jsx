@@ -24,8 +24,7 @@ export default function ResultScreen({ character, language = "english", result, 
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
 
-  document.body.style.background = th.bg;
-  document.body.style.transition = "background 0.5s ease";
+  useEffect(() => { document.body.style.background = th.bg; document.body.style.transition = "background 0.5s ease"; }, [th.bg]);
 
   const scoreColor = score >= 80 ? "#4CAF7D" : score >= 60 ? "#E8A020" : "#E05555";
   const scoreBg = score >= 80 ? "#E8F7EE" : score >= 60 ? "#FDF3E0" : "#FDEAEA";

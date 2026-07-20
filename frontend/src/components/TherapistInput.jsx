@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 import { inputWord } from "../utils/api";
@@ -29,8 +29,7 @@ export default function TherapistInput({ character, language = "english", onWord
   const char = CHARACTERS[character];
   const th = THEMES[character];
 
-  document.body.style.background = th.bg;
-  document.body.style.transition = "background 0.5s ease";
+  useEffect(() => { document.body.style.background = th.bg; document.body.style.transition = "background 0.5s ease"; }, [th.bg]);
 
   const handleSubmit = async () => {
     setLoading(true);

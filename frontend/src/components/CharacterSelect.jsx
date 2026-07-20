@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { t } from "../utils/i18n";
 
@@ -17,8 +17,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
   const [previewing, setPreviewing] = useState(null);
 
   const theme = selected ? THEMES[selected] : THEMES.DEFAULT;
-  document.body.style.background = theme.bg;
-  document.body.style.transition = "background 0.5s ease";
+  useEffect(() => { document.body.style.background = theme.bg; document.body.style.transition = "background 0.5s ease"; }, [theme.bg]);
 
   const handlePreview = async (charId) => {
     setPreviewing(charId);

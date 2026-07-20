@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LANGUAGES } from "../utils/i18n";
 
 export default function LanguageSelect({ onSelect }) {
   const [selected, setSelected] = useState(null);
 
-  document.body.style.background = "#F4F2EF";
-  document.body.style.transition = "background 0.5s ease";
+  useEffect(() => { document.body.style.background = "#F4F2EF"; document.body.style.transition = "background 0.5s ease"; }, []);
 
   const LANG_THEMES = {
     english: { bg: "#EEF4FB", accent: "#5B9BD5", text: "#1A3A5C", card: "#DDEAF7" },
@@ -15,9 +14,7 @@ export default function LanguageSelect({ onSelect }) {
 
   const theme = selected ? LANG_THEMES[selected] : { bg: "#F4F2EF", accent: "#888", text: "#2C2C2A", card: "#ECEAE6" };
 
-  if (selected) {
-    document.body.style.background = theme.bg;
-  }
+  useEffect(() => { document.body.style.background = selected ? LANG_THEMES[selected].bg : "#F4F2EF"; document.body.style.transition = "background 0.5s ease"; }, [selected]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", transition: "background 0.5s" }}>
