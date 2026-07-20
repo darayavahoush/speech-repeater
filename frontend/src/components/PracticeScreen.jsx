@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 import { evaluateAttempt } from "../utils/api";
@@ -25,8 +25,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
 
-  document.body.style.background = th.bg;
-  document.body.style.transition = "background 0.5s ease";
+  useEffect(() => { document.body.style.background = th.bg; document.body.style.transition = "background 0.5s ease"; }, [th.bg]);
 
   const playWord = async (speed = 1.0) => {
     setPlayingChar(true);
