@@ -8,7 +8,7 @@ import os
 
 kokoro = Kokoro("kokoro-v1.0.onnx", "voices-v1.0.bin")
 _cache = {}
-_CACHE_VERSION = "v2"  # bump to clear cache
+_CACHE_VERSION = "v3"  # bump to clear cache
 
 CHARACTERS = {
     "BOLT": {
