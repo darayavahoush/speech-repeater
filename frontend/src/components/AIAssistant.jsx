@@ -37,8 +37,6 @@ export default function AIAssistant({ character, language, currentScreen, wordDa
   const th = THEMES[character] || THEMES.BOLT;
   const char = CHARACTERS[character];
 
-  if (currentScreen === "language_select") return null;
-
   useEffect(() => {
     if (open && messages.length === 0) {
       setMessages([{ role: "assistant", content: (GREETINGS[language] || GREETINGS.english)(char?.name) }]);
@@ -48,6 +46,8 @@ export default function AIAssistant({ character, language, currentScreen, wordDa
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  if (currentScreen === "language_select") return null;
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
