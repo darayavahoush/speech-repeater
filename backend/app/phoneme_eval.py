@@ -2,11 +2,48 @@ import torch
 import torchaudio
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 
-MODEL_ID = "ai4bharat/indicwav2vec-hindi"
+MODEL_IDS = {
+    "hindi": "ai4bharat/indicwav2vec-hindi",
+    "kannada": "amoghsgopadi/wav2vec2-large-xlsr-kn",
+}
 
-processor = Wav2Vec2Processor.from_pretrained(MODEL_ID)
-model = Wav2Vec2ForCTC.from_pretrained(MODEL_ID)
-model.eval()
+_processors = {}
+_models = {}
+
+def _get_model(language: str):
+    if language not in _processors:
+        model_id = MODEL_IDS[language]
+        _processors[language] = Wav2Vec2Processor.from_pretrained(model_id)
+        _models[language] = Wav2Vec2ForCTC.from_pretrained(model_id)
+        _models[language].eval()
+    return _models[language], _processors[language]
+
+# Hindi confusable groups (dental/retroflex, aspiration, nukta, sibilants)
+HINDI_CONFUSABLE_GROUPS = [
+    {"त", "ट"}, {"थ", "ठ"}, {"द", "ड"}, {"ध", "ढ"}, {"न", "ण"},
+    {"क", "ख"}, {"ग", "घ"}, {"च", "छ"}, {"ज", "झ"}, {"प", "फ"}, {"ब", "भ"},
+    {"ड़", "ड"}, {"ढ़", "ढ"},
+    {"स", "श", "ष"},
+]
+
+# Kannada confusable groups (dental/retroflex, aspiration, sibilants, retroflex lateral)
+KANNADA_CONFUSABLE_GROUPS = [
+    # Dental vs retroflex
+    {"ತ", "ಟ"}, {"ಥ", "ಠ"}, {"ದ", "ಡ"}, {"ಧ", "ಢ"}, {"ನ", "ಣ"},
+    # Aspiration pairs
+    {"ಕ", "ಖ"}, {"ಗ", "ಘ"}, {"ಚ", "ಛ"}, {"ಜ", "ಝ"}, {"ಪ", "ಫ"}, {"ಬ", "ಭ"},
+    # Sibilants
+    {"ಸ", "ಶ", "ಷ"},
+    # Retroflex lateral vs dental lateral (ಳ vs ಲ) — distinctly Kannada/Dravidian
+    {"ಳ", "ಲ"},
+    # Retroflex approximant vs retroflex lateral (ಱ vs ಳ), less common but real
+    {"ರ", "ಱ"},
+]
+
+CONFUSABLE_GROUPS_BY_LANGUAGE = {
+    "hindi": HINDI_CONFUSABLE_GROUPS,
+    "kannada": KANNADA_CONFUSABLE_GROUPS,
+}
 
 def load_audio(path, target_sr=16000):
     waveform, sr = torchaudio.load(path)
@@ -16,7 +53,8 @@ def load_audio(path, target_sr=16000):
         waveform = waveform.mean(dim=0, keepdim=True)
     return waveform.squeeze(0)
 
-def get_phoneme_probs(audio_path):
+def get_phoneme_probs(audio_path, language):
+    model, processor = _get_model(language)
     audio = load_audio(audio_path)
     inputs = processor(audio, sampling_rate=16000, return_tensors="pt")
     with torch.no_grad():
@@ -24,8 +62,8 @@ def get_phoneme_probs(audio_path):
     probs = torch.softmax(logits, dim=-1)[0]
     return probs, processor.tokenizer
 
-def score_target_char(audio_path, target_char, confusable_chars):
-    probs, tokenizer = get_phoneme_probs(audio_path)
+def score_target_char(audio_path, target_char, confusable_chars, language):
+    probs, tokenizer = get_phoneme_probs(audio_path, language)
     vocab = tokenizer.get_vocab()
 
     target_id = vocab.get(target_char)
@@ -45,32 +83,25 @@ def score_target_char(audio_path, target_char, confusable_chars):
         "correct": best[0] == "target",
     }
 
-# Dental vs retroflex confusable groups (the ones that actually get mixed up)
-CONFUSABLE_GROUPS = [
-    {"त", "ट"},
-    {"थ", "ठ"},
-    {"द", "ड"},
-    {"ध", "ढ"},
-    {"न", "ण"},
-]
-
-def find_confusable_group(word: str):
-    """Returns the first confusable char + its group found in the target word, or None."""
+def find_confusable_group(word: str, language: str):
+    groups = CONFUSABLE_GROUPS_BY_LANGUAGE.get(language, [])
     for char in word:
-        for group in CONFUSABLE_GROUPS:
+        for group in groups:
             if char in group:
                 return char, group
     return None
 
-def check_dental_retroflex(audio_path: str, target_word: str):
+def check_confusable_phonemes(audio_path: str, target_word: str, language: str):
     """
-    If target_word contains a dental/retroflex confusable character,
+    If target_word contains a known confusable character for this language,
     scores the audio against that char vs its confusables.
-    Returns None if no confusable character is present.
+    Returns None if language isn't supported or no confusable char is present.
     """
-    match = find_confusable_group(target_word)
+    if language not in MODEL_IDS:
+        return None
+    match = find_confusable_group(target_word, language)
     if not match:
         return None
     target_char, group = match
     confusables = [c for c in group if c != target_char]
-    return score_target_char(audio_path, target_char, confusables)
+    return score_target_char(audio_path, target_char, confusables, language)
