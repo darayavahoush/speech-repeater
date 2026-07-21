@@ -298,6 +298,14 @@ async def compare(
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
         acoustic_raw = analyse_audio(tmp_path, transcript)
+
+        dental_retroflex_check = None
+        if language == "hindi":
+            from app.phoneme_eval import check_dental_retroflex
+            try:
+                dental_retroflex_check = check_dental_retroflex(tmp_path, target_word)
+            except Exception as e:
+                print(f"Dental/retroflex check error: {e}")
         result = build_attempt_result(
             session_id=session_id,
             child_id=child_id,
@@ -408,6 +416,14 @@ async def evaluate(
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
         acoustic_raw = analyse_audio(tmp_path, transcript)
 
+        dental_retroflex_check = None
+        if language == "hindi":
+            from app.phoneme_eval import check_dental_retroflex
+            try:
+                dental_retroflex_check = check_dental_retroflex(tmp_path, target_word)
+            except Exception as e:
+                print(f"Dental/retroflex check error: {e}")
+
         result = build_attempt_result(
             session_id=session_id,
             child_id=child_id,
@@ -457,6 +473,7 @@ async def evaluate(
             "enter_drill_mode": enter_drill,
             "drill_sequence": drill_sequence,
             "character_response_audio": __import__("base64").b64encode(response_audio).decode(),
+            "dental_retroflex_check": dental_retroflex_check,
         }
 
     finally:
