@@ -28,7 +28,7 @@ duckduckgo-search==8.1.1
 sentence-transformers==5.5.1
 
 # Utils
-huggingface_hub==0.36.2
+huggingface_hub==1.24.0
 psutil==7.2.2
 librosa==0.11.0
 audioread==3.1.0
