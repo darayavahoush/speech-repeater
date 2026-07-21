@@ -7,15 +7,31 @@ MODEL_IDS = {
     "kannada": "amoghsgopadi/wav2vec2-large-xlsr-kn",
 }
 
+import gc
+
 _processors = {}
 _models = {}
+_current_language = None
 
 def _get_model(language: str):
-    if language not in _processors:
-        model_id = MODEL_IDS[language]
-        _processors[language] = Wav2Vec2Processor.from_pretrained(model_id)
-        _models[language] = Wav2Vec2ForCTC.from_pretrained(model_id)
-        _models[language].eval()
+    global _current_language
+
+    if language == _current_language and language in _models:
+        return _models[language], _processors[language]
+
+    # Evict whatever's currently loaded to keep memory footprint to one model at a time
+    if _current_language is not None and _current_language in _models:
+        print(f"Unloading {_current_language} phoneme model to load {language}")
+        del _models[_current_language]
+        del _processors[_current_language]
+        gc.collect()
+
+    model_id = MODEL_IDS[language]
+    _processors[language] = Wav2Vec2Processor.from_pretrained(model_id)
+    _models[language] = Wav2Vec2ForCTC.from_pretrained(model_id)
+    _models[language].eval()
+    _current_language = language
+
     return _models[language], _processors[language]
 
 # Hindi confusable groups (dental/retroflex, aspiration, nukta, sibilants)
