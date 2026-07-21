@@ -14,7 +14,11 @@ export default function LanguageSelect({ onSelect }) {
 
   const theme = selected ? LANG_THEMES[selected] : { bg: "#F4F2EF", accent: "#888", text: "#2C2C2A", card: "#ECEAE6" };
 
-  useEffect(() => { document.body.style.background = selected ? LANG_THEMES[selected].bg : "#F4F2EF"; document.body.style.transition = "background 0.5s ease"; }, [selected]);
+  useEffect(() => {
+    document.body.style.background = selected ? LANG_THEMES[selected].bg : "#F4F2EF";
+    document.body.style.transition = "background 0.5s ease";
+    return () => { document.body.style.background = "#F4F2EF"; };
+  }, [selected]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", transition: "background 0.5s" }}>
