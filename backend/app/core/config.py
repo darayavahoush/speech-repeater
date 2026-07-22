@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     OLLAMA_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "phi3:mini"
     ESPEAK_VOICE: str = "en-in"
+    ANTHROPIC_API_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"
