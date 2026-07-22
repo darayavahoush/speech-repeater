@@ -131,11 +131,15 @@ def _render_gtts_raw(text: str, language: str) -> bytes:
         if os.path.exists(out_tmp.name):
             os.unlink(out_tmp.name)
 
-def _render_gtts(text: str, language: str, character: str, ffmpeg_filters: str = "") -> bytes:
+def _render_gtts(text: str, language: str, character: str, ffmpeg_filters: str = "", speed: float = 1.0) -> bytes:
     raw_bytes = _render_gtts_raw(text, language)
     pitch = GTTS_PITCH_SHIFT.get(character, 1.0)
     pitch_filter = f"asetrate=24000*{pitch},aresample=24000"
-    combined_filters = f"{pitch_filter},{ffmpeg_filters}" if ffmpeg_filters else pitch_filter
+    # atempo must stay within ffmpeg's 0.5-2.0 range per filter instance; clamp to be safe
+    clamped_speed = max(0.5, min(2.0, speed))
+    speed_filter = f"atempo={clamped_speed}" if clamped_speed != 1.0 else ""
+    parts = [p for p in [pitch_filter, speed_filter, ffmpeg_filters] if p]
+    combined_filters = ",".join(parts)
     return _apply_ffmpeg(raw_bytes, combined_filters)
 
 def _render_kokoro_raw(text: str, voice: str, speed: float) -> bytes:
@@ -153,7 +157,7 @@ def _render(text: str, character: str, voice: str, speed: float, ffmpeg_filters:
     filters = ffmpeg_question if (ffmpeg_question and _is_question(text)) else ffmpeg_filters
 
     if language in ("hindi", "kannada"):
-        return _render_gtts(text, language, character, filters)
+        return _render_gtts(text, language, character, filters, speed=speed)
 
     raw_bytes = _render_kokoro_raw(text, voice, speed)
     if filters:
