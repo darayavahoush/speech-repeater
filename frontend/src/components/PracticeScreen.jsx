@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { CHARACTERS } from "../assets/characters";
+import CharacterBackdrop from "./CharacterBackdrop";
 import { useAudio } from "../hooks/useAudio";
 import { evaluateAttempt } from "../utils/api";
 import { friendlyPhoneme, phonemeExample } from "../utils/phonemeMap";
@@ -82,8 +83,9 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const imageUrl = wordData?.image_base64 ? `data:image/png;base64,${wordData.image_base64}` : null;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px" }}>
-      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
+      <CharacterBackdrop character={character || "BOLT"} />
+      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 1 }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>

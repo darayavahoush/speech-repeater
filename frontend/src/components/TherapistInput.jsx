@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
+import CharacterBackdrop from "./CharacterBackdrop";
 import { useAudio } from "../hooks/useAudio";
 import { inputWord } from "../utils/api";
 import { t } from "../utils/i18n";
@@ -64,8 +65,9 @@ export default function TherapistInput({ character, language = "english", onWord
   const suggestions = WORD_SUGGESTIONS[language]?.[activeCategory] || [];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px" }}>
-      <div style={{ width: "100%", maxWidth: "480px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
+      <CharacterBackdrop character={character || "BOLT"} />
+      <div style={{ width: "100%", maxWidth: "480px", position: "relative", zIndex: 1 }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>

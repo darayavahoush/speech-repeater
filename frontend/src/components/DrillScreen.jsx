@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
+import CharacterBackdrop from "./CharacterBackdrop";
 import { getPhonemeCard } from "../utils/api";
 import { useAudio } from "../hooks/useAudio";
 
@@ -78,8 +79,9 @@ export default function DrillScreen({ character, drillSequence, onComplete }) {
   if (!current) return null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07090F", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px" }}>
-      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div style={{ minHeight: "100vh", background: "#07090F", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
+      <CharacterBackdrop character={character || "BOLT"} />
+      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 1 }}>
 
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

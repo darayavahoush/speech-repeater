@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CHARACTERS } from "../assets/characters";
+import CharacterBackdrop from "./CharacterBackdrop";
 import { playBase64Audio } from "../utils/api";
 import { t } from "../utils/i18n";
 import { friendlyPhoneme } from "../utils/phonemeMap";
@@ -56,8 +57,9 @@ export default function ResultScreen({ character, language = "english", result, 
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px" }}>
-      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "14px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
+      <CharacterBackdrop character={character || "BOLT"} />
+      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "14px", position: "relative", zIndex: 1 }}>
 
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src={char.image} alt={char.name} style={{ width: "44px", height: "44px", objectFit: "contain" }} />
