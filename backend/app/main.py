@@ -21,6 +21,8 @@ from app.services.audio.processor import analyse_audio
 from app.services.evaluation.scorer import build_attempt_result
 from app.services.voice.tts import speak_word, speak, speak_intro
 from app.services.image.matcher import get_image_for_phrase
+from app.services.chat_cache import find_cached_answer, store_answer
+from pydantic import BaseModel
 
 app = FastAPI(title="VaakSiddhi Autism", version="1.0.0")
 
@@ -478,6 +480,39 @@ async def evaluate(
 
     finally:
         os.unlink(tmp_path)
+
+
+# Load knowledge base once at import time
+_KB_PATH = os.path.join(os.path.dirname(__file__), "data", "knowledge_base.md")
+with open(_KB_PATH, "r", encoding="utf-8") as _f:
+    KNOWLEDGE_BASE = _f.read()
+
+CHAT_SYSTEM_PROMPT_TEMPLATE = """You are {name}, a friendly character in VaakSiddhi, a speech therapy app for children. Help children (and sometimes their therapists/parents) with questions about the app and speech practice. Keep responses short (1-3 sentences), warm, and child-friendly unless the question is clearly from an adult/professional. Always encourage.
+
+Use the following knowledge about the app and speech therapy to answer accurately:
+
+{knowledge_base}
+"""
+
+class ChatRequest(BaseModel):
+    message: str
+    character: str = "BOLT"
+    language: str = "english"
+
+FALLBACK_REPLIES = {
+    "english": "Hmm, I'm not sure about that one! Try asking me about the app, your character friends, or how to practice a word.",
+    "hindi": "मुझे इसके बारे में पता नहीं है! ऐप या दोस्तों के बारे में पूछें।",
+    "kannada": "ಅದರ ಬಗ್ಗೆ ನನಗೆ ಗೊತ್ತಿಲ್ಲ! ಆ್ಯಪ್ ಅಥವಾ ಸ್ನೇಹಿತರ ಬಗ್ಗೆ ಕೇಳಿ.",
+}
+
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    cached = find_cached_answer(req.message)
+    if cached:
+        return {"reply": cached, "matched": True}
+
+    fallback = FALLBACK_REPLIES.get(req.language, FALLBACK_REPLIES["english"])
+    return {"reply": fallback, "matched": False}
 
 
 @app.get("/phoneme-card/{phoneme}")

@@ -10,12 +10,6 @@ const THEMES = {
   MIRA:  { accent: "#4ABFBF", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A" },
 };
 
-const SYSTEM_PROMPTS = {
-  english: (name) => `You are ${name}, a friendly robot in VaakSiddhi, a speech therapy app for children. Help children practice pronunciation. Keep responses very short (1-2 sentences), simple, warm, child-friendly. Always encourage. Give tips on how to pronounce sounds when asked.`,
-  hindi: (name) => `आप ${name} हैं, VaakSiddhi ऐप में एक दोस्ताना रोबोट। बच्चों को उच्चारण में मदद करें। जवाब बहुत छोटा (1-2 वाक्य) और बच्चों के अनुकूल रखें। हमेशा प्रोत्साहित करें।`,
-  kannada: (name) => `ನೀವು ${name}, VaakSiddhi ಅಪ್ಲಿಕೇಶನ್‌ನಲ್ಲಿ ಸ್ನೇಹಪರ ರೋಬೋಟ್. ಮಕ್ಕಳಿಗೆ ಉಚ್ಚಾರಣೆಯಲ್ಲಿ ಸಹಾಯ ಮಾಡಿ. ಉತ್ತರ ತುಂಬಾ ಚಿಕ್ಕದಾಗಿ (1-2 ವಾಕ್ಯ) ಇರಲಿ.`,
-};
-
 const GREETINGS = {
   english: (name) => `Hi! I'm ${name}! 👋 Ask me anything about words or sounds!`,
   hindi: (name) => `नमस्ते! मैं ${name} हूँ! 👋 शब्दों के बारे में कुछ भी पूछो!`,
@@ -49,6 +43,8 @@ export default function AIAssistant({ character, language, currentScreen, wordDa
 
   if (currentScreen === "language_select") return null;
 
+  const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
@@ -57,19 +53,17 @@ export default function AIAssistant({ character, language, currentScreen, wordDa
     setMessages(newMessages);
     setLoading(true);
     try {
-      const context = wordData ? `The child is practicing the word: "${wordData.word}". ` : "";
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 150,
-          system: context + (SYSTEM_PROMPTS[language] || SYSTEM_PROMPTS.english)(char?.name),
-          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          message: userMsg,
+          character: character,
+          language: language,
         }),
       });
       const data = await response.json();
-      const reply = data.content?.[0]?.text || "...";
+      const reply = data.reply || "...";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Oops! Try again 😊" }]);

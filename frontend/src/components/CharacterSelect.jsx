@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { t } from "../utils/i18n";
+import CharacterBackdrop from "./CharacterBackdrop";
 
 const THEMES = {
-  BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
-  ZARA:  { bg: "#F5EEFB", card: "#EDD8F7", text: "#3A1A5C", sub: "#7A4AA5", accent: "#B57ED5" },
-  NOVA:  { bg: "#EEF7EF", card: "#D5EDDA", text: "#1A3A1C", sub: "#3A7A4A", accent: "#6BBF7A" },
-  BEEP:  { bg: "#FDF6E8", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
-  ECHO:  { bg: "#FBF0EC", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
-  MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
-  DEFAULT: { bg: "#F4F2EF", card: "#ECEAE6", text: "#2C2C2A", sub: "#888780", accent: "#888780" },
+  BOLT:  { bg: "#EEF4FB", bgGradient: "linear-gradient(160deg, #EAF2FC 0%, #D2E4F7 55%, #BFD8F2 100%)", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
+  ZARA:  { bg: "#F5EEFB", bgGradient: "linear-gradient(160deg, #F7EEFC 0%, #E9D3F5 55%, #DCC0F0 100%)", card: "#EDD8F7", text: "#3A1A5C", sub: "#7A4AA5", accent: "#B57ED5" },
+  NOVA:  { bg: "#EEF7EF", bgGradient: "linear-gradient(160deg, #EEFAF0 0%, #D0EDD8 55%, #B9E4C4 100%)", card: "#D5EDDA", text: "#1A3A1C", sub: "#3A7A4A", accent: "#6BBF7A" },
+  BEEP:  { bg: "#FDF6E8", bgGradient: "linear-gradient(160deg, #FEF9EC 0%, #FBE8B6 55%, #F7DA8C 100%)", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
+  ECHO:  { bg: "#FBF0EC", bgGradient: "linear-gradient(160deg, #FDF1EC 0%, #F6D2C0 55%, #F0B79D 100%)", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
+  MIRA:  { bg: "#EAF7F7", bgGradient: "linear-gradient(160deg, #ECFAFA 0%, #C4EDED 55%, #A3E1E1 100%)", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
+  DEFAULT: { bg: "#F4F2EF", bgGradient: "linear-gradient(160deg, #F6F4F0 0%, #ECE9E3 55%, #E1DDD4 100%)", card: "#ECEAE6", text: "#2C2C2A", sub: "#888780", accent: "#888780" },
 };
 
 export default function CharacterSelect({ onSelect, language = "english" }) {
@@ -17,7 +18,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
   const [previewing, setPreviewing] = useState(null);
 
   const theme = selected ? THEMES[selected] : THEMES.DEFAULT;
-  useEffect(() => { document.body.style.background = theme.bg; document.body.style.transition = "background 0.5s ease"; }, [theme.bg]);
+  useEffect(() => { document.body.style.background = theme.bgGradient; document.body.style.transition = "background 0.5s ease"; }, [theme.bgGradient]);
 
   const handlePreview = async (charId) => {
     setPreviewing(charId);
@@ -34,8 +35,9 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 20px" }}>
-      <div style={{ width: "100%", maxWidth: "520px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 20px", position: "relative" }}>
+      <CharacterBackdrop character={selected || "BOLT"} />
+      <div style={{ width: "100%", maxWidth: "520px", position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2rem", fontWeight: 900, color: theme.text, marginBottom: "6px", transition: "color 0.5s ease" }}>
             {t(language, "chooseCharacter")}
@@ -54,13 +56,13 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
               <div key={char.id}
                 onClick={() => setSelected(char.id)}
                 style={{
-                  background: isSelected ? ct.card : "rgba(255,255,255,0.6)",
-                  border: `2px solid ${isSelected ? ct.accent : "rgba(0,0,0,0.08)"}`,
+                  background: isSelected ? ct.card : "rgba(255,255,255,0.92)",
+                  border: `2px solid ${isSelected ? ct.accent : "rgba(0,0,0,0.1)"}`,
                   borderRadius: "22px", padding: "14px 20px 14px 14px",
                   cursor: "pointer", transition: "all 0.35s ease",
                   display: "flex", flexDirection: "row", alignItems: "center", gap: "16px",
                   position: "relative", overflow: "hidden",
-                  boxShadow: isSelected ? `0 4px 24px ${ct.accent}33` : "0 2px 8px rgba(0,0,0,0.06)",
+                  boxShadow: isSelected ? `0 4px 24px ${ct.accent}33` : "0 3px 14px rgba(0,0,0,0.1)",
                 }}>
 
                 {isSelected && (
