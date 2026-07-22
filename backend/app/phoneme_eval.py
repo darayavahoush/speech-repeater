@@ -36,10 +36,20 @@ def _get_model(language: str):
 
 # Hindi confusable groups (dental/retroflex, aspiration, nukta, sibilants)
 HINDI_CONFUSABLE_GROUPS = [
+    # Dental vs retroflex place of articulation
     {"त", "ट"}, {"थ", "ठ"}, {"द", "ड"}, {"ध", "ढ"}, {"न", "ण"},
+    # Aspiration
     {"क", "ख"}, {"ग", "घ"}, {"च", "छ"}, {"ज", "झ"}, {"प", "फ"}, {"ब", "भ"},
+    # Nukta retroflex flaps
     {"ड़", "ड"}, {"ढ़", "ढ"},
+    # Sibilants
     {"स", "श", "ष"},
+    # Vowel length (short vs long) — very common speech therapy targets
+    {"इ", "ई"}, {"उ", "ऊ"}, {"ए", "ऐ"}, {"ओ", "औ"}, {"अ", "आ"},
+    # Glide/semivowel endings often blurred in casual/child speech
+    {"य", "ई"}, {"व", "उ"},
+    # Nasalization
+    {"न", "ं"},
 ]
 
 # Kannada confusable groups (dental/retroflex, aspiration, sibilants, retroflex lateral)
@@ -54,6 +64,8 @@ KANNADA_CONFUSABLE_GROUPS = [
     {"ಳ", "ಲ"},
     # Retroflex approximant vs retroflex lateral (ಱ vs ಳ), less common but real
     {"ರ", "ಱ"},
+    # Vowel length (short vs long)
+    {"ಇ", "ಈ"}, {"ಉ", "ಊ"}, {"ಎ", "ಏ"}, {"ಒ", "ಓ"}, {"ಅ", "ಆ"},
 ]
 
 CONFUSABLE_GROUPS_BY_LANGUAGE = {
@@ -99,25 +111,47 @@ def score_target_char(audio_path, target_char, confusable_chars, language):
         "correct": best[0] == "target",
     }
 
-def find_confusable_group(word: str, language: str):
+def find_all_confusable_groups(word: str, language: str):
+    """
+    Returns ALL (char, group) matches found in the word, deduplicated by char,
+    instead of stopping at the first one — important for words with multiple
+    tricky sounds (e.g. मछली has both a sibilant and an aspiration pair).
+    """
     groups = CONFUSABLE_GROUPS_BY_LANGUAGE.get(language, [])
+    seen_chars = set()
+    matches = []
     for char in word:
+        if char in seen_chars:
+            continue
         for group in groups:
             if char in group:
-                return char, group
-    return None
+                matches.append((char, group))
+                seen_chars.add(char)
+                break
+    return matches
 
 def check_confusable_phonemes(audio_path: str, target_word: str, language: str):
     """
-    If target_word contains a known confusable character for this language,
-    scores the audio against that char vs its confusables.
-    Returns None if language isn't supported or no confusable char is present.
+    Checks EVERY known confusable character in target_word (not just the first),
+    scoring the audio against each one vs its confusables. This gives a full
+    picture of pronunciation accuracy across all tricky sounds in the word,
+    which matters for speech therapy use where multiple sounds may need
+    individual feedback.
+
+    Returns a list of per-character results, or None if language isn't
+    supported or no confusable chars are present. Model is loaded once and
+    reused across all checks in the word (no repeated eviction/reload).
     """
     if language not in MODEL_IDS:
         return None
-    match = find_confusable_group(target_word, language)
-    if not match:
+    matches = find_all_confusable_groups(target_word, language)
+    if not matches:
         return None
-    target_char, group = match
-    confusables = [c for c in group if c != target_char]
-    return score_target_char(audio_path, target_char, confusables, language)
+
+    results = []
+    for target_char, group in matches:
+        confusables = [c for c in group if c != target_char]
+        result = score_target_char(audio_path, target_char, confusables, language)
+        result["character"] = target_char
+        results.append(result)
+    return results
