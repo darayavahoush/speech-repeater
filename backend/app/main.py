@@ -209,11 +209,12 @@ async def get_characters_endpoint():
 async def speak_word_endpoint(
     word: str = Form(...),
     speed: float = Form(default=1.0),
+    character: str = Form(default="BOLT"),
     language: str = Form(default="english")
 ):
-    """Pronounce a word using XTTS Indian accent voice."""
-    from app.services.voice.tts import speak_word, speak, speak_intro
-    audio_bytes = speak_word(word, speed, language=language)
+    """Pronounce a word using the selected character's voice."""
+    from app.services.voice.tts import speak_word
+    audio_bytes = speak_word(word, speed=speed, character=character, language=language)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 
@@ -301,13 +302,13 @@ async def compare(
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
         acoustic_raw = analyse_audio(tmp_path, transcript)
 
-        dental_retroflex_check = None
-        if language == "hindi":
-            from app.phoneme_eval import check_dental_retroflex
+        confusable_phoneme_check = None
+        if language in ("hindi", "kannada"):
+            from app.phoneme_eval import check_confusable_phonemes
             try:
-                dental_retroflex_check = check_dental_retroflex(tmp_path, target_word)
+                confusable_phoneme_check = check_confusable_phonemes(tmp_path, target_word, language)
             except Exception as e:
-                print(f"Dental/retroflex check error: {e}")
+                print(f"Confusable phoneme check error: {e}")
         result = build_attempt_result(
             session_id=session_id,
             child_id=child_id,
@@ -418,13 +419,13 @@ async def evaluate(
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
         acoustic_raw = analyse_audio(tmp_path, transcript)
 
-        dental_retroflex_check = None
-        if language == "hindi":
-            from app.phoneme_eval import check_dental_retroflex
+        confusable_phoneme_check = None
+        if language in ("hindi", "kannada"):
+            from app.phoneme_eval import check_confusable_phonemes
             try:
-                dental_retroflex_check = check_dental_retroflex(tmp_path, target_word)
+                confusable_phoneme_check = check_confusable_phonemes(tmp_path, target_word, language)
             except Exception as e:
-                print(f"Dental/retroflex check error: {e}")
+                print(f"Confusable phoneme check error: {e}")
 
         result = build_attempt_result(
             session_id=session_id,
@@ -475,7 +476,7 @@ async def evaluate(
             "enter_drill_mode": enter_drill,
             "drill_sequence": drill_sequence,
             "character_response_audio": __import__("base64").b64encode(response_audio).decode(),
-            "dental_retroflex_check": dental_retroflex_check,
+            "confusable_phoneme_check": confusable_phoneme_check,
         }
 
     finally:
