@@ -10,7 +10,7 @@ const THEMES = {
   BEEP:  { bg: "#FDF6E8", bgGradient: "linear-gradient(160deg, #FEF9EC 0%, #FBE8B6 55%, #F7DA8C 100%)", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
   ECHO:  { bg: "#FBF0EC", bgGradient: "linear-gradient(160deg, #FDF1EC 0%, #F6D2C0 55%, #F0B79D 100%)", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
   MIRA:  { bg: "#EAF7F7", bgGradient: "linear-gradient(160deg, #ECFAFA 0%, #C4EDED 55%, #A3E1E1 100%)", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
-  DEFAULT: { bg: "#F4F2EF", bgGradient: "linear-gradient(160deg, #F6F4F0 0%, #ECE9E3 55%, #E1DDD4 100%)", card: "#ECEAE6", text: "#2C2C2A", sub: "#888780", accent: "#888780" },
+  DEFAULT: { bg: "#FDF6F0", bgGradient: "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)", card: "#FCF7F0", text: "#3A2E2C", sub: "#9A7A6A", accent: "#E8825A" },
 };
 
 export default function CharacterSelect({ onSelect, language = "english" }) {
@@ -36,7 +36,7 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 20px", position: "relative" }}>
-      <CharacterBackdrop character={selected || "BOLT"} />
+      <CharacterBackdrop character={selected} />
       <div style={{ width: "100%", maxWidth: "520px", position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2rem", fontWeight: 900, color: theme.text, marginBottom: "6px", transition: "color 0.5s ease" }}>

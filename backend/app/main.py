@@ -18,7 +18,7 @@ from app.services.phoneme.drill import (
     get_encouragement_message
 )
 from app.services.audio.processor import analyse_audio
-from app.services.evaluation.scorer import build_attempt_result
+from app.services.evaluation.scorer import build_attempt_result, compute_composite
 from app.services.voice.tts import speak_word, speak, speak_intro
 from app.services.image.matcher import get_image_for_phrase
 from app.services.chat_cache import find_cached_answer, store_answer
@@ -321,6 +321,34 @@ async def compare(
             condition=condition,
             character=character,
         )
+
+        # Override Whisper-derived phoneme correctness with the dedicated
+        # confusable-phoneme model's verdict, since it's specifically more
+        # reliable for these known-tricky sound pairs than open transcription.
+        if confusable_phoneme_check:
+            _used_confusable_indices = set()
+            for check in confusable_phoneme_check:
+                char_phonemes = get_phonemes(check["character"], language)
+                if not char_phonemes:
+                    continue
+                target_phone = char_phonemes[0]
+                for idx, tp in enumerate(target_phonemes):
+                    if idx in _used_confusable_indices:
+                        continue
+                    if tp == target_phone:
+                        _used_confusable_indices.add(idx)
+                        result.phoneme_scores.matches[idx].correct = check["correct"]
+                        if not check["correct"] and check.get("predicted") != "target":
+                            predicted_phonemes = get_phonemes(check["predicted"], language)
+                            if predicted_phonemes:
+                                result.phoneme_scores.matches[idx].detected = predicted_phonemes[0]
+                        break
+
+            correct_count = sum(1 for m in result.phoneme_scores.matches if m.correct)
+            total = max(len(result.phoneme_scores.matches), 1)
+            new_accuracy = round((correct_count / total) * 100, 2)
+            result.phoneme_scores.accuracy = new_accuracy
+            result.composite_score = compute_composite(new_accuracy, acoustic_raw, condition)
         return result
     finally:
         os.unlink(tmp_path)
@@ -439,6 +467,34 @@ async def evaluate(
             condition=condition,
             character=character,
         )
+
+        # Override Whisper-derived phoneme correctness with the dedicated
+        # confusable-phoneme model's verdict, since it's specifically more
+        # reliable for these known-tricky sound pairs than open transcription.
+        if confusable_phoneme_check:
+            _used_confusable_indices = set()
+            for check in confusable_phoneme_check:
+                char_phonemes = get_phonemes(check["character"], language)
+                if not char_phonemes:
+                    continue
+                target_phone = char_phonemes[0]
+                for idx, tp in enumerate(target_phonemes):
+                    if idx in _used_confusable_indices:
+                        continue
+                    if tp == target_phone:
+                        _used_confusable_indices.add(idx)
+                        result.phoneme_scores.matches[idx].correct = check["correct"]
+                        if not check["correct"] and check.get("predicted") != "target":
+                            predicted_phonemes = get_phonemes(check["predicted"], language)
+                            if predicted_phonemes:
+                                result.phoneme_scores.matches[idx].detected = predicted_phonemes[0]
+                        break
+
+            correct_count = sum(1 for m in result.phoneme_scores.matches if m.correct)
+            total = max(len(result.phoneme_scores.matches), 1)
+            new_accuracy = round((correct_count / total) * 100, 2)
+            result.phoneme_scores.accuracy = new_accuracy
+            result.composite_score = compute_composite(new_accuracy, acoustic_raw, condition)
 
         result_dict = result.dict()
         history.append(result_dict)

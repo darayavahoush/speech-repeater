@@ -4,7 +4,7 @@ import { LANGUAGES } from "../utils/i18n";
 export default function LanguageSelect({ onSelect }) {
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => { document.body.style.background = "#F4F2EF"; document.body.style.transition = "background 0.5s ease"; }, []);
+  useEffect(() => { document.body.style.background = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)"; document.body.style.transition = "background 0.5s ease"; }, []);
 
   const LANG_THEMES = {
     english: { bg: "#EEF4FB", accent: "#5B9BD5", text: "#1A3A5C", card: "#DDEAF7" },
@@ -12,12 +12,12 @@ export default function LanguageSelect({ onSelect }) {
     kannada: { bg: "#EEF7EF", accent: "#6BBF7A", text: "#1A3A1C", card: "#D5EDDA" },
   };
 
-  const theme = selected ? LANG_THEMES[selected] : { bg: "#F4F2EF", accent: "#888", text: "#2C2C2A", card: "#ECEAE6" };
+  const theme = selected ? LANG_THEMES[selected] : { bg: "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)", accent: "#E8825A", text: "#3A2E2C", card: "#FCF7F0" };
 
   useEffect(() => {
-    document.body.style.background = selected ? LANG_THEMES[selected].bg : "#F4F2EF";
+    document.body.style.background = selected ? LANG_THEMES[selected].bg : "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)";
     document.body.style.transition = "background 0.5s ease";
-    return () => { document.body.style.background = "#F4F2EF"; };
+    return () => { document.body.style.background = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)"; };
   }, [selected]);
 
   return (
