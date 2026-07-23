@@ -13,7 +13,7 @@ const THEMES = {
 
 const LANG_NATIVE = { english: "English", hindi: "हिन्दी", kannada: "ಕನ್ನಡ" };
 
-export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome }) {
+export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial }) {
   const [open, setOpen] = useState(false);
   const th = THEMES[character] || THEMES.BOLT;
 
@@ -47,10 +47,20 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             display: "flex", alignItems: "center", gap: "12px",
             background: th.card, border: `1.5px solid ${th.accent}33`,
             borderRadius: "14px", padding: "12px 16px", cursor: "pointer",
-            marginBottom: "20px", width: "100%",
+            marginBottom: "10px", width: "100%",
           }}>
             <span style={{ fontSize: "1.3rem" }}>🏠</span>
             <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>Home</span>
+          </button>
+
+          <button onClick={() => { onShowTutorial(); setOpen(false); }} style={{
+            display: "flex", alignItems: "center", gap: "12px",
+            background: "transparent", border: `1.5px solid ${th.accent}33`,
+            borderRadius: "14px", padding: "12px 16px", cursor: "pointer",
+            marginBottom: "20px", width: "100%",
+          }}>
+            <span style={{ fontSize: "1.3rem" }}>❓</span>
+            <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>How it works</span>
           </button>
 
           <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: th.sub, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Character</p>
