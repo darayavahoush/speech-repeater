@@ -174,7 +174,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
+          <button id="hint-hear-voice" onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
             🔊 Normal
           </button>
           <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
@@ -220,7 +220,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
             <button onClick={handleSubmit} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "20px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Check my answer! ✨
             </button>
-            <button onClick={() => { reset(); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
+            <button id="hint-mic-button" onClick={() => { reset(); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
               Try again
             </button>
           </div>

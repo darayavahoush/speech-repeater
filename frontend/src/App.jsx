@@ -4,6 +4,7 @@ import CharacterSelect from "./components/CharacterSelect";
 import LanguageSelect from "./components/LanguageSelect";
 import Sidebar from "./components/Sidebar";
 import Tutorial from "./components/Tutorial";
+import SpotlightHint from "./components/SpotlightHint";
 import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
@@ -39,6 +40,21 @@ export default function App() {
   const [attemptHistory, setAttemptHistory] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showSpotlight, setShowSpotlight] = useState(false);
+
+  const SPOTLIGHT_STEPS = [
+    { targetId: "hint-character-card", text: "Tap a friend to pick them as your practice buddy!" },
+    { targetId: "hint-hear-voice", text: "Tap here to hear the word out loud!" },
+    { targetId: "hint-mic-button", text: "Now tap here and say the word yourself!" },
+    { targetId: "hint-result-action", text: "Tap here to try again or move to your next word!" },
+  ];
+
+  const spotlightDoneKey = () => `vaaksiddhi_spotlight_done_${childId}`;
+
+  const handleSpotlightComplete = () => {
+    setShowSpotlight(false);
+    if (childId) localStorage.setItem(spotlightDoneKey(), "true");
+  };
 
   const saveProfile = async (updates) => {
     if (!childId) return;
@@ -203,7 +219,28 @@ export default function App() {
         onHome={handleHome}
         onShowTutorial={() => setShowTutorial(true)}
       />
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      {showTutorial && (
+        <Tutorial onClose={() => {
+          setShowTutorial(false);
+          if (isNewUser && childId && !localStorage.getItem(spotlightDoneKey())) {
+            setShowSpotlight(true);
+          }
+        }} />
+      )}
+      {showSpotlight && <SpotlightHint steps={SPOTLIGHT_STEPS} onComplete={handleSpotlightComplete} />}
+      <button
+        onClick={() => setShowSpotlight(true)}
+        style={{
+          position: "fixed", bottom: "20px", right: "16px", zIndex: 100,
+          width: "56px", height: "56px", borderRadius: "50%",
+          background: "#E8825A", border: "none", boxShadow: "0 4px 16px #E8825A66",
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "1.5rem",
+        }}
+        title="Show me what to do"
+      >
+        💡
+      </button>
     </div>
   );
 }
