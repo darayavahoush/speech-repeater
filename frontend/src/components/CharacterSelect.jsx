@@ -48,12 +48,13 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "28px" }}>
-          {Object.values(CHARACTERS).map((char) => {
+          {Object.values(CHARACTERS).map((char, i) => {
             const isSelected = selected === char.id;
             const isPreviewing = previewing === char.id;
             const ct = THEMES[char.id];
             return (
               <div key={char.id}
+                id={i === 0 ? "hint-character-card" : undefined}
                 onClick={() => setSelected(char.id)}
                 style={{
                   background: isSelected ? ct.card : "rgba(255,255,255,0.92)",

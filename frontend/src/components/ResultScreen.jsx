@@ -136,13 +136,13 @@ export default function ResultScreen({ character, language = "english", result, 
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
           {encouragement.action === "next_word" && (
-            <button onClick={onNextWord} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
+            <button id="hint-result-action" onClick={onNextWord} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Next word! →
             </button>
           )}
           {(encouragement.action === "retry" || encouragement.action === "drill" || encouragement.action === "support") && (
             <>
-              <button onClick={onRetry} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
+              <button id="hint-result-action" onClick={onRetry} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "18px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
                 Try again
               </button>
               {result?.drill_sequence?.length > 0 && (
