@@ -1,5 +1,7 @@
-export default function CharacterBackdrop({ character = "BOLT" }) {
-  const char = (character || "BOLT").toUpperCase();
+export default function CharacterBackdrop({ character }) {
+  if (!character) return null; // No motif when no character is selected — let the screen's own background carry it
+
+  const char = character.toUpperCase();
 
   return (
     <div
@@ -17,36 +19,65 @@ export default function CharacterBackdrop({ character = "BOLT" }) {
   );
 }
 
-// ---------- BOLT: crisp glowing drifting hex outlines, spread wide ----------
+// ---------- BOLT: starfield + radar scan pings + shooting stars ----------
 function BoltBackdrop() {
-  const hexes = [
-    { x: 4, y: 8, size: 85 }, { x: 90, y: 6, size: 60 }, { x: 6, y: 40, size: 70 },
-    { x: 92, y: 38, size: 95 }, { x: 3, y: 72, size: 65 }, { x: 88, y: 75, size: 80 },
-    { x: 12, y: 92, size: 55 }, { x: 80, y: 95, size: 60 }, { x: 96, y: 15, size: 45 },
-    { x: 45, y: 4, size: 50 },
+  const stars = Array.from({ length: 22 }, (_, i) => ({
+    x: (i * 43) % 100, y: (i * 79) % 100, size: 2 + (i % 3) * 1.5,
+  }));
+  const scans = [
+    { x: 15, y: 20, size: 140 }, { x: 82, y: 30, size: 170 },
+    { x: 25, y: 78, size: 160 }, { x: 78, y: 82, size: 130 },
   ];
-  const hexPoints = (s) => {
-    const pts = [[s/2,0],[s,s*0.27],[s,s*0.73],[s/2,s],[0,s*0.73],[0,s*0.27]];
-    return pts.map(p => p.join(",")).join(" ");
-  };
+  const shootingStars = [
+    { top: 10, dur: 6, delay: 0 },
+    { top: 45, dur: 8, delay: 3 },
+    { top: 70, dur: 7, delay: 5.5 },
+  ];
   return (
     <div style={{ position: "absolute", inset: 0 }}>
-      {hexes.map((h, i) => (
-        <div key={i} className="cb-anim" style={{
-          position: "absolute", left: `${h.x}%`, top: `${h.y}%`,
-          width: h.size, height: h.size,
-          animation: `bolt-drift ${15 + i * 2}s ease-in-out infinite`,
-          animationDelay: `${i * 0.9}s`,
-        }}>
-          <svg width={h.size} height={h.size} viewBox={`0 0 ${h.size} ${h.size}`} style={{ overflow: "visible", filter: "drop-shadow(0 0 6px #5B9BD5CC)" }}>
-            <polygon points={hexPoints(h.size)} fill="none" stroke="#5B9BD5" strokeWidth="3" opacity="0.65" strokeLinejoin="round" />
-          </svg>
-        </div>
+      {stars.map((s, i) => (
+        <div key={`star-${i}`} className="cb-anim" style={{
+          position: "absolute", left: `${s.x}%`, top: `${s.y}%`,
+          width: s.size, height: s.size, borderRadius: "50%",
+          background: "#5B9BD5", boxShadow: "0 0 6px #5B9BD5CC",
+          opacity: 0.5,
+          animation: `bolt-star-twinkle ${2 + (i % 4)}s ease-in-out infinite`,
+          animationDelay: `${i * 0.3}s`,
+        }} />
+      ))}
+      {scans.map((sc, i) => (
+        <div key={`scan-${i}`} className="cb-anim" style={{
+          position: "absolute", left: `${sc.x}%`, top: `${sc.y}%`,
+          width: sc.size, height: sc.size, borderRadius: "50%",
+          border: "2px solid #5B9BD5", opacity: 0,
+          animation: `bolt-scan-ping ${5 + i * 1.3}s ease-out infinite`,
+          animationDelay: `${i * 1.6}s`,
+        }} />
+      ))}
+      {shootingStars.map((sh, i) => (
+        <div key={`shoot-${i}`} className="cb-anim" style={{
+          position: "absolute", top: `${sh.top}%`, left: "-10%",
+          width: "90px", height: "2px",
+          background: "linear-gradient(90deg, transparent, #5B9BD5CC, transparent)",
+          animation: `bolt-shooting-star ${sh.dur}s linear infinite`,
+          animationDelay: `${sh.delay}s`,
+        }} />
       ))}
       <style>{`
-        @keyframes bolt-drift {
-          0%, 100% { opacity: 0.6; transform: translateY(0) rotate(0deg); }
-          50% { opacity: 1; transform: translateY(-20px) rotate(10deg); }
+        @keyframes bolt-star-twinkle {
+          0%, 100% { opacity: 0.2; transform: scale(0.8); }
+          50% { opacity: 0.9; transform: scale(1.3); }
+        }
+        @keyframes bolt-scan-ping {
+          0% { transform: scale(0.6); opacity: 0.5; }
+          80% { opacity: 0.08; }
+          100% { transform: scale(1.15); opacity: 0; }
+        }
+        @keyframes bolt-shooting-star {
+          0% { left: -10%; opacity: 0; transform: translateY(0); }
+          5% { opacity: 0.8; }
+          20% { opacity: 0; }
+          100% { left: 110%; opacity: 0; transform: translateY(40px); }
         }
       `}</style>
     </div>
