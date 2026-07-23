@@ -556,6 +556,74 @@ class ChatRequest(BaseModel):
     character: str = "BOLT"
     language: str = "english"
 
+
+class LoginRequest(BaseModel):
+    name: str
+    pin: str
+
+
+class ProfileUpdateRequest(BaseModel):
+    child_id: str
+    character: str = None
+    language: str = None
+
+
+@app.post("/auth/login")
+async def auth_login(req: LoginRequest):
+    from app.services.auth import get_child_by_name, create_child, verify_pin
+
+    name = req.name.strip()
+    pin = req.pin.strip()
+
+    if not name or not pin:
+        return {"success": False, "error": "Name and PIN are required."}
+    if not (3 <= len(pin) <= 8) or not pin.isdigit():
+        return {"success": False, "error": "PIN should be 3-8 digits."}
+
+    try:
+        existing = get_child_by_name(name)
+    except Exception as e:
+        print(f"Auth lookup error: {e}")
+        return {"success": False, "error": "Login is temporarily unavailable. Please try again shortly."}
+
+    if existing:
+        if verify_pin(pin, existing["pin_hash"]):
+            return {
+                "success": True,
+                "child_id": existing["id"],
+                "name": existing["name"],
+                "character": existing["character"],
+                "language": existing["language"],
+                "is_new": False,
+            }
+        else:
+            return {"success": False, "error": "Incorrect PIN for that name."}
+    else:
+        try:
+            new_child = create_child(name, pin)
+        except Exception as e:
+            print(f"Auth create error: {e}")
+            return {"success": False, "error": "Could not create your account. Please try again."}
+        return {
+            "success": True,
+            "child_id": new_child["id"],
+            "name": new_child["name"],
+            "character": None,
+            "language": None,
+            "is_new": True,
+        }
+
+
+@app.post("/auth/profile")
+async def auth_update_profile(req: ProfileUpdateRequest):
+    from app.services.auth import update_child_profile
+    try:
+        updated = update_child_profile(req.child_id, character=req.character, language=req.language)
+        return {"success": True, "profile": updated}
+    except Exception as e:
+        print(f"Profile update error: {e}")
+        return {"success": False, "error": "Could not save your selection."}
+
 FALLBACK_REPLIES = {
     "english": "Hmm, I'm not sure about that one! Try asking me about the app, your character friends, or how to practice a word.",
     "hindi": "मुझे इसके बारे में पता नहीं है! ऐप या दोस्तों के बारे में पूछें।",
