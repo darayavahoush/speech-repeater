@@ -2,22 +2,13 @@ import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { t } from "../utils/i18n";
 import CharacterBackdrop from "./CharacterBackdrop";
+import { getTheme, getSurface } from "../utils/themes";
 
-const THEMES = {
-  BOLT:  { bg: "#EEF4FB", bgGradient: "linear-gradient(160deg, #EAF2FC 0%, #D2E4F7 55%, #BFD8F2 100%)", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
-  ZARA:  { bg: "#F5EEFB", bgGradient: "linear-gradient(160deg, #F7EEFC 0%, #E9D3F5 55%, #DCC0F0 100%)", card: "#EDD8F7", text: "#3A1A5C", sub: "#7A4AA5", accent: "#B57ED5" },
-  NOVA:  { bg: "#EEF7EF", bgGradient: "linear-gradient(160deg, #EEFAF0 0%, #D0EDD8 55%, #B9E4C4 100%)", card: "#D5EDDA", text: "#1A3A1C", sub: "#3A7A4A", accent: "#6BBF7A" },
-  BEEP:  { bg: "#FDF6E8", bgGradient: "linear-gradient(160deg, #FEF9EC 0%, #FBE8B6 55%, #F7DA8C 100%)", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
-  ECHO:  { bg: "#FBF0EC", bgGradient: "linear-gradient(160deg, #FDF1EC 0%, #F6D2C0 55%, #F0B79D 100%)", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
-  MIRA:  { bg: "#EAF7F7", bgGradient: "linear-gradient(160deg, #ECFAFA 0%, #C4EDED 55%, #A3E1E1 100%)", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
-  DEFAULT: { bg: "#FDF6F0", bgGradient: "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)", card: "#FCF7F0", text: "#3A2E2C", sub: "#9A7A6A", accent: "#E8825A" },
-};
-
-export default function CharacterSelect({ onSelect, language = "english" }) {
+export default function CharacterSelect({ onSelect, language = "english", darkMode }) {
   const [selected, setSelected] = useState(null);
   const [previewing, setPreviewing] = useState(null);
 
-  const theme = selected ? THEMES[selected] : THEMES.DEFAULT;
+  const theme = getTheme(selected, darkMode);
   useEffect(() => { document.body.style.background = theme.bgGradient; document.body.style.transition = "background 0.5s ease"; }, [theme.bgGradient]);
 
   const handlePreview = async (charId) => {
@@ -51,13 +42,13 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
           {Object.values(CHARACTERS).map((char, i) => {
             const isSelected = selected === char.id;
             const isPreviewing = previewing === char.id;
-            const ct = THEMES[char.id];
+            const ct = getTheme(char.id, darkMode);
             return (
               <div key={char.id}
                 id={i === 0 ? "hint-character-card" : undefined}
                 onClick={() => setSelected(char.id)}
                 style={{
-                  background: isSelected ? ct.card : "rgba(255,255,255,0.92)",
+                  background: isSelected ? ct.card : getSurface(darkMode, 0.92),
                   border: `2px solid ${isSelected ? ct.accent : "rgba(0,0,0,0.1)"}`,
                   borderRadius: "22px", padding: "14px 20px 14px 14px",
                   cursor: "pointer", transition: "all 0.35s ease",
@@ -133,12 +124,12 @@ export default function CharacterSelect({ onSelect, language = "english" }) {
           disabled={!selected}
           style={{
             width: "100%", padding: "18px",
-            background: selected ? THEMES[selected].accent : "rgba(0,0,0,0.1)",
+            background: selected ? getTheme(selected, darkMode).accent : "rgba(0,0,0,0.1)",
             color: selected ? "#fff" : "#aaa",
             border: "none", borderRadius: "16px",
             fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900,
             cursor: selected ? "pointer" : "not-allowed", transition: "all 0.4s ease",
-            boxShadow: selected ? `0 4px 20px ${THEMES[selected]?.accent}55` : "none",
+            boxShadow: selected ? `0 4px 20px ${getTheme(selected, darkMode)?.accent}55` : "none",
           }}>
           {selected ? t(language, "letsGo", CHARACTERS[selected]?.name) : t(language, "pickCharacter")}
         </button>

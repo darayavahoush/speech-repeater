@@ -5,19 +5,11 @@ import { playBase64Audio } from "../utils/api";
 import { t } from "../utils/i18n";
 import { friendlyPhoneme } from "../utils/phonemeMap";
 import { displayPhoneme } from "../utils/phonemeMapIndic";
+import { getTheme, getSurface } from "../utils/themes";
 
-const THEMES = {
-  BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
-  ZARA:  { bg: "#F5EEFB", card: "#EDD8F7", text: "#3A1A5C", sub: "#7A4AA5", accent: "#B57ED5" },
-  NOVA:  { bg: "#EEF7EF", card: "#D5EDDA", text: "#1A3A1C", sub: "#3A7A4A", accent: "#6BBF7A" },
-  BEEP:  { bg: "#FDF6E8", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
-  ECHO:  { bg: "#FBF0EC", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
-  MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
-};
-
-export default function ResultScreen({ character, language = "english", result, onRetry, onNextWord, onDrill, childAudioUrl }) {
+export default function ResultScreen({ character, language = "english", result, onRetry, onNextWord, onDrill, childAudioUrl, darkMode }) {
   const char = CHARACTERS[character];
-  const th = THEMES[character];
+  const th = getTheme(character, darkMode);
   const score = result?.composite_score ?? 0;
   const matches = result?.phoneme_scores?.matches ?? [];
   const encouragement = result?.encouragement ?? {};
@@ -66,13 +58,13 @@ export default function ResultScreen({ character, language = "english", result, 
           <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{t(language, "characterSays", char.name)}</span>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "18px", padding: "20px", boxShadow: `0 4px 20px ${th.accent}15` }}>
+        <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "18px", padding: "20px", boxShadow: `0 4px 20px ${th.accent}15` }}>
           <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 700, color: th.text, margin: 0, lineHeight: 1.5 }}>
             {encouragement.message}
           </p>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "20px", padding: "22px", boxShadow: `0 4px 20px ${th.accent}15` }}>
+        <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "20px", padding: "22px", boxShadow: `0 4px 20px ${th.accent}15` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <div>
               <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 4px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Overall Score</p>
@@ -100,7 +92,7 @@ export default function ResultScreen({ character, language = "english", result, 
           </div>
         </div>
 
-        <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+        <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
           <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 12px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Compare Voices</p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={playChildAudio} disabled={playingChild || !childAudioUrl} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "12px", color: th.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
@@ -113,7 +105,7 @@ export default function ResultScreen({ character, language = "english", result, 
         </div>
 
         {acousticTips.length > 0 && score < 80 && (
-          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+          <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
             <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 10px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Voice Tips</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {acousticTips.map((tip, i) => (
@@ -128,7 +120,7 @@ export default function ResultScreen({ character, language = "english", result, 
         )}
 
         {result?.feedback && (
-          <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
+          <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px" }}>
             <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: "0 0 8px 0", fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>Feedback</p>
             <p style={{ color: th.text, fontSize: "0.875rem", margin: 0, lineHeight: 1.6 }}>{result.feedback}</p>
           </div>
@@ -146,7 +138,7 @@ export default function ResultScreen({ character, language = "english", result, 
                 Try again
               </button>
               {result?.drill_sequence?.length > 0 && (
-                <button onClick={onDrill} style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}66`, borderRadius: "14px", padding: "14px", color: th.accent, fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                <button onClick={onDrill} style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}66`, borderRadius: "14px", padding: "14px", color: th.accent, fontSize: "0.9rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                   Practise sounds separately
                 </button>
               )}
@@ -180,7 +172,7 @@ function PhonemeHelp({ matches, char, th, language = "english" }) {
   if (wrongPhonemes.length === 0) return null;
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+    <div style={{ background: getSurface(darkMode, 0.8), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
       <p style={{ color: th.sub, fontSize: "0.65rem", letterSpacing: "0.12em", margin: 0, fontWeight: 700, textTransform: language === "english" ? "uppercase" : "none" }}>How to fix these sounds</p>
       {wrongPhonemes.map((ph, i) => {
         const card = cards[ph];
