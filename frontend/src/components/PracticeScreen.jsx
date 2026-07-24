@@ -6,23 +6,15 @@ import { evaluateAttempt } from "../utils/api";
 import { friendlyPhoneme, phonemeExample } from "../utils/phonemeMap";
 import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { t } from "../utils/i18n";
+import { getTheme, getSurface } from "../utils/themes";
 
-const THEMES = {
-  BOLT:  { bg: "#EEF4FB", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5", accent: "#5B9BD5" },
-  ZARA:  { bg: "#F5EEFB", card: "#EDD8F7", text: "#3A1A5C", sub: "#7A4AA5", accent: "#B57ED5" },
-  NOVA:  { bg: "#EEF7EF", card: "#D5EDDA", text: "#1A3A1C", sub: "#3A7A4A", accent: "#6BBF7A" },
-  BEEP:  { bg: "#FDF6E8", card: "#FAE8B8", text: "#3A2A00", sub: "#7A5A10", accent: "#E8B84B" },
-  ECHO:  { bg: "#FBF0EC", card: "#F5D5C8", text: "#3A1200", sub: "#8A3A20", accent: "#E87B5A" },
-  MIRA:  { bg: "#EAF7F7", card: "#C8EAEA", text: "#003A3A", sub: "#1A6A6A", accent: "#4ABFBF" },
-};
-
-export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter }) {
+export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode }) {
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
   const { isRecording, audioBlob, audioUrl, startRecording, stopRecording, reset } = useAudio();
   const char = CHARACTERS[character];
-  const th = THEMES[character];
+  const th = getTheme(character, darkMode);
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
 
@@ -99,20 +91,20 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         {showSwitcher && (
-          <div style={{ background: "rgba(255,255,255,0.9)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", boxShadow: `0 4px 20px ${th.accent}18` }}>
+          <div style={{ background: getSurface(darkMode, 0.9), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", boxShadow: `0 4px 20px ${th.accent}18` }}>
             <p style={{ color: th.sub, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Switch character</p>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {Object.values(CHARACTERS).map(c => (
-                <button key={c.id} onClick={() => { onSwitchCharacter(c.id); setShowSwitcher(false); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: c.id === character ? THEMES[c.id].card : "transparent", border: `1.5px solid ${c.id === character ? THEMES[c.id].accent : "rgba(0,0,0,0.08)"}`, borderRadius: "10px", padding: "8px 10px", cursor: "pointer" }}>
+                <button key={c.id} onClick={() => { onSwitchCharacter(c.id); setShowSwitcher(false); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", background: c.id === character ? getTheme(c.id, darkMode).card : "transparent", border: `1.5px solid ${c.id === character ? getTheme(c.id, darkMode).accent : "rgba(0,0,0,0.08)"}`, borderRadius: "10px", padding: "8px 10px", cursor: "pointer" }}>
                   <img src={c.image} alt={c.name} style={{ width: "32px", height: "32px", objectFit: "contain" }} />
-                  <span style={{ fontSize: "0.62rem", fontWeight: 700, color: THEMES[c.id].text, fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
+                  <span style={{ fontSize: "0.62rem", fontWeight: 700, color: getTheme(c.id, darkMode).text, fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${th.accent}18` }}>
+        <div style={{ background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${th.accent}18` }}>
           {(() => {
             const imgs = wordData?.images?.length > 0 ? wordData.images : imageUrl ? [{ label: wordData?.word, image_base64: wordData?.image_base64 }] : [];
             const idx = Math.min(imageIndex, Math.max(imgs.length - 1, 0));
@@ -174,10 +166,10 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button id="hint-hear-voice" onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
+          <button id="hint-hear-voice" onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
             🔊 Normal
           </button>
-          <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
+          <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
             🐢 Slow
           </button>
         </div>
@@ -209,7 +201,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
 
         {phase === "record" && !isRecording && audioBlob && (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div style={{ background: "rgba(255,255,255,0.7)", border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", display: "flex", gap: "10px" }}>
+            <div style={{ background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "14px", display: "flex", gap: "10px" }}>
               <button onClick={playChildAudio} disabled={playingChild} style={{ flex: 1, background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "10px", color: th.sub, fontSize: "0.8rem", cursor: "pointer", fontWeight: 700, fontFamily: "Nunito, sans-serif" }}>
                 {playingChild ? "Playing..." : t(language, "hearYourself")}
               </button>

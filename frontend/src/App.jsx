@@ -5,6 +5,7 @@ import LanguageSelect from "./components/LanguageSelect";
 import Sidebar from "./components/Sidebar";
 import Tutorial from "./components/Tutorial";
 import SpotlightHint from "./components/SpotlightHint";
+import { getStoredDarkMode, setStoredDarkMode } from "./utils/themes";
 import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
@@ -39,6 +40,15 @@ export default function App() {
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => getStoredDarkMode());
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      setStoredDarkMode(next);
+      return next;
+    });
+  };
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSpotlight, setShowSpotlight] = useState(false);
 
@@ -188,19 +198,19 @@ export default function App() {
   };
 
   if (screen === SCREENS.LOGIN) {
-    return <Login onLogin={handleLogin} />;
+    return <Login onLogin={handleLogin} darkMode={darkMode} />;
   }
 
   return (
     <div style={{ minHeight: "100vh", background: "transparent" }}>
       {screen === SCREENS.LANGUAGE_SELECT && (
-        <LanguageSelect onSelect={handleLanguageSelect} />
+        <LanguageSelect onSelect={handleLanguageSelect} darkMode={darkMode} />
       )}
       {screen === SCREENS.CHARACTER_SELECT && (
-        <CharacterSelect onSelect={handleCharacterSelect} language={language} />
+        <CharacterSelect onSelect={handleCharacterSelect} language={language} darkMode={darkMode} />
       )}
       {screen === SCREENS.THERAPIST_INPUT && (
-        <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={handleSwitchCharacter} />
+        <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={handleSwitchCharacter} darkMode={darkMode} />
       )}
       {screen === SCREENS.PRACTICE && (
         <PracticeScreen
@@ -212,6 +222,7 @@ export default function App() {
           attemptHistory={attemptHistory}
           onResult={handleResult}
           onSwitchCharacter={handleSwitchCharacter}
+          darkMode={darkMode}
         />
       )}
       {screen === SCREENS.RESULT && (
@@ -223,6 +234,7 @@ export default function App() {
           onRetry={handleRetry}
           onNextWord={handleNextWord}
           onDrill={handleDrill}
+          darkMode={darkMode}
         />
       )}
       {screen === SCREENS.DRILL && (
@@ -232,6 +244,7 @@ export default function App() {
           drillSequence={drillSequence}
           onComplete={handleDrillComplete}
           onSwitchCharacter={handleSwitchCharacter}
+          darkMode={darkMode}
         />
       )}
       <Sidebar
@@ -242,6 +255,8 @@ export default function App() {
         onSwitchLanguage={handleSwitchLanguage}
         onHome={handleHome}
         onShowTutorial={() => setShowTutorial(true)}
+        darkMode={darkMode}
+        onToggleDarkMode={toggleDarkMode}
       />
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
       {showSpotlight && SCREEN_HINTS[screen] && (

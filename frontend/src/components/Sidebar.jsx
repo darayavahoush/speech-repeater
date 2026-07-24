@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
+import { getTheme } from "../utils/themes";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", accent: "#5B9BD5", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5" },
@@ -13,9 +14,9 @@ const THEMES = {
 
 const LANG_NATIVE = { english: "English", hindi: "हिन्दी", kannada: "ಕನ್ನಡ" };
 
-export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial }) {
+export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode }) {
   const [open, setOpen] = useState(false);
-  const th = THEMES[character] || THEMES.BOLT;
+  const th = getTheme(character, darkMode);
 
   if (currentScreen === "language_select") return null;
 
@@ -33,7 +34,7 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
       }}>
         <div style={{
           width: "260px", height: "100%",
-          background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)",
+          background: darkMode ? "rgba(20,16,14,0.97)" : "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)",
           boxShadow: "-4px 0 24px rgba(0,0,0,0.1)",
           display: "flex", flexDirection: "column",
           padding: "24px 16px", overflowY: "auto",
@@ -63,17 +64,44 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>How it works</span>
           </button>
 
+          <button onClick={onToggleDarkMode} style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: "transparent", border: `1.5px solid ${th.accent}33`,
+            borderRadius: "14px", padding: "12px 16px", cursor: "pointer",
+            marginBottom: "20px", width: "100%",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span style={{ fontSize: "1.3rem" }}>{darkMode ? "🌙" : "☀️"}</span>
+              <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>
+                {darkMode ? "Dark mode" : "Light mode"}
+              </span>
+            </span>
+            <span style={{
+              width: "38px", height: "22px", borderRadius: "11px",
+              background: darkMode ? th.accent : "rgba(0,0,0,0.15)",
+              position: "relative", transition: "background 0.25s",
+            }}>
+              <span style={{
+                position: "absolute", top: "2px",
+                left: darkMode ? "18px" : "2px",
+                width: "18px", height: "18px", borderRadius: "50%",
+                background: "#fff", transition: "left 0.25s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+              }} />
+            </span>
+          </button>
+
           <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: th.sub, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>Character</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "24px" }}>
             {Object.values(CHARACTERS).map(c => (
               <button key={c.id} onClick={() => { onSwitchCharacter(c.id); setOpen(false); }} style={{
                 display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-                background: c.id === character ? THEMES[c.id].card : "transparent",
-                border: `1.5px solid ${c.id === character ? THEMES[c.id].accent : "rgba(0,0,0,0.08)"}`,
+                background: c.id === character ? getTheme(c.id, darkMode).card : "transparent",
+                border: `1.5px solid ${c.id === character ? getTheme(c.id, darkMode).accent : "rgba(0,0,0,0.08)"}`,
                 borderRadius: "12px", padding: "8px 4px", cursor: "pointer", transition: "all 0.2s",
               }}>
                 <img src={c.image} alt={c.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
-                <span style={{ fontSize: "0.6rem", fontWeight: 700, color: THEMES[c.id].text, fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
+                <span style={{ fontSize: "0.6rem", fontWeight: 700, color: getTheme(c.id, darkMode).text, fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
               </button>
             ))}
           </div>
