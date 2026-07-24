@@ -3,8 +3,8 @@
 
 export const LANGUAGES = [
   { code: "english", label: "English", native: "English", flag: "🇬🇧", whisper: "en", script: "latin" },
-  { code: "hindi",   label: "Hindi",   native: "हिन्दी",  flag: "🇮🇳", whisper: "hi", script: "devanagari" },
-  { code: "kannada", label: "Kannada", native: "ಕನ್ನಡ",  flag: "🇮🇳", whisper: "kn", script: "kannada" },
+  { code: "hindi",   label: "Hindi",   native: "हिन्दी",  flag: "अ", whisper: "hi", script: "devanagari" },
+  { code: "kannada", label: "Kannada", native: "ಕನ್ನಡ",  flag: "ಅ", whisper: "kn", script: "kannada" },
 ];
 
 export const UI = {

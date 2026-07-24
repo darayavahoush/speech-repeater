@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
  * steps: [{ targetId: string, text: string }]
  * onComplete: called when all steps are done or user skips
  */
-export default function SpotlightHint({ steps, onComplete }) {
+export default function SpotlightHint({ steps, onComplete, darkMode }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const clickListenerRef = useRef(null);
@@ -99,7 +99,7 @@ export default function SpotlightHint({ steps, onComplete }) {
     top: Math.max(12, tooltipTop),
     left: Math.min(Math.max(12, rect.left), window.innerWidth - 260),
     width: "240px",
-    background: "#fff",
+    background: darkMode ? "#241D19" : "#fff",
     borderRadius: "16px",
     padding: "14px 16px",
     boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
@@ -110,7 +110,7 @@ export default function SpotlightHint({ steps, onComplete }) {
     <>
       <div style={highlightStyle} />
       <div style={tooltipStyle}>
-        <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.85rem", fontWeight: 700, color: "#2C2C2A", margin: "0 0 10px 0", lineHeight: 1.5 }}>
+        <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.85rem", fontWeight: 700, color: darkMode ? "#F0DCCF" : "#2C2C2A", margin: "0 0 10px 0", lineHeight: 1.5 }}>
           {current.text}
         </p>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

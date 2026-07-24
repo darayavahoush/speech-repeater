@@ -33,7 +33,7 @@ const STEPS = [
   },
 ];
 
-export default function Tutorial({ onClose }) {
+export default function Tutorial({ onClose, darkMode }) {
   const [step, setStep] = useState(0);
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
@@ -47,7 +47,7 @@ export default function Tutorial({ onClose }) {
     }}>
       <div style={{
         width: "100%", maxWidth: "380px",
-        background: "#fff", borderRadius: "24px",
+        background: darkMode ? "#241D19" : "#fff", borderRadius: "24px",
         padding: "32px 28px 24px 28px",
         boxShadow: "0 12px 48px rgba(0,0,0,0.25)",
         position: "relative",
@@ -66,10 +66,10 @@ export default function Tutorial({ onClose }) {
 
         <div style={{ textAlign: "center", marginBottom: "8px" }}>
           <div style={{ fontSize: "3.2rem", marginBottom: "12px" }}>{current.emoji}</div>
-          <h2 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.3rem", fontWeight: 900, color: "#2C2C2A", margin: "0 0 10px 0" }}>
+          <h2 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.3rem", fontWeight: 900, color: darkMode ? "#F0DCCF" : "#2C2C2A", margin: "0 0 10px 0" }}>
             {current.title}
           </h2>
-          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.9rem", color: "#666", lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.9rem", color: darkMode ? "#C4A896" : "#666", lineHeight: 1.6, margin: 0 }}>
             {current.text}
           </p>
         </div>

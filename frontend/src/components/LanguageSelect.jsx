@@ -1,24 +1,35 @@
 import { useState, useEffect } from "react";
 import { LANGUAGES } from "../utils/i18n";
+import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
+import logo from "../assets/images/logo.png";
 
-export default function LanguageSelect({ onSelect }) {
+const LANG_THEMES_LIGHT = {
+  english: { bg: "#EEF4FB", accent: "#5B9BD5", text: "#1A3A5C", card: "#DDEAF7" },
+  hindi:   { bg: "#FDF6E8", accent: "#E8B84B", text: "#3A2A00", card: "#FAE8B8" },
+  kannada: { bg: "#EEF7EF", accent: "#6BBF7A", text: "#1A3A1C", card: "#D5EDDA" },
+};
+
+const LANG_THEMES_DARK = {
+  english: { bg: "#0F1A24", accent: "#5B9BD5", text: "#BFE0FF", card: "#1A2C3D" },
+  hindi:   { bg: "#211B08", accent: "#E8B84B", text: "#FDE9A8", card: "#3A2E0F" },
+  kannada: { bg: "#10190F", accent: "#6BBF7A", text: "#C9F0CC", card: "#1D2E1B" },
+};
+
+export default function LanguageSelect({ onSelect, darkMode }) {
   const [selected, setSelected] = useState(null);
 
-  useEffect(() => { document.body.style.background = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)"; document.body.style.transition = "background 0.5s ease"; }, []);
+  const LANG_THEMES = darkMode ? LANG_THEMES_DARK : LANG_THEMES_LIGHT;
+  const defaultBg = darkMode ? DARK_THEMES.DEFAULT.bgGradient : LIGHT_THEMES.DEFAULT.bgGradient;
 
-  const LANG_THEMES = {
-    english: { bg: "#EEF4FB", accent: "#5B9BD5", text: "#1A3A5C", card: "#DDEAF7" },
-    hindi:   { bg: "#FDF6E8", accent: "#E8B84B", text: "#3A2A00", card: "#FAE8B8" },
-    kannada: { bg: "#EEF7EF", accent: "#6BBF7A", text: "#1A3A1C", card: "#D5EDDA" },
-  };
-
-  const theme = selected ? LANG_THEMES[selected] : { bg: "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)", accent: "#E8825A", text: "#3A2E2C", card: "#FCF7F0" };
+  const theme = selected
+    ? LANG_THEMES[selected]
+    : { bg: defaultBg, accent: "#E8825A", text: darkMode ? "#F0DCCF" : "#3A2E2C", card: darkMode ? "#241D19" : "#FCF7F0" };
 
   useEffect(() => {
-    document.body.style.background = selected ? LANG_THEMES[selected].bg : "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)";
+    document.body.style.background = selected ? LANG_THEMES[selected].bg : defaultBg;
     document.body.style.transition = "background 0.5s ease";
-    return () => { document.body.style.background = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)"; };
-  }, [selected]);
+    return () => { document.body.style.background = defaultBg; };
+  }, [selected, darkMode]);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", transition: "background 0.5s" }}>
@@ -26,7 +37,7 @@ export default function LanguageSelect({ onSelect }) {
 
         {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "12px" }}>🗣️</div>
+          <img src={logo} alt="VaakSiddhi" style={{ width: "72px", height: "72px", objectFit: "contain", marginBottom: "12px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2.2rem", fontWeight: 900, color: theme.text, margin: "0 0 8px 0", transition: "color 0.5s" }}>
             VaakSiddhi
           </h1>
@@ -42,16 +53,22 @@ export default function LanguageSelect({ onSelect }) {
             const t = LANG_THEMES[lang.code];
             return (
               <div key={lang.code} onClick={() => setSelected(lang.code)} style={{
-                background: isSelected ? t.card : "rgba(255,255,255,0.7)",
+                background: isSelected ? t.card : getSurface(darkMode, 0.7),
                 border: `2px solid ${isSelected ? t.accent : "rgba(0,0,0,0.08)"}`,
                 borderRadius: "18px", padding: "18px 22px",
                 cursor: "pointer", transition: "all 0.35s ease",
                 display: "flex", alignItems: "center", gap: "16px",
                 boxShadow: isSelected ? `0 4px 20px ${t.accent}33` : "0 2px 8px rgba(0,0,0,0.06)",
               }}>
-                <span style={{ fontSize: "2rem" }}>{lang.flag}</span>
+                <span style={{
+                  fontSize: "1.5rem", fontWeight: 900, width: "2rem", textAlign: "center",
+                  color: isSelected ? t.accent : (darkMode ? "#999" : "#888"),
+                  fontFamily: lang.code === "english" ? "inherit" : "Nunito, sans-serif",
+                }}>
+                  {lang.flag}
+                </span>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: isSelected ? t.text : "#2C2C2A", margin: 0, transition: "color 0.3s" }}>
+                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: isSelected ? t.text : (darkMode ? "#EEE" : "#2C2C2A"), margin: 0, transition: "color 0.3s" }}>
                     {lang.native}
                   </p>
                   <p style={{ color: isSelected ? t.accent : "#888", fontSize: "0.8rem", margin: "2px 0 0 0", fontWeight: 600, transition: "color 0.3s" }}>

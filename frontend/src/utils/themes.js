@@ -22,7 +22,7 @@ export const DARK_THEMES = {
   BEEP:  { bg: "#211B08", bgGradient: "linear-gradient(160deg, #211B08 0%, #2E250C 55%, #3A2E0F 100%)", card: "#3A2E0F", text: "#FDE9A8", sub: "#D9B85C", accent: "#E8B84B" },
   ECHO:  { bg: "#20120A", bgGradient: "linear-gradient(160deg, #20120A 0%, #2E190E 55%, #3A1F12 100%)", card: "#3A1F12", text: "#FBD3BE", sub: "#E29A73", accent: "#E87B5A" },
   MIRA:  { bg: "#0A1B1B", bgGradient: "linear-gradient(160deg, #0A1B1B 0%, #0F2323 55%, #122B2B 100%)", card: "#122B2B", text: "#BFEFEF", sub: "#6FC7C7", accent: "#4ABFBF" },
-  DEFAULT: { bg: "#1A1512", bgGradient: "linear-gradient(160deg, #1A1512 0%, #1F1915 55%, #241D19 100%)", card: "#241D19", text: "#F0DCCF", sub: "#B08F7A", accent: "#E8825A" },
+  DEFAULT: { bg: "#1A1512", bgGradient: "linear-gradient(160deg, #2A1418 0%, #2A2014 30%, #262A14 55%, #14261E 75%, #14232A 100%)", card: "#241D19", text: "#F0DCCF", sub: "#B08F7A", accent: "#E8825A" },
 };
 
 export function getTheme(character, darkMode) {

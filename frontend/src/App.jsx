@@ -258,9 +258,9 @@ export default function App() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
       />
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (
-        <SpotlightHint steps={SCREEN_HINTS[screen]} onComplete={handleSpotlightComplete} />
+        <SpotlightHint steps={SCREEN_HINTS[screen]} onComplete={handleSpotlightComplete} darkMode={darkMode} />
       )}
       {SCREEN_HINTS[screen] && (
         <button
