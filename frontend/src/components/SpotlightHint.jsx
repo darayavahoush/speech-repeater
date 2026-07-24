@@ -41,10 +41,12 @@ export default function SpotlightHint({ steps, onComplete }) {
       }
     };
 
-    // The target element may not exist yet if the user hasn't navigated to
-    // that screen — poll continuously (no timeout) until it appears, since
-    // steps span multiple different screens the user reaches at their own pace.
+    // Steps are scoped to the screen the user is already on, so the target
+    // should appear almost immediately. Poll briefly; if it never shows
+    // (e.g. a conditional button didn't render this time), skip the step
+    // rather than getting stuck.
     let attachedEl = null;
+    let elapsed = 0;
     const poll = setInterval(() => {
       updateRect();
       const el = document.getElementById(current.targetId);
@@ -53,6 +55,10 @@ export default function SpotlightHint({ steps, onComplete }) {
         el.addEventListener("click", advance, { once: true });
         attachedEl = el;
         clickListenerRef.current = { el, advance };
+      }
+      elapsed += 400;
+      if (!el && elapsed >= 4000) {
+        advance();
       }
     }, 400);
 
