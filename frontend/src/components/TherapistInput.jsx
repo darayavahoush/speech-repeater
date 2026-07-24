@@ -118,7 +118,7 @@ export default function TherapistInput({ character, language = "english", onWord
         {/* Text input */}
         {mode === "text" && (
           <>
-            <input value={text} onChange={(e) => setText(e.target.value)}
+            <input id="hint-word-input" value={text} onChange={(e) => setText(e.target.value)}
               placeholder={t(language, "wordPlaceholder")}
               style={{ width: "100%", background: "rgba(255,255,255,0.8)", border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "16px", color: th.text, fontSize: "1.1rem", outline: "none", fontFamily: "Nunito, sans-serif", fontWeight: 700, marginBottom: "10px", boxSizing: "border-box" }}
               onKeyDown={(e) => e.key === "Enter" && text.trim() && handleSubmit()} />
@@ -191,7 +191,7 @@ export default function TherapistInput({ character, language = "english", onWord
         )}
 
         {/* Submit */}
-        <button onClick={handleSubmit} disabled={loading || (mode === "text" ? !text.trim() : !audioBlob)} style={{ width: "100%", padding: "18px", background: loading || (mode === "text" ? !text.trim() : !audioBlob) ? "rgba(0,0,0,0.08)" : th.accent, color: loading || (mode === "text" ? !text.trim() : !audioBlob) ? th.sub : "#fff", border: "none", borderRadius: "16px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, cursor: "pointer", transition: "all 0.2s", boxShadow: loading || (mode === "text" ? !text.trim() : !audioBlob) ? "none" : `0 4px 20px ${th.accent}44` }}>
+        <button id="hint-word-submit" onClick={handleSubmit} disabled={loading || (mode === "text" ? !text.trim() : !audioBlob)} style={{ width: "100%", padding: "18px", background: loading || (mode === "text" ? !text.trim() : !audioBlob) ? "rgba(0,0,0,0.08)" : th.accent, color: loading || (mode === "text" ? !text.trim() : !audioBlob) ? th.sub : "#fff", border: "none", borderRadius: "16px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, cursor: "pointer", transition: "all 0.2s", boxShadow: loading || (mode === "text" ? !text.trim() : !audioBlob) ? "none" : `0 4px 20px ${th.accent}44` }}>
           {loading ? t(language, "preparing") : t(language, "letTeach", char.name)}
         </button>
       </div>

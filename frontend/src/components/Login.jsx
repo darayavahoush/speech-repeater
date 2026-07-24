@@ -65,6 +65,7 @@ export default function Login({ onLogin }) {
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
               fontFamily: "Nunito, sans-serif", marginBottom: "18px",
               outline: "none", boxSizing: "border-box",
+              color: "#2C2C2A", background: "#fff",
             }}
           />
 
@@ -84,6 +85,7 @@ export default function Login({ onLogin }) {
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
               fontFamily: "Nunito, sans-serif", marginBottom: "8px",
               outline: "none", boxSizing: "border-box", letterSpacing: "0.3em",
+              color: "#2C2C2A", background: "#fff",
             }}
           />
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Login from "./components/Login";
 import CharacterSelect from "./components/CharacterSelect";
 import LanguageSelect from "./components/LanguageSelect";
@@ -42,19 +42,43 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSpotlight, setShowSpotlight] = useState(false);
 
-  const SPOTLIGHT_STEPS = [
-    { targetId: "hint-character-card", text: "Tap a friend to pick them as your practice buddy!" },
-    { targetId: "hint-hear-voice", text: "Tap here to hear the word out loud!" },
-    { targetId: "hint-mic-button", text: "Now tap here and say the word yourself!" },
-    { targetId: "hint-result-action", text: "Tap here to try again or move to your next word!" },
-  ];
+  // Hints are scoped per-screen (not one long cross-screen chain) so they
+  // work correctly whether triggered automatically on first visit to a
+  // screen, or manually via the floating button from wherever the user is.
+  const SCREEN_HINTS = {
+    [SCREENS.CHARACTER_SELECT]: [
+      { targetId: "hint-character-card", text: "Tap a friend to pick them as your practice buddy!" },
+    ],
+    [SCREENS.THERAPIST_INPUT]: [
+      { targetId: "hint-word-input", text: "Type a word here to practice!" },
+      { targetId: "hint-word-submit", text: "Tap here when you're ready!" },
+    ],
+    [SCREENS.PRACTICE]: [
+      { targetId: "hint-hear-voice", text: "Tap here to hear the word out loud!" },
+      { targetId: "hint-mic-button", text: "Now tap here and say the word yourself!" },
+    ],
+    [SCREENS.RESULT]: [
+      { targetId: "hint-result-action", text: "Tap here to try again or move to your next word!" },
+    ],
+  };
 
-  const spotlightDoneKey = () => `vaaksiddhi_spotlight_done_${childId}`;
+  const spotlightSeenKey = (scr) => `vaaksiddhi_spotlight_seen_${childId}_${scr}`;
 
   const handleSpotlightComplete = () => {
     setShowSpotlight(false);
-    if (childId) localStorage.setItem(spotlightDoneKey(), "true");
+    if (childId) localStorage.setItem(spotlightSeenKey(screen), "true");
   };
+
+  // Auto-show hints the first time a new user reaches a screen that has them.
+  // Waits for the modal Tutorial to close first so the two don't stack on top
+  // of each other (both can trigger off the same screen-change event).
+  useEffect(() => {
+    if (!isNewUser || !childId || showTutorial) return;
+    const hints = SCREEN_HINTS[screen];
+    if (!hints) return;
+    if (localStorage.getItem(spotlightSeenKey(screen))) return;
+    setShowSpotlight(true);
+  }, [screen, isNewUser, childId, showTutorial]);
 
   const saveProfile = async (updates) => {
     if (!childId) return;
@@ -219,28 +243,25 @@ export default function App() {
         onHome={handleHome}
         onShowTutorial={() => setShowTutorial(true)}
       />
-      {showTutorial && (
-        <Tutorial onClose={() => {
-          setShowTutorial(false);
-          if (isNewUser && childId && !localStorage.getItem(spotlightDoneKey())) {
-            setShowSpotlight(true);
-          }
-        }} />
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
+      {showSpotlight && SCREEN_HINTS[screen] && (
+        <SpotlightHint steps={SCREEN_HINTS[screen]} onComplete={handleSpotlightComplete} />
       )}
-      {showSpotlight && <SpotlightHint steps={SPOTLIGHT_STEPS} onComplete={handleSpotlightComplete} />}
-      <button
-        onClick={() => setShowSpotlight(true)}
-        style={{
-          position: "fixed", bottom: "20px", right: "16px", zIndex: 100,
-          width: "56px", height: "56px", borderRadius: "50%",
-          background: "#E8825A", border: "none", boxShadow: "0 4px 16px #E8825A66",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "1.5rem",
-        }}
-        title="Show me what to do"
-      >
-        💡
-      </button>
+      {SCREEN_HINTS[screen] && (
+        <button
+          onClick={() => setShowSpotlight(true)}
+          style={{
+            position: "fixed", bottom: "20px", right: "16px", zIndex: 100,
+            width: "56px", height: "56px", borderRadius: "50%",
+            background: "#E8825A", border: "none", boxShadow: "0 4px 16px #E8825A66",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.5rem",
+          }}
+          title="Show me what to do"
+        >
+          💡
+        </button>
+      )}
     </div>
   );
 }
