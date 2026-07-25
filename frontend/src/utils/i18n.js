@@ -1,4 +1,4 @@
-// VaakSiddhi — UI translations
+// Vaakify — UI translations
 // English | हिन्दी | ಕನ್ನಡ
 
 export const LANGUAGES = [

@@ -3,7 +3,7 @@ import { useState } from "react";
 const STEPS = [
   {
     emoji: "🗣️",
-    title: "Welcome to VaakSiddhi!",
+    title: "Welcome to Vaakify!",
     text: "This is a fun place to practice saying words with a friend by your side. Let's see how it works!",
   },
   {

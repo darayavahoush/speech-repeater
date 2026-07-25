@@ -45,9 +45,9 @@ export default function Login({ onLogin, darkMode }) {
       <div style={{ width: "100%", maxWidth: "380px", position: "relative", zIndex: 1 }}>
 
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <img src={logo} alt="VaakSiddhi" style={{ width: "72px", height: "72px", objectFit: "contain", marginBottom: "12px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
+          <img src={logo} alt="Vaakify" style={{ width: "72px", height: "72px", objectFit: "contain", marginBottom: "12px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2.2rem", fontWeight: 900, color: textColor, margin: "0 0 8px 0" }}>
-            VaakSiddhi
+            Vaakify
           </h1>
           <p style={{ color: "#E8825A", fontSize: "0.9rem", fontWeight: 700, margin: 0 }}>
             What's your name?

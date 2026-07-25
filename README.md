@@ -1,5 +1,5 @@
 ---
-title: Vaaksiddhi
+title: Vaakify
 emoji: 🎙️
 colorFrom: blue
 colorTo: purple
@@ -8,7 +8,7 @@ app_port: 7860
 pinned: false
 ---
 
-# VaakSiddhi
+# Vaakify
 
 A speech practice web app that helps children — especially those working with speech-language pathologists — practice pronunciation through a guided, game-like flow with animated character companions. Supports **English, Hindi, and Kannada**.
 
