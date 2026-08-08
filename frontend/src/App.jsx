@@ -14,6 +14,7 @@ import TherapistInput from "./components/TherapistInput";
 import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
 import DrillScreen from "./components/DrillScreen";
+import ProgressScreen from "./components/ProgressScreen";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
@@ -29,6 +30,7 @@ const SCREENS = {
   PRACTICE: "practice",
   RESULT: "result",
   DRILL: "drill",
+  PROGRESS: "progress",
 };
 
 export default function App() {
@@ -282,7 +284,7 @@ export default function App() {
         <CharacterSelect onSelect={handleCharacterSelect} language={language} darkMode={darkMode} />
       )}
       {screen === SCREENS.THERAPIST_INPUT && (
-        <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={handleSwitchCharacter} darkMode={darkMode} />
+        <TherapistInput character={character} language={language} onWordReady={handleWordReady} onSwitchCharacter={handleSwitchCharacter} darkMode={darkMode} childId={childId} onOpenProgress={() => setScreen(SCREENS.PROGRESS)} />
       )}
       {screen === SCREENS.PRACTICE && (
         <PracticeScreen
@@ -308,6 +310,9 @@ export default function App() {
           onDrill={handleDrill}
           darkMode={darkMode}
         />
+      )}
+      {screen === SCREENS.PROGRESS && (
+        <ProgressScreen childId={childId} character={character} darkMode={darkMode} onBack={() => setScreen(SCREENS.THERAPIST_INPUT)} />
       )}
       {screen === SCREENS.DRILL && (
         <DrillScreen

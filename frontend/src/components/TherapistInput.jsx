@@ -6,10 +6,11 @@ import { inputWord } from "../utils/api";
 import { t } from "../utils/i18n";
 import { WORD_SUGGESTIONS } from "../utils/wordSuggestions";
 import { getTheme, getSurface } from "../utils/themes";
+import ProgressWidget from "./ProgressWidget";
 
 const SUGGESTION_CATEGORIES = ["animals", "food", "colours", "family", "actions", "objects"];
 
-export default function TherapistInput({ character, language = "english", onWordReady, onSwitchCharacter, darkMode }) {
+export default function TherapistInput({ character, language = "english", onWordReady, onSwitchCharacter, darkMode, childId, onOpenProgress }) {
   const [mode, setMode] = useState("text");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -89,6 +90,8 @@ export default function TherapistInput({ character, language = "english", onWord
             </div>
           </div>
         )}
+
+        <ProgressWidget childId={childId} theme={th} darkMode={darkMode} onOpenFull={onOpenProgress} />
 
         {/* Question */}
         <div style={{ marginBottom: "20px" }}>

@@ -408,6 +408,16 @@ async def input_word(
     }
 
 
+@app.get("/progress/{child_id}")
+async def get_child_progress(child_id: str, days: int = 30):
+    from app.services.progress import get_progress
+    try:
+        return {"success": True, **get_progress(child_id, days)}
+    except Exception as e:
+        print(f"Progress fetch error: {e}")
+        return {"success": False, "error": "Could not load progress right now."}
+
+
 @app.post("/evaluate")
 async def evaluate(
     audio: UploadFile = File(...),
@@ -498,6 +508,12 @@ async def evaluate(
 
         result_dict = result.dict()
         history.append(result_dict)
+
+        try:
+            from app.services.progress import log_attempt
+            log_attempt(child_id, target_word, language, character, result.composite_score)
+        except Exception as e:
+            print(f"Progress log error: {e}")
 
         # Acoustic feedback
         acoustic_tips = get_acoustic_feedback(acoustic_raw, condition)
