@@ -1,4 +1,5 @@
 import nltk
+from typing import Optional
 nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 nltk.download('cmudict', quiet=True)
 from fastapi import FastAPI, UploadFile, File, Form, Response
@@ -577,7 +578,7 @@ class SignupRequest(BaseModel):
     name: str
     email: str
     password: str
-    mobile: str = None
+    mobile: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
