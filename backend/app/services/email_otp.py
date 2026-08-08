@@ -4,7 +4,8 @@ Email verification via a 6-digit one-time code, sent through Gmail SMTP
 email service signup needed).
 """
 import random
-import httpx
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime, timezone, timedelta
 from supabase import create_client
 from app.core.config import settings
@@ -26,28 +27,29 @@ def generate_otp() -> str:
 
 
 def send_otp_email(to_email: str, name: str, code: str):
-    if not settings.RESEND_API_KEY:
-        raise RuntimeError("Resend not configured — check RESEND_API_KEY in .env / Space secrets")
+    if not settings.GMAIL_ADDRESS or not settings.GMAIL_APP_PASSWORD:
+        raise RuntimeError("Gmail credentials not configured — check GMAIL_ADDRESS and GMAIL_APP_PASSWORD in .env")
 
-    html_body = f"""<p>Hi {name},</p>
-<p>Your Vaakify verification code is:</p>
-<h2>{code}</h2>
-<p>This code expires in {OTP_EXPIRY_MINUTES} minutes. If you didn't request this, you can ignore this email.</p>
-<p>— The Vaakify team</p>"""
+    subject = "Your Vaakify verification code"
+    body = f"""Hi {name},
 
-    resp = httpx.post(
-        "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
-        json={
-            "from": "Vaakify <onboarding@resend.dev>",
-            "to": [to_email],
-            "subject": "Your Vaakify verification code",
-            "html": html_body,
-        },
-        timeout=10,
-    )
-    if resp.status_code >= 400:
-        raise RuntimeError(f"Resend API error {resp.status_code}: {resp.text}")
+Your Vaakify verification code is:
+
+{code}
+
+This code expires in {OTP_EXPIRY_MINUTES} minutes. If you didn't request this, you can ignore this email.
+
+— The Vaakify team
+"""
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = settings.GMAIL_ADDRESS
+    msg["To"] = to_email
+
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
+        server.starttls()
+        server.login(settings.GMAIL_ADDRESS, settings.GMAIL_APP_PASSWORD)
+        server.send_message(msg)
 
 
 def issue_otp(email: str, name: str):
