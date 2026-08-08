@@ -46,7 +46,7 @@ This code expires in {OTP_EXPIRY_MINUTES} minutes. If you didn't request this, y
     msg["From"] = settings.GMAIL_ADDRESS
     msg["To"] = to_email
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
         server.starttls()
         server.login(settings.GMAIL_ADDRESS, settings.GMAIL_APP_PASSWORD)
         server.send_message(msg)
