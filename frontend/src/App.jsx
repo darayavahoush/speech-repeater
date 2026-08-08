@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
+import Homepage from "./components/Homepage";
 import Login from "./components/Login";
+import Signup from "./components/Signup";
+import Paywall from "./components/Paywall";
+import VerifyEmail from "./components/VerifyEmail";
 import CharacterSelect from "./components/CharacterSelect";
 import LanguageSelect from "./components/LanguageSelect";
 import Sidebar from "./components/Sidebar";
@@ -14,7 +18,11 @@ import DrillScreen from "./components/DrillScreen";
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 const SCREENS = {
+  HOMEPAGE: "homepage",
   LOGIN: "login",
+  SIGNUP: "signup",
+  VERIFY_EMAIL: "verify_email",
+  PAYWALL: "paywall",
   LANGUAGE_SELECT: "language_select",
   CHARACTER_SELECT: "character_select",
   THERAPIST_INPUT: "therapist_input",
@@ -24,7 +32,7 @@ const SCREENS = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState(SCREENS.LOGIN);
+  const [screen, setScreen] = useState(SCREENS.HOMEPAGE);
   const [childId, setChildId] = useState(null);
   const [childName, setChildName] = useState(null);
   const [language, setLanguage] = useState("english");
@@ -40,6 +48,10 @@ export default function App() {
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [trialStatus, setTrialStatus] = useState(null);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState(null);
+  const [pendingEmail, setPendingEmail] = useState(null);
+  const [pendingName, setPendingName] = useState(null);
   const [darkMode, setDarkMode] = useState(() => getStoredDarkMode());
 
   const toggleDarkMode = () => {
@@ -96,19 +108,26 @@ export default function App() {
       await fetch(`${BACKEND_URL}/auth/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ child_id: childId, ...updates }),
+        body: JSON.stringify({ account_id: childId, ...updates }),
       });
     } catch {
       // Non-fatal — profile save failing shouldn't block the child from practicing
     }
   };
 
-  const handleLogin = (data) => {
-    setChildId(data.child_id);
+  const handleLogin = (data, isNew = false) => {
+    setChildId(data.account_id);
     setChildName(data.name);
-    setIsNewUser(!!data.is_new);
+    setIsNewUser(isNew);
+    setTrialStatus(data.trial_status);
+    setTrialDaysRemaining(data.trial_days_remaining);
     if (data.language) setLanguage(data.language);
     if (data.character) setCharacter(data.character);
+
+    if (data.trial_status === "expired") {
+      setScreen(SCREENS.PAYWALL);
+      return;
+    }
 
     if (data.character && data.language) {
       // Returning user with a saved profile — skip straight to practice, sidebar-only from here on
@@ -197,8 +216,61 @@ export default function App() {
     setScreen(SCREENS.THERAPIST_INPUT);
   };
 
+  if (screen === SCREENS.HOMEPAGE) {
+    return (
+      <Homepage
+        onSignIn={() => setScreen(SCREENS.LOGIN)}
+        onGetStarted={() => setScreen(SCREENS.SIGNUP)}
+      />
+    );
+  }
+
   if (screen === SCREENS.LOGIN) {
-    return <Login onLogin={handleLogin} darkMode={darkMode} />;
+    return <Login onLogin={handleLogin} onGoToSignup={() => setScreen(SCREENS.SIGNUP)} darkMode={darkMode} />;
+  }
+
+  if (screen === SCREENS.SIGNUP) {
+    return (
+      <Signup
+        onSignup={(data) => {
+          setPendingEmail(data.email);
+          setPendingName(data.name);
+          setScreen(SCREENS.VERIFY_EMAIL);
+        }}
+        onGoToLogin={() => setScreen(SCREENS.LOGIN)}
+        darkMode={darkMode}
+      />
+    );
+  }
+
+  if (screen === SCREENS.VERIFY_EMAIL) {
+    return (
+      <VerifyEmail
+        email={pendingEmail}
+        name={pendingName}
+        onVerified={(data) => handleLogin(data, true)}
+        darkMode={darkMode}
+      />
+    );
+  }
+
+  if (screen === SCREENS.LOGIN) {
+    return (
+      <Login
+        onLogin={handleLogin}
+        onNeedsVerification={(email, name) => {
+          setPendingEmail(email);
+          setPendingName(name);
+          setScreen(SCREENS.VERIFY_EMAIL);
+        }}
+        onGoToSignup={() => setScreen(SCREENS.SIGNUP)}
+        darkMode={darkMode}
+      />
+    );
+  }
+
+  if (screen === SCREENS.PAYWALL) {
+    return <Paywall name={childName} darkMode={darkMode} />;
   }
 
   return (

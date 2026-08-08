@@ -1,20 +1,19 @@
 import { useState } from "react";
-import CharacterBackdrop from "./CharacterBackdrop";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
-export default function Login({ onLogin, darkMode }) {
-  const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
+export default function Login({ onLogin, onGoToSignup, darkMode }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     setError("");
-    if (!name.trim() || !pin.trim()) {
-      setError("Please enter your name and PIN.");
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter your email and password.");
       return;
     }
     setLoading(true);
@@ -22,11 +21,11 @@ export default function Login({ onLogin, darkMode }) {
       const res = await fetch(`${BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), pin: pin.trim() }),
+        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
       const data = await res.json();
       if (data.success) {
-        onLogin(data);
+        onLogin(data, false);
       } else {
         setError(data.error || "Something went wrong. Please try again.");
       }
@@ -50,19 +49,20 @@ export default function Login({ onLogin, darkMode }) {
             Vaakify
           </h1>
           <p style={{ color: "#E8825A", fontSize: "0.9rem", fontWeight: 700, margin: 0 }}>
-            What's your name?
+            Welcome back
           </p>
         </div>
 
         <div style={{ background: getSurface(darkMode, 0.9), borderRadius: "22px", padding: "28px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
           <label style={{ display: "block", fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.8rem", color: darkMode ? "#B08F7A" : "#9A7A6A", marginBottom: "6px" }}>
-            Name
+            Email
           </label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder="Your name"
+            placeholder="you@example.com"
+            type="email"
             style={{
               width: "100%", padding: "14px 16px", borderRadius: "14px",
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
@@ -73,21 +73,19 @@ export default function Login({ onLogin, darkMode }) {
           />
 
           <label style={{ display: "block", fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.8rem", color: darkMode ? "#B08F7A" : "#9A7A6A", marginBottom: "6px" }}>
-            PIN (3-8 numbers)
+            Password
           </label>
           <input
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder="••••"
+            placeholder="••••••••"
             type="password"
-            inputMode="numeric"
-            maxLength={8}
             style={{
               width: "100%", padding: "14px 16px", borderRadius: "14px",
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
               fontFamily: "Nunito, sans-serif", marginBottom: "8px",
-              outline: "none", boxSizing: "border-box", letterSpacing: "0.3em",
+              outline: "none", boxSizing: "border-box",
               color: darkMode ? "#F0DCCF" : "#2C2C2A", background: getSurface(darkMode, 1),
             }}
           />
@@ -109,11 +107,14 @@ export default function Login({ onLogin, darkMode }) {
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? "..." : "Let's go! 🚀"}
+            {loading ? "..." : "Sign in →"}
           </button>
 
-          <p style={{ fontSize: "0.7rem", color: darkMode ? "#B08F7A" : "#9A7A6A", textAlign: "center", marginTop: "14px", fontFamily: "Nunito, sans-serif" }}>
-            New here? Just enter a name and pick any PIN — we'll remember you next time!
+          <p style={{ fontSize: "0.8rem", color: darkMode ? "#B08F7A" : "#9A7A6A", textAlign: "center", marginTop: "16px", fontFamily: "Nunito, sans-serif" }}>
+            New to Vaakify?{" "}
+            <button onClick={onGoToSignup} style={{ background: "none", border: "none", color: "#E8825A", fontWeight: 800, cursor: "pointer", fontFamily: "Nunito, sans-serif", fontSize: "0.8rem", padding: 0 }}>
+              Start your free trial
+            </button>
           </p>
         </div>
       </div>

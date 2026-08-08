@@ -606,14 +606,74 @@ async def auth_signup(req: SignupRequest):
         print(f"Signup create error: {e}")
         return {"success": False, "error": "Could not create your account. Please try again."}
 
+    from app.services.email_otp import issue_otp
+    try:
+        issue_otp(email, name)
+    except Exception as e:
+        print(f"OTP send error: {e}")
+        # Account exists but email failed to send — don't block signup, they can request a resend
+
+    return {
+        "success": True,
+        "account_id": account["id"],
+        "name": account["name"],
+        "email": account["email"],
+        "needs_verification": True,
+    }
+
+
+class SendOtpRequest(BaseModel):
+    email: str
+
+
+class VerifyOtpRequest(BaseModel):
+    email: str
+    code: str
+
+
+@app.post("/auth/send-email-otp")
+async def send_email_otp(req: SendOtpRequest):
+    from app.services.auth import get_account_by_email
+    from app.services.email_otp import issue_otp
+
+    email = req.email.strip().lower()
+    try:
+        account = get_account_by_email(email)
+    except Exception as e:
+        print(f"OTP lookup error: {e}")
+        return {"success": False, "error": "Could not send code right now. Please try again shortly."}
+
+    if not account:
+        return {"success": False, "error": "No account found with that email."}
+
+    try:
+        issue_otp(email, account["name"])
+    except Exception as e:
+        print(f"OTP send error: {e}")
+        return {"success": False, "error": "Could not send the verification email. Please try again."}
+
+    return {"success": True}
+
+
+@app.post("/auth/verify-email-otp")
+async def verify_email_otp(req: VerifyOtpRequest):
+    from app.services.email_otp import verify_otp
+    from app.services.auth import get_account_by_email, get_trial_status
+
+    email = req.email.strip().lower()
+    success, error = verify_otp(email, req.code.strip())
+    if not success:
+        return {"success": False, "error": error}
+
+    account = get_account_by_email(email)
     trial = get_trial_status(account)
     return {
         "success": True,
         "account_id": account["id"],
         "name": account["name"],
         "email": account["email"],
-        "character": None,
-        "language": None,
+        "character": account["character"],
+        "language": account["language"],
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
     }
@@ -640,6 +700,9 @@ async def auth_login(req: LoginRequest):
 
     if not verify_password(password, account["password_hash"]):
         return {"success": False, "error": "Incorrect password."}
+
+    if not account.get("email_verified"):
+        return {"success": False, "error": "Please verify your email first.", "needs_verification": True, "email": account["email"]}
 
     trial = get_trial_status(account)
     return {
