@@ -613,12 +613,17 @@ async def auth_signup(req: SignupRequest):
         print(f"OTP send error: {e}")
         # Account exists but email failed to send — don't block signup, they can request a resend
 
+    trial = get_trial_status(account)
     return {
         "success": True,
         "account_id": account["id"],
         "name": account["name"],
         "email": account["email"],
-        "needs_verification": True,
+        "character": None,
+        "language": None,
+        "trial_status": trial["status"],
+        "trial_days_remaining": trial["days_remaining"],
+        "needs_verification": settings.REQUIRE_EMAIL_VERIFICATION,
     }
 
 
@@ -701,7 +706,7 @@ async def auth_login(req: LoginRequest):
     if not verify_password(password, account["password_hash"]):
         return {"success": False, "error": "Incorrect password."}
 
-    if not account.get("email_verified"):
+    if settings.REQUIRE_EMAIL_VERIFICATION and not account.get("email_verified"):
         return {"success": False, "error": "Please verify your email first.", "needs_verification": True, "email": account["email"]}
 
     trial = get_trial_status(account)

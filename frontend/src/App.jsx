@@ -233,9 +233,13 @@ export default function App() {
     return (
       <Signup
         onSignup={(data) => {
-          setPendingEmail(data.email);
-          setPendingName(data.name);
-          setScreen(SCREENS.VERIFY_EMAIL);
+          if (data.needs_verification) {
+            setPendingEmail(data.email);
+            setPendingName(data.name);
+            setScreen(SCREENS.VERIFY_EMAIL);
+          } else {
+            handleLogin(data, true);
+          }
         }}
         onGoToLogin={() => setScreen(SCREENS.LOGIN)}
         darkMode={darkMode}
