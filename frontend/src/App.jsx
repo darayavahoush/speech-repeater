@@ -292,6 +292,7 @@ export default function App() {
           language={language}
           wordData={wordData}
           sessionId={sessionId}
+          childId={childId}
           attemptNumber={attemptNumber}
           attemptHistory={attemptHistory}
           onResult={handleResult}

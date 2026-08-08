@@ -8,7 +8,7 @@ import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { t } from "../utils/i18n";
 import { getTheme, getSurface } from "../utils/themes";
 
-export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode }) {
+export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode, childId }) {
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
@@ -62,6 +62,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
         condition: "autism",
         attemptNumber,
         sessionId,
+        childId,
         attemptHistory,
       });
       const newHistory = [...attemptHistory, result];
