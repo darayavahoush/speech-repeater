@@ -21,3 +21,20 @@ body {
   0% { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }
 }
+
+/* Screen transition (fade + slight rise, on every screen change) */
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.screen-transition {
+  animation: screenIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Button press feedback — add class="btn-press" to any button */
+.btn-press {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}

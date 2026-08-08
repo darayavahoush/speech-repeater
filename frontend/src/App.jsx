@@ -225,10 +225,6 @@ export default function App() {
     );
   }
 
-  if (screen === SCREENS.LOGIN) {
-    return <Login onLogin={handleLogin} onGoToSignup={() => setScreen(SCREENS.SIGNUP)} darkMode={darkMode} />;
-  }
-
   if (screen === SCREENS.SIGNUP) {
     return (
       <Signup
@@ -278,7 +274,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "transparent" }}>
+    <div key={screen} className="screen-transition" style={{ minHeight: "100vh", background: "transparent" }}>
       {screen === SCREENS.LANGUAGE_SELECT && (
         <LanguageSelect onSelect={handleLanguageSelect} darkMode={darkMode} />
       )}
