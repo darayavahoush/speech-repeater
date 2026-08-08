@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     GMAIL_ADDRESS: Optional[str] = None
     GMAIL_APP_PASSWORD: Optional[str] = None
     RESEND_API_KEY: Optional[str] = None
+    REQUIRE_EMAIL_VERIFICATION: bool = False  # flip to True once real SMTP works (e.g. on Azure)
 
     class Config:
         env_file = ".env"
