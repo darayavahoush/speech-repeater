@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: Optional[str] = None
     GMAIL_ADDRESS: Optional[str] = None
     GMAIL_APP_PASSWORD: Optional[str] = None
+    RESEND_API_KEY: Optional[str] = None
 
     class Config:
         env_file = ".env"

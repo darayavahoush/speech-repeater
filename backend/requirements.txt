@@ -42,3 +42,4 @@ transformers==5.10.2
 anthropic
 supabase
 bcrypt
+httpx
