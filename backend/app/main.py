@@ -557,68 +557,108 @@ class ChatRequest(BaseModel):
     language: str = "english"
 
 
-class LoginRequest(BaseModel):
+class SignupRequest(BaseModel):
     name: str
-    pin: str
+    email: str
+    password: str
+    mobile: str = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 
 class ProfileUpdateRequest(BaseModel):
-    child_id: str
+    account_id: str
     character: str = None
     language: str = None
 
 
-@app.post("/auth/login")
-async def auth_login(req: LoginRequest):
-    from app.services.auth import get_child_by_name, create_child, verify_pin
+@app.post("/auth/signup")
+async def auth_signup(req: SignupRequest):
+    from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status
 
     name = req.name.strip()
-    pin = req.pin.strip()
+    email = req.email.strip().lower()
+    password = req.password
+    mobile = req.mobile.strip() if req.mobile else None
 
-    if not name or not pin:
-        return {"success": False, "error": "Name and PIN are required."}
-    if not (3 <= len(pin) <= 8) or not pin.isdigit():
-        return {"success": False, "error": "PIN should be 3-8 digits."}
+    if not name or not email or not password:
+        return {"success": False, "error": "Name, email, and password are required."}
+    if not is_valid_email(email):
+        return {"success": False, "error": "Please enter a valid email address."}
+    if len(password) < 6:
+        return {"success": False, "error": "Password should be at least 6 characters."}
 
     try:
-        existing = get_child_by_name(name)
+        existing = get_account_by_email(email)
     except Exception as e:
-        print(f"Auth lookup error: {e}")
-        return {"success": False, "error": "Login is temporarily unavailable. Please try again shortly."}
+        print(f"Signup lookup error: {e}")
+        return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
 
     if existing:
-        if verify_pin(pin, existing["pin_hash"]):
-            return {
-                "success": True,
-                "child_id": existing["id"],
-                "name": existing["name"],
-                "character": existing["character"],
-                "language": existing["language"],
-                "is_new": False,
-            }
-        else:
-            return {"success": False, "error": "Incorrect PIN for that name."}
-    else:
-        try:
-            new_child = create_child(name, pin)
-        except Exception as e:
-            print(f"Auth create error: {e}")
-            return {"success": False, "error": "Could not create your account. Please try again."}
-        return {
-            "success": True,
-            "child_id": new_child["id"],
-            "name": new_child["name"],
-            "character": None,
-            "language": None,
-            "is_new": True,
-        }
+        return {"success": False, "error": "An account with that email already exists. Try signing in instead."}
+
+    try:
+        account = create_account(name, email, password, mobile=mobile)
+    except Exception as e:
+        print(f"Signup create error: {e}")
+        return {"success": False, "error": "Could not create your account. Please try again."}
+
+    trial = get_trial_status(account)
+    return {
+        "success": True,
+        "account_id": account["id"],
+        "name": account["name"],
+        "email": account["email"],
+        "character": None,
+        "language": None,
+        "trial_status": trial["status"],
+        "trial_days_remaining": trial["days_remaining"],
+    }
+
+
+@app.post("/auth/login")
+async def auth_login(req: LoginRequest):
+    from app.services.auth import get_account_by_email, verify_password, get_trial_status
+
+    email = req.email.strip().lower()
+    password = req.password
+
+    if not email or not password:
+        return {"success": False, "error": "Email and password are required."}
+
+    try:
+        account = get_account_by_email(email)
+    except Exception as e:
+        print(f"Login lookup error: {e}")
+        return {"success": False, "error": "Login is temporarily unavailable. Please try again shortly."}
+
+    if not account or not account.get("password_hash"):
+        return {"success": False, "error": "No account found with that email."}
+
+    if not verify_password(password, account["password_hash"]):
+        return {"success": False, "error": "Incorrect password."}
+
+    trial = get_trial_status(account)
+    return {
+        "success": True,
+        "account_id": account["id"],
+        "name": account["name"],
+        "email": account["email"],
+        "character": account["character"],
+        "language": account["language"],
+        "trial_status": trial["status"],
+        "trial_days_remaining": trial["days_remaining"],
+    }
 
 
 @app.post("/auth/profile")
 async def auth_update_profile(req: ProfileUpdateRequest):
-    from app.services.auth import update_child_profile
+    from app.services.auth import update_account_profile
     try:
-        updated = update_child_profile(req.child_id, character=req.character, language=req.language)
+        updated = update_account_profile(req.account_id, character=req.character, language=req.language)
         return {"success": True, "profile": updated}
     except Exception as e:
         print(f"Profile update error: {e}")
