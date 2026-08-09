@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
 import { getTheme } from "../utils/themes";
+
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", accent: "#5B9BD5", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5" },
@@ -14,9 +16,18 @@ const THEMES = {
 
 const LANG_NATIVE = { english: "English", hindi: "हिन्दी", kannada: "ಕನ್ನಡ" };
 
-export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode }) {
+export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode, childId, onOpenProgress }) {
   const [open, setOpen] = useState(false);
+  const [streak, setStreak] = useState(0);
   const th = getTheme(character, darkMode);
+
+  useEffect(() => {
+    if (!childId) return;
+    fetch(`${BACKEND_URL}/progress/${childId}?days=7`)
+      .then((res) => res.json())
+      .then((data) => { if (data.success) setStreak(data.streak); })
+      .catch(() => {});
+  }, [childId, currentScreen]);
 
   if (currentScreen === "language_select") return null;
 
@@ -144,6 +155,24 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
       }}>
         {open ? "›" : "‹"}
       </button>
+
+      {!open && streak > 0 && onOpenProgress && (
+        <button
+          onClick={onOpenProgress}
+          title="View your progress"
+          style={{
+            position: "fixed", right: "8px", top: "calc(50% - 90px)",
+            background: th.accent, border: "none", borderRadius: "20px",
+            padding: "6px 12px", cursor: "pointer", zIndex: 100,
+            display: "flex", alignItems: "center", gap: "4px",
+            boxShadow: `0 2px 10px ${th.accent}55`,
+            fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "0.85rem",
+            color: "#fff",
+          }}
+        >
+          🔥 {streak}
+        </button>
+      )}
     </>
   );
 }

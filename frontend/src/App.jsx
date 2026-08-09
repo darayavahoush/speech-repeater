@@ -335,6 +335,8 @@ export default function App() {
         onShowTutorial={() => setShowTutorial(true)}
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
+        childId={childId}
+        onOpenProgress={() => setScreen(SCREENS.PROGRESS)}
       />
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (

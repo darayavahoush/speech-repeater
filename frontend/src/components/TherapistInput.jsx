@@ -6,7 +6,6 @@ import { inputWord } from "../utils/api";
 import { t } from "../utils/i18n";
 import { WORD_SUGGESTIONS } from "../utils/wordSuggestions";
 import { getTheme, getSurface } from "../utils/themes";
-import ProgressWidget from "./ProgressWidget";
 
 const SUGGESTION_CATEGORIES = ["animals", "food", "colours", "family", "actions", "objects"];
 
@@ -91,7 +90,6 @@ export default function TherapistInput({ character, language = "english", onWord
           </div>
         )}
 
-        <ProgressWidget childId={childId} theme={th} darkMode={darkMode} onOpenFull={onOpenProgress} />
 
         {/* Question */}
         <div style={{ marginBottom: "20px" }}>
