@@ -18,19 +18,10 @@ data/voices/reference.wav
 
 # Whisper cache
 ~/.cache/whisper/
-backend/kokoro-v1.0.onnx
-backend/voices-v1.0.bin
-backend/*.onnx
-backend/*.onnx.*
-backend/*.bin
-backend/*.onnx
-backend/*.onnx.*
-backend/*.bin
-backend/*.bin.*
-backend/*.onnx.*
 data/voice_cache/
 data/voices/
 data/images/
+backend/app/data/tts_cache/
 *.wav
 *.png
 *.jpg

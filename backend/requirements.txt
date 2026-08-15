@@ -7,7 +7,6 @@ python-dotenv==1.2.2
 
 # Speech
 faster-whisper==1.2.1
-kokoro-onnx==0.5.0
 
 # Audio processing
 numpy==2.4.6

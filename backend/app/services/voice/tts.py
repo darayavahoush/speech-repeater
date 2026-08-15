@@ -1,12 +1,14 @@
-from kokoro_onnx import Kokoro
-import numpy as np
 import io
-import wave
 import subprocess
 import tempfile
 import os
+import hashlib
+from pathlib import Path
 
-kokoro = Kokoro("kokoro-v1.0.onnx", "voices-v1.0.bin")
+# backend/app/services/voice/tts.py -> parents[2] is backend/app,
+# matching the app/data/ convention chat_cache.py already uses.
+CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "tts_cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 CHARACTERS = {
     "BOLT": {
@@ -50,10 +52,16 @@ INTRO_LINES = {
     "MIRA": "Hi friend! I am Mira, your friendly underwater robot. Let us explore words today!",
 }
 
-# Hindi/Kannada don't have distinct gTTS voices per character — only one voice
-# exists per language. To still give each character a distinct identity, pitch
-# is shifted per-character via asetrate BEFORE the ffmpeg effects chain runs,
-# so BOLT/ZARA/etc sound different even on the shared gTTS base voice.
+# gTTS only gives one base voice per language — there's no per-character voice
+# selection like Kokoro had. To still give each character a distinct identity,
+# pitch is shifted per-character via asetrate BEFORE the ffmpeg effects chain
+# runs, so BOLT/ZARA/etc sound different even on the shared gTTS base voice.
+GTTS_LANG_CONFIG = {
+    "english": {"lang": "en", "tld": "co.in"},   # Indian-accented English
+    "hindi": {"lang": "hi", "tld": "co.in"},
+    "kannada": {"lang": "kn", "tld": "co.in"},
+}
+
 GTTS_PITCH_SHIFT = {
     "BOLT": 0.85,   # deeper
     "ZARA": 1.25,   # higher/alien
@@ -64,30 +72,35 @@ GTTS_PITCH_SHIFT = {
 }
 
 
-def _romanize(text: str, language: str) -> str:
-    """Convert Hindi/Kannada script to romanized form for Kokoro TTS."""
-    if language == "english":
-        return text
-    try:
-        from indic_transliteration import sanscript
-        from indic_transliteration.sanscript import transliterate
-        if language == "hindi":
-            result = transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
-        elif language == "kannada":
-            result = transliterate(text, sanscript.KANNADA, sanscript.ITRANS)
-        else:
-            return text
-        result = result.lower().replace("aa", "a").replace("ii", "ee").replace("uu", "oo")
-        print(f"Romanized '{text}' -> '{result}'")
-        return result
-    except Exception as e:
-        print(f"Romanize error: {e}")
-        return text
-
 def _is_question(text: str) -> bool:
     t = text.strip()
     question_words = ("shall", "can", "could", "would", "should", "is", "are", "do", "does", "did", "ready", "want")
     return t.endswith("?") or t.lower().startswith(question_words)
+
+def _cache_key(text: str, character: str, language: str, speed: float) -> str:
+    # ffmpeg_filters/ffmpeg_question aren't part of the key: which one applies
+    # is fully determined by _is_question(text), so text+character+language+speed
+    # already pins down the exact audio that would be rendered.
+    raw = f"{language}|{character}|{speed}|{text}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+def _cache_get(key: str) -> bytes | None:
+    path = CACHE_DIR / f"{key}.wav"
+    if path.exists():
+        try:
+            return path.read_bytes()
+        except OSError as e:
+            print(f"TTS cache read failed for {key}: {e}")
+    return None
+
+def _cache_set(key: str, audio: bytes) -> None:
+    path = CACHE_DIR / f"{key}.wav"
+    tmp_path = path.with_suffix(".wav.tmp")
+    try:
+        tmp_path.write_bytes(audio)
+        tmp_path.replace(path)  # atomic-ish: avoids serving a half-written file
+    except OSError as e:
+        print(f"TTS cache write failed for {key}: {e}")
 
 def _apply_ffmpeg(raw_bytes: bytes, filters: str) -> bytes:
     in_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
@@ -111,8 +124,8 @@ def _apply_ffmpeg(raw_bytes: bytes, filters: str) -> bytes:
 def _render_gtts_raw(text: str, language: str) -> bytes:
     """Render raw gTTS audio (no character effects, no pitch shift) as WAV bytes."""
     from gtts import gTTS
-    lang_code = "hi" if language == "hindi" else "kn"
-    tts = gTTS(text, lang=lang_code, slow=False)
+    cfg = GTTS_LANG_CONFIG.get(language, GTTS_LANG_CONFIG["english"])
+    tts = gTTS(text, lang=cfg["lang"], tld=cfg["tld"], slow=False)
     mp3_buf = io.BytesIO()
     tts.write_to_fp(mp3_buf)
     mp3_buf.seek(0)
@@ -142,27 +155,16 @@ def _render_gtts(text: str, language: str, character: str, ffmpeg_filters: str =
     combined_filters = ",".join(parts)
     return _apply_ffmpeg(raw_bytes, combined_filters)
 
-def _render_kokoro_raw(text: str, voice: str, speed: float) -> bytes:
-    """Render raw Kokoro audio (no character ffmpeg effects) as WAV bytes."""
-    samples, sample_rate = kokoro.create(text, voice=voice, speed=speed, lang="en-us")
-    buf = io.BytesIO()
-    with wave.open(buf, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(sample_rate)
-        wf.writeframes((samples * 32767).astype(np.int16).tobytes())
-    return buf.getvalue()
-
 def _render(text: str, character: str, voice: str, speed: float, ffmpeg_filters: str = "", ffmpeg_question: str = "", language: str = "english") -> bytes:
+    key = _cache_key(text, character, language, speed)
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
+
     filters = ffmpeg_question if (ffmpeg_question and _is_question(text)) else ffmpeg_filters
-
-    if language in ("hindi", "kannada"):
-        return _render_gtts(text, language, character, filters, speed=speed)
-
-    raw_bytes = _render_kokoro_raw(text, voice, speed)
-    if filters:
-        return _apply_ffmpeg(raw_bytes, filters)
-    return raw_bytes
+    audio = _render_gtts(text, language, character, filters, speed=speed)
+    _cache_set(key, audio)
+    return audio
 
 def speak_word(word: str, speed: float = 1.0, voice: str = "hf_alpha", character: str = "BOLT", language: str = "english") -> bytes:
     cfg = CHARACTERS.get(character.upper(), CHARACTERS["BOLT"])
@@ -183,8 +185,53 @@ def speak(text: str, character: str = "BOLT", mood: str = "default", speed: floa
 def get_characters():
     return [{"id": k, "name": k, "tagline": INTRO_LINES[k][:40]} for k in CHARACTERS]
 
-def warm_cache():
-    pass
+WORD_SPEEDS = (1.0, 0.65, 0.8)  # matches the speed buttons in PracticeScreen.jsx / PhonemeScreen.jsx / DrillScreen.jsx
 
-def precache_words(words):
-    pass
+def precache_words(words, characters=None, languages=("english",), speeds=WORD_SPEEDS):
+    """Render+cache every (word, character, language, speed) combo so the
+    first real request for a common word is a cache hit instead of a live
+    gTTS call. `languages` defaults to English only — Hindi/Kannada word text
+    comes from translation, not this word list, so those fill in organically
+    as real requests come in."""
+    chars = characters or list(CHARACTERS.keys())
+    for word in words:
+        for char in chars:
+            cfg = CHARACTERS[char]
+            for lang in languages:
+                for spd in speeds:
+                    try:
+                        _render(word, char, cfg["voice"], spd, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""), language=lang)
+                    except Exception as e:
+                        print(f"Precache failed for '{word}' ({char}, {lang}, speed={spd}): {e}")
+
+def warm_cache():
+    """Populate the cache with everything guaranteed to be spoken regardless
+    of which words a session ends up practising: character intros plus the
+    fixed encouragement/feedback/acoustic-tip phrases, across every character
+    and every supported language."""
+    for char in CHARACTERS:
+        try:
+            speak_intro(char)
+        except Exception as e:
+            print(f"Intro cache failed: {char} — {e}")
+
+    try:
+        from app.services.phoneme.drill import ENCOURAGEMENT_MESSAGES, FEEDBACK_MESSAGES, ACOUSTIC_TIPS
+    except ImportError as e:
+        print(f"warm_cache: skipping fixed phrases, drill module unavailable: {e}")
+        return
+
+    phrase_groups = list(ENCOURAGEMENT_MESSAGES.values()) + list(FEEDBACK_MESSAGES.values())
+    for char in CHARACTERS:
+        for group in phrase_groups:
+            for lang, text in group.items():
+                try:
+                    speak(text, character=char, language=lang)
+                except Exception as e:
+                    print(f"Phrase cache failed ({char}, {lang}): {e}")
+        for lang, tips in ACOUSTIC_TIPS.items():
+            for tip in tips:
+                try:
+                    speak(tip, character=char, language=lang)
+                except Exception as e:
+                    print(f"Tip cache failed ({char}, {lang}): {e}")
