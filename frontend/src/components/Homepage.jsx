@@ -94,7 +94,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       {/* Nav */}
       <nav style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "20px 32px", maxWidth: "1100px", margin: "0 auto",
+        padding: "16px 16px", maxWidth: "1100px", margin: "0 auto", gap: "8px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -102,35 +102,38 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
           </div>
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "nowrap", minWidth: 0 }}>
           {onSeePlans && (
             <button
               onClick={onSeePlans}
               className="plans-pricing-btn"
               style={{
-                display: "flex", alignItems: "center", gap: "7px",
+                display: "flex", alignItems: "center", gap: "5px", flexShrink: 0,
+                whiteSpace: "nowrap",
                 background: "linear-gradient(100deg, #E8825A 0%, #E8B84B 40%, #4ABFBF 100%)",
                 border: "none",
-                borderRadius: "999px", padding: "10px 18px",
+                borderRadius: "999px", padding: "8px 12px",
                 color: "#fff", fontWeight: 800,
-                fontSize: "0.85rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
+                fontSize: "0.72rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
                 boxShadow: "0 3px 14px rgba(232,130,90,0.35)",
                 transition: "transform 0.2s ease, box-shadow 0.2s ease",
               }}
             >
-              <span className="plans-pricing-sparkle" style={{ fontSize: "0.9rem", display: "inline-block" }}>✨</span> Plans & pricing
+              <span className="plans-pricing-sparkle" style={{ fontSize: "0.85rem", display: "inline-block", flexShrink: 0 }}>✨</span> Plans & pricing
             </button>
           )}
           <button onClick={onSignIn} style={{
             background: "none", border: "none", color: "#3A2E2C", fontWeight: 700,
-            fontSize: "0.9rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
+            fontSize: "0.78rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
+            whiteSpace: "nowrap", flexShrink: 0,
           }}>
             Sign in
           </button>
           <button onClick={onGetStarted} style={{
             background: "#E8825A", color: "#fff", border: "none", borderRadius: "12px",
-            padding: "10px 20px", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer",
+            padding: "8px 14px", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer",
             fontFamily: "Inter, sans-serif", boxShadow: "0 2px 10px #E8825A44",
+            whiteSpace: "nowrap", flexShrink: 0,
           }}>
             Start free trial
           </button>
