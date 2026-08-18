@@ -93,8 +93,9 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
 
       {/* Nav */}
       <nav style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        display: "flex", alignItems: "center", justifyContent: "center",
         padding: "16px 16px", maxWidth: "1100px", margin: "0 auto", gap: "8px",
+        flexWrap: "wrap", rowGap: "10px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
