@@ -72,7 +72,9 @@ export default function Paywall({ name, darkMode, onBack }) {
       <div style={{ width: "100%", maxWidth: "960px" }}>
 
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <img src={logo} alt="Vaakify" style={{ width: "56px", height: "56px", objectFit: "contain", marginBottom: "10px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
+          <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px auto" }}>
+            <img src={logo} alt="Vaakify" style={{ width: "150%", height: "150%", objectFit: "contain" }} />
+          </div>
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.9rem", fontWeight: 900, color: textColor, margin: "0 0 8px 0" }}>
             {name ? `${name}'s free trial has ended` : "Choose your plan"}
           </h1>

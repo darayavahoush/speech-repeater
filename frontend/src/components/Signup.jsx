@@ -59,7 +59,9 @@ export default function Signup({ onSignup, onGoToLogin, onSeePlans, darkMode }) 
       <div style={{ width: "100%", maxWidth: "380px", position: "relative", zIndex: 1 }}>
 
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <img src={logo} alt="Vaakify" style={{ width: "64px", height: "64px", objectFit: "contain", marginBottom: "10px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
+          <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px auto" }}>
+            <img src={logo} alt="Vaakify" style={{ width: "150%", height: "150%", objectFit: "contain" }} />
+          </div>
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.9rem", fontWeight: 900, color: textColor, margin: "0 0 6px 0" }}>
             Start your free trial
           </h1>

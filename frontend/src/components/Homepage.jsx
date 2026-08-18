@@ -7,6 +7,20 @@ const RAINBOW_GRADIENT = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFA
 const RAINBOW_GRADIENT_BAND = "linear-gradient(100deg, #E8825A 0%, #E8B84B 30%, #6BBF7A 60%, #4ABFBF 100%)";
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
+// Injected once for the Plans & pricing nav button hover state (inline styles can't do :hover)
+if (typeof document !== "undefined" && !document.getElementById("plans-pricing-btn-style")) {
+  const styleTag = document.createElement("style");
+  styleTag.id = "plans-pricing-btn-style";
+  styleTag.textContent = `
+    .plans-pricing-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px #E8825A33;
+      border-color: #E8825A88;
+    }
+  `;
+  document.head.appendChild(styleTag);
+}
+
 const DEMO_WORDS = { english: "ball", hindi: "गेंद", kannada: "ಚೆಂಡು" };
 
 const FEATURES = [
@@ -77,16 +91,27 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
         padding: "20px 32px", maxWidth: "1100px", margin: "0 auto",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <img src={logo} alt="Vaakify" style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+          <div style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <img src={logo} alt="Vaakify" style={{ width: "150%", height: "150%", objectFit: "contain" }} />
+          </div>
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           {onSeePlans && (
-            <button onClick={onSeePlans} style={{
-              background: "none", border: "none", color: "#3A2E2C", fontWeight: 700,
-              fontSize: "0.9rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
-            }}>
-              Plans & pricing
+            <button
+              onClick={onSeePlans}
+              className="plans-pricing-btn"
+              style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                background: "linear-gradient(135deg, #FDF3DD 0%, #FBE8D8 100%)",
+                border: "1.5px solid #E8825A44",
+                borderRadius: "999px", padding: "9px 16px",
+                color: "#B85C35", fontWeight: 800,
+                fontSize: "0.85rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <span style={{ fontSize: "0.9rem" }}>✨</span> Plans & pricing
             </button>
           )}
           <button onClick={onSignIn} style={{
@@ -398,7 +423,9 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
         flexWrap: "wrap", gap: "12px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <img src={logo} alt="Vaakify" style={{ width: "24px", height: "24px", objectFit: "contain" }} />
+          <div style={{ width: "24px", height: "24px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <img src={logo} alt="Vaakify" style={{ width: "150%", height: "150%", objectFit: "contain" }} />
+          </div>
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
         <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.78rem", color: "#999", margin: 0 }}>
