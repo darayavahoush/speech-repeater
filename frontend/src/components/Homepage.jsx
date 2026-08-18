@@ -13,9 +13,15 @@ if (typeof document !== "undefined" && !document.getElementById("plans-pricing-b
   styleTag.id = "plans-pricing-btn-style";
   styleTag.textContent = `
     .plans-pricing-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px #E8825A33;
-      border-color: #E8825A88;
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 20px rgba(232,130,90,0.5);
+    }
+    .plans-pricing-sparkle {
+      animation: plans-sparkle-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes plans-sparkle-pulse {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.3) rotate(15deg); opacity: 0.7; }
     }
   `;
   document.head.appendChild(styleTag);
@@ -91,8 +97,8 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
         padding: "20px 32px", maxWidth: "1100px", margin: "0 auto",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <img src={logo} alt="Vaakify" style={{ width: "150%", height: "150%", objectFit: "contain" }} />
+          <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <img src={logo} alt="Vaakify" style={{ width: "160%", height: "160%", objectFit: "contain" }} />
           </div>
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
@@ -102,16 +108,17 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
               onClick={onSeePlans}
               className="plans-pricing-btn"
               style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                background: "linear-gradient(135deg, #FDF3DD 0%, #FBE8D8 100%)",
-                border: "1.5px solid #E8825A44",
-                borderRadius: "999px", padding: "9px 16px",
-                color: "#B85C35", fontWeight: 800,
+                display: "flex", alignItems: "center", gap: "7px",
+                background: "linear-gradient(100deg, #E8825A 0%, #E8B84B 40%, #4ABFBF 100%)",
+                border: "none",
+                borderRadius: "999px", padding: "10px 18px",
+                color: "#fff", fontWeight: 800,
                 fontSize: "0.85rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
-                transition: "all 0.2s ease",
+                boxShadow: "0 3px 14px rgba(232,130,90,0.35)",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
               }}
             >
-              <span style={{ fontSize: "0.9rem" }}>✨</span> Plans & pricing
+              <span className="plans-pricing-sparkle" style={{ fontSize: "0.9rem", display: "inline-block" }}>✨</span> Plans & pricing
             </button>
           )}
           <button onClick={onSignIn} style={{
@@ -137,7 +144,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       }}>
         {/* Large translucent logo watermark */}
         <img src={logo} alt="" aria-hidden="true" style={{
-          position: "absolute", top: "-80px", right: "-100px", width: "480px", height: "480px",
+          position: "absolute", top: "20px", right: "-100px", width: "480px", height: "480px",
           objectFit: "contain", opacity: 0.08, pointerEvents: "none",
         }} />
 
