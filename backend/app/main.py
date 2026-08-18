@@ -399,6 +399,7 @@ async def input_word(
             images.append({**img, "image_base64": __import__("base64").b64encode(img["image_bytes"]).decode(), "image_bytes": None, "image_base64_2": __import__("base64").b64encode(img["image_bytes_2"]).decode() if img.get("image_bytes_2") else None, "image_bytes_2": None})
     return {
         "word": word,
+        "english_word": english_word,
         "phonemes": phonemes,
         "language": language,
         "character_audio_base64": __import__("base64").b64encode(audio_bytes).decode(),
@@ -592,6 +593,17 @@ class ProfileUpdateRequest(BaseModel):
     language: str = None
 
 
+class ChangeEmailRequest(BaseModel):
+    account_id: str
+    new_email: str
+    password: str
+
+
+class DeleteAccountRequest(BaseModel):
+    account_id: str
+    password: str
+
+
 @app.post("/auth/signup")
 async def auth_signup(req: SignupRequest):
     from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status
@@ -616,6 +628,15 @@ async def auth_signup(req: SignupRequest):
 
     if existing:
         return {"success": False, "error": "An account with that email already exists. Try signing in instead."}
+
+    if mobile:
+        try:
+            existing_mobile = get_account_by_mobile(mobile)
+        except Exception as e:
+            print(f"Signup mobile lookup error: {e}")
+            return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
+        if existing_mobile:
+            return {"success": False, "error": "An account with that mobile number already exists. Try signing in instead."}
 
     try:
         account = create_account(name, email, password, mobile=mobile)
@@ -748,6 +769,44 @@ async def auth_update_profile(req: ProfileUpdateRequest):
     except Exception as e:
         print(f"Profile update error: {e}")
         return {"success": False, "error": "Could not save your selection."}
+
+
+@app.post("/auth/change-email")
+async def auth_change_email(req: ChangeEmailRequest):
+    from app.services.auth import change_email
+    from app.services.email_otp import issue_otp
+
+    success, error, account = change_email(req.account_id, req.new_email, req.password)
+    if not success:
+        return {"success": False, "error": error}
+
+    try:
+        issue_otp(account["email"], account["name"])
+    except Exception as e:
+        print(f"OTP send error: {e}")
+
+    return {"success": True, "email": account["email"], "needs_verification": True}
+
+
+@app.post("/auth/delete-account")
+async def auth_delete_account(req: DeleteAccountRequest):
+    from app.services.auth import delete_account
+
+    success, error = delete_account(req.account_id, req.password)
+    if not success:
+        return {"success": False, "error": error}
+    return {"success": True}
+
+
+@app.get("/progress/{child_id}/history")
+async def get_child_progress_history(child_id: str, days: int = 30, limit: int = 200):
+    from app.services.progress import get_word_history
+    try:
+        return {"success": True, "attempts": get_word_history(child_id, days, limit)}
+    except Exception as e:
+        print(f"Progress history fetch error: {e}")
+        return {"success": False, "error": "Could not load history right now."}
+
 
 FALLBACK_REPLIES = {
     "english": "Hmm, I'm not sure about that one! Try asking me about the app, your character friends, or how to practice a word.",

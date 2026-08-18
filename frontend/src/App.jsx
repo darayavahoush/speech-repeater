@@ -15,8 +15,9 @@ import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
 import DrillScreen from "./components/DrillScreen";
 import ProgressScreen from "./components/ProgressScreen";
+import { inputWord, translateWord } from "./utils/api";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = "http://localhost:7860";
 
 const SCREENS = {
   HOMEPAGE: "homepage",
@@ -149,9 +150,31 @@ export default function App() {
     setScreen(SCREENS.THERAPIST_INPUT);
   };
 
-  const handleSwitchLanguage = (lang) => {
+  const handleSwitchLanguage = async (lang) => {
     setLanguage(lang);
     saveProfile({ language: lang });
+
+    const wordIsActive =
+      wordData?.english_word &&
+      [SCREENS.PRACTICE, SCREENS.RESULT, SCREENS.DRILL].includes(screen);
+
+    if (wordIsActive) {
+      try {
+        let targetText = wordData.english_word;
+        if (lang !== "english") {
+          const t = await translateWord(wordData.english_word, lang);
+          targetText = t.translated || wordData.english_word;
+        }
+        const data = await inputWord({ text: targetText, character, language: lang });
+        if (data?.word) {
+          handleWordReady(data);
+          return;
+        }
+      } catch {
+        // fall through to character select on any failure
+      }
+    }
+
     setScreen(SCREENS.CHARACTER_SELECT);
   };
 

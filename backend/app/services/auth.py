@@ -8,7 +8,7 @@ import bcrypt
 from datetime import datetime, timezone
 from sqlalchemy import func
 from app.core.database import get_session
-from app.core.models import Child
+from app.core.models import Child, PracticeAttempt
 
 TRIAL_DURATION_DAYS = 7
 
@@ -28,6 +28,12 @@ def is_valid_email(email: str) -> bool:
 def get_account_by_email(email: str):
     with get_session() as session:
         child = session.query(Child).filter(func.lower(Child.email) == email.lower()).first()
+        return child.to_dict() if child else None
+
+
+def get_account_by_mobile(mobile: str):
+    with get_session() as session:
+        child = session.query(Child).filter(Child.mobile == mobile).first()
         return child.to_dict() if child else None
 
 
@@ -81,3 +87,49 @@ def get_trial_status(account: dict) -> dict:
     if remaining_days <= 0:
         return {"status": "expired", "days_remaining": 0}
     return {"status": "trial", "days_remaining": remaining_days}
+
+
+def change_email(account_id: str, new_email: str, password: str):
+    """Returns (success, error_message, updated_account_dict|None).
+    Requires the current password. Marks the account unverified so the
+    existing OTP flow can re-confirm the new address."""
+    new_email = new_email.strip().lower()
+    if not is_valid_email(new_email):
+        return False, "Please enter a valid email address.", None
+
+    with get_session() as session:
+        child = session.query(Child).filter(Child.id == account_id).first()
+        if not child:
+            return False, "Account not found.", None
+        if not verify_password(password, child.password_hash):
+            return False, "Incorrect password.", None
+
+        existing = (
+            session.query(Child)
+            .filter(func.lower(Child.email) == new_email, Child.id != account_id)
+            .first()
+        )
+        if existing:
+            return False, "That email is already in use.", None
+
+        child.email = new_email
+        child.email_verified = False
+        session.commit()
+        session.refresh(child)
+        return True, "", child.to_dict()
+
+
+def delete_account(account_id: str, password: str):
+    """Returns (success, error_message). Hard-deletes the account and all
+    of its practice history."""
+    with get_session() as session:
+        child = session.query(Child).filter(Child.id == account_id).first()
+        if not child:
+            return False, "Account not found."
+        if not verify_password(password, child.password_hash):
+            return False, "Incorrect password."
+
+        session.query(PracticeAttempt).filter(PracticeAttempt.child_id == account_id).delete()
+        session.delete(child)
+        session.commit()
+        return True, ""

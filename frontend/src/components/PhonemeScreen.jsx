@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 
-const BASE = "https://anabaena-vaaksiddhi.hf.space";
+const BASE = "http://localhost:7860";
 
 const PHONEME_GROUPS = {
   "Stops": ["B", "P", "D", "T", "G", "K"],
@@ -256,7 +256,7 @@ import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
 
-const BASE = "https://anabaena-vaaksiddhi.hf.space";
+const BASE = "http://localhost:7860";
 
 const PHONEME_GROUPS = {
   "Stops": ["B", "P", "D", "T", "G", "K"],

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getSurface } from "../utils/themes";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = "http://localhost:7860";
 
 export default function ProgressWidget({ childId, theme, darkMode, onOpenFull }) {
   const [progress, setProgress] = useState(null);

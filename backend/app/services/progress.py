@@ -67,3 +67,17 @@ def get_progress(child_id: str, days: int = 30):
         "streak": streak,
         "daily": daily,
     }
+
+
+def get_word_history(child_id: str, days: int = 30, limit: int = 200):
+    """Individual per-attempt log, most recent first — for a scrollable history view."""
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    with get_session() as session:
+        rows = (
+            session.query(PracticeAttempt)
+            .filter(PracticeAttempt.child_id == child_id, PracticeAttempt.created_at >= since)
+            .order_by(PracticeAttempt.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [a.to_dict() for a in rows]

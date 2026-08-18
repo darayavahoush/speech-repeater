@@ -14,7 +14,7 @@ export default function CharacterSelect({ onSelect, language = "english", darkMo
   const handlePreview = async (charId) => {
     setPreviewing(charId);
     try {
-      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/speak/intro/${charId}`);
+      const res = await fetch(`http://localhost:7860/speak/intro/${charId}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);

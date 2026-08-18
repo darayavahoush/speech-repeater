@@ -40,7 +40,7 @@ export default function TherapistInput({ character, language = "english", onWord
     if (!englishWord.trim()) return;
     setTranslating(true);
     try {
-      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/translate`, {
+      const res = await fetch(`http://localhost:7860/translate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: englishWord, target_language: language }),
