@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
 import logo from "../assets/images/logo.png";
+import AboutSection from "./AboutSection";
 
 const RAINBOW_GRADIENT = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)";
 const RAINBOW_GRADIENT_BAND = "linear-gradient(100deg, #E8825A 0%, #E8B84B 30%, #6BBF7A 60%, #4ABFBF 100%)";
@@ -57,7 +58,7 @@ const STEPS = [
   { title: "See real progress", body: "Tricky sounds get extra practice, automatically." },
 ];
 
-export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
+export default function Homepage({ onSignIn, onGetStarted, onSeePlans, onSeePrivacy, onSeeTerms }) {
   const [hoveredChar, setHoveredChar] = useState(null);
   const [demoCharacter, setDemoCharacter] = useState("BOLT");
   const [demoLanguage, setDemoLanguage] = useState("english");
@@ -409,6 +410,8 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
         </div>
       </section>
 
+      <AboutSection />
+
       {/* CTA band */}
       <section style={{ background: RAINBOW_GRADIENT_BAND, padding: "clamp(44px, 9vw, 70px) clamp(18px, 5vw, 32px)", textAlign: "center" }}>
         <h2 style={{
@@ -441,9 +444,21 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
           </div>
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.78rem", color: "#999", margin: 0 }}>
-          © {new Date().getFullYear()} Vaakify. All rights reserved.
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap" }}>
+          {onSeePrivacy && (
+            <button onClick={onSeePrivacy} style={{ background: "none", border: "none", color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+              Privacy Policy
+            </button>
+          )}
+          {onSeeTerms && (
+            <button onClick={onSeeTerms} style={{ background: "none", border: "none", color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+              Terms of Service
+            </button>
+          )}
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.78rem", color: "#999", margin: 0 }}>
+            © {new Date().getFullYear()} Vaakify. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   );

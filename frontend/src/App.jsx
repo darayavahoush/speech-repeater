@@ -16,6 +16,7 @@ import ResultScreen from "./components/ResultScreen";
 import DrillScreen from "./components/DrillScreen";
 import ProgressScreen from "./components/ProgressScreen";
 import Settings from "./components/Settings";
+import LegalPage from "./components/LegalPage";
 import { inputWord, translateWord } from "./utils/api";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
@@ -34,6 +35,8 @@ const SCREENS = {
   DRILL: "drill",
   PROGRESS: "progress",
   SETTINGS: "settings",
+  PRIVACY: "privacy",
+  TERMS: "terms",
 };
 
 export default function App() {
@@ -259,12 +262,22 @@ export default function App() {
     setScreen(SCREENS.HOMEPAGE);
   };
 
+  if (screen === SCREENS.PRIVACY) {
+    return <LegalPage type="privacy" onBack={() => setScreen(SCREENS.HOMEPAGE)} />;
+  }
+
+  if (screen === SCREENS.TERMS) {
+    return <LegalPage type="terms" onBack={() => setScreen(SCREENS.HOMEPAGE)} />;
+  }
+
   if (screen === SCREENS.HOMEPAGE) {
     return (
       <Homepage
         onSignIn={() => setScreen(SCREENS.LOGIN)}
         onGetStarted={() => setScreen(SCREENS.SIGNUP)}
         onSeePlans={() => setScreen(SCREENS.PAYWALL)}
+        onSeePrivacy={() => setScreen(SCREENS.PRIVACY)}
+        onSeeTerms={() => setScreen(SCREENS.TERMS)}
       />
     );
   }
