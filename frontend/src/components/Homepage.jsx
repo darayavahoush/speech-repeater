@@ -143,12 +143,14 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
 
       {/* Hero */}
       <section style={{
-        maxWidth: "1100px", margin: "0 auto", padding: "60px 32px 40px",
+        maxWidth: "1100px", margin: "0 auto",
+        padding: "clamp(32px, 8vw, 60px) clamp(18px, 5vw, 32px) 40px",
         position: "relative", overflow: "hidden",
       }}>
         {/* Large translucent logo watermark */}
         <img src={logo} alt="" aria-hidden="true" style={{
-          position: "absolute", top: "20px", right: "-100px", width: "480px", height: "480px",
+          position: "absolute", top: "20px", right: "-100px",
+          width: "clamp(240px, 60vw, 480px)", height: "clamp(240px, 60vw, 480px)",
           objectFit: "contain", opacity: 0.08, pointerEvents: "none",
         }} />
 
@@ -160,14 +162,14 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
             Speech practice, with a friend
           </p>
           <h1 style={{
-            fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "3.4rem",
-            lineHeight: 1.08, color: "#2A211D", margin: "0 0 20px 0",
+            fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "clamp(2.1rem, 8vw, 3.4rem)",
+            lineHeight: 1.1, color: "#2A211D", margin: "0 0 20px 0",
           }}>
             Say it again — with someone in your corner.
           </h1>
           <p style={{
             fontFamily: "Fraunces, serif", fontStyle: "italic", fontWeight: 500,
-            fontSize: "1.25rem", lineHeight: 1.5, color: "#5A4A42", margin: "0 0 32px 0",
+            fontSize: "clamp(1rem, 4vw, 1.25rem)", lineHeight: 1.5, color: "#5A4A42", margin: "0 0 32px 0",
           }}>
             An animated practice buddy, real speech-therapy science underneath, and a little companion who never runs out of patience.
           </p>
@@ -218,7 +220,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       </section>
 
       {/* Features */}
-      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "80px 32px" }}>
+      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(48px, 10vw, 80px) clamp(18px, 5vw, 32px)" }}>
         <h2 style={{
           fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "2rem", color: "#2A211D",
           textAlign: "center", margin: "0 0 48px 0",
@@ -293,13 +295,13 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
           <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#9A7A6A", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>
             Choose a language
           </p>
-          <div style={{ display: "flex", gap: "8px", marginBottom: "26px" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "26px", flexWrap: "wrap" }}>
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setDemoLanguage(lang.code)}
                 style={{
-                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  flex: "1 1 100px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
                   background: lang.code === demoLanguage ? "#E8825A" : "rgba(0,0,0,0.04)",
                   color: lang.code === demoLanguage ? "#fff" : "#3A2E2C",
                   border: "none", borderRadius: "12px", padding: "10px 8px", cursor: "pointer",
@@ -345,7 +347,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px 80px" }}>
+      <section id="how-it-works" style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(24px, 6vw, 40px) clamp(18px, 5vw, 32px) clamp(48px, 10vw, 80px)" }}>
         <h2 style={{
           fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "2rem", color: "#2A211D",
           textAlign: "center", margin: "0 0 48px 0",
@@ -375,7 +377,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       </section>
 
       {/* Meet the characters */}
-      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px 80px" }}>
+      <section style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(24px, 6vw, 40px) clamp(18px, 5vw, 32px) clamp(48px, 10vw, 80px)" }}>
         <h2 style={{
           fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "2rem", color: "#2A211D",
           textAlign: "center", margin: "0 0 12px 0",
@@ -408,7 +410,7 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
       </section>
 
       {/* CTA band */}
-      <section style={{ background: RAINBOW_GRADIENT_BAND, padding: "70px 32px", textAlign: "center" }}>
+      <section style={{ background: RAINBOW_GRADIENT_BAND, padding: "clamp(44px, 9vw, 70px) clamp(18px, 5vw, 32px)", textAlign: "center" }}>
         <h2 style={{
           fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "2rem", color: "#fff",
           margin: "0 0 12px 0", textShadow: "0 2px 12px rgba(0,0,0,0.15)",
