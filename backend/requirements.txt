@@ -41,3 +41,4 @@ transformers==5.10.2
 anthropic
 bcrypt
 httpx
+sqlalchemy==2.0.52
