@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     WHISPER_MODEL: str = "medium"
     WHISPER_DEVICE: str = "cpu"
     WHISPER_COMPUTE_TYPE: str = "int8"
+    DATABASE_URL: str = "postgresql://vaakify:vaakify@localhost:5432/vaakify"
     TARGET_RMS_MIN: float = 0.02
     TARGET_RMS_MAX: float = 0.15
     TARGET_RATE_MIN: float = 2.0
