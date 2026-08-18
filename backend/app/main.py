@@ -606,7 +606,7 @@ class DeleteAccountRequest(BaseModel):
 
 @app.post("/auth/signup")
 async def auth_signup(req: SignupRequest):
-    from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status
+    from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status, get_account_by_mobile
 
     name = req.name.strip()
     email = req.email.strip().lower()
