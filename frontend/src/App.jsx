@@ -15,9 +15,10 @@ import PracticeScreen from "./components/PracticeScreen";
 import ResultScreen from "./components/ResultScreen";
 import DrillScreen from "./components/DrillScreen";
 import ProgressScreen from "./components/ProgressScreen";
+import Settings from "./components/Settings";
 import { inputWord, translateWord } from "./utils/api";
 
-const BACKEND_URL = "http://localhost:7860";
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 const SCREENS = {
   HOMEPAGE: "homepage",
@@ -32,6 +33,7 @@ const SCREENS = {
   RESULT: "result",
   DRILL: "drill",
   PROGRESS: "progress",
+  SETTINGS: "settings",
 };
 
 export default function App() {
@@ -55,6 +57,8 @@ export default function App() {
   const [trialDaysRemaining, setTrialDaysRemaining] = useState(null);
   const [pendingEmail, setPendingEmail] = useState(null);
   const [pendingName, setPendingName] = useState(null);
+  const [childEmail, setChildEmail] = useState(null);
+  const [verifyReturnTo, setVerifyReturnTo] = useState("signup");
   const [darkMode, setDarkMode] = useState(() => getStoredDarkMode());
 
   const toggleDarkMode = () => {
@@ -124,6 +128,7 @@ export default function App() {
     setIsNewUser(isNew);
     setTrialStatus(data.trial_status);
     setTrialDaysRemaining(data.trial_days_remaining);
+    if (data.email) setChildEmail(data.email);
     if (data.language) setLanguage(data.language);
     if (data.character) setCharacter(data.character);
 
@@ -241,6 +246,19 @@ export default function App() {
     setScreen(SCREENS.THERAPIST_INPUT);
   };
 
+  const handleAccountDeleted = () => {
+    setChildId(null);
+    setChildName(null);
+    setChildEmail(null);
+    setCharacter(null);
+    setLanguage("english");
+    setWordData(null);
+    setResult(null);
+    setTrialStatus(null);
+    setTrialDaysRemaining(null);
+    setScreen(SCREENS.HOMEPAGE);
+  };
+
   if (screen === SCREENS.HOMEPAGE) {
     return (
       <Homepage
@@ -273,7 +291,14 @@ export default function App() {
       <VerifyEmail
         email={pendingEmail}
         name={pendingName}
-        onVerified={(data) => handleLogin(data, true)}
+        onVerified={(data) => {
+          if (verifyReturnTo === "settings") {
+            setVerifyReturnTo("signup");
+            setScreen(SCREENS.SETTINGS);
+          } else {
+            handleLogin(data, true);
+          }
+        }}
         darkMode={darkMode}
       />
     );
@@ -338,6 +363,23 @@ export default function App() {
       {screen === SCREENS.PROGRESS && (
         <ProgressScreen childId={childId} character={character} darkMode={darkMode} onBack={() => setScreen(SCREENS.THERAPIST_INPUT)} />
       )}
+      {screen === SCREENS.SETTINGS && (
+        <Settings
+          childId={childId}
+          childName={childName}
+          childEmail={childEmail}
+          darkMode={darkMode}
+          onBack={() => setScreen(SCREENS.THERAPIST_INPUT)}
+          onEmailChanged={(newEmail) => setChildEmail(newEmail)}
+          onNeedsEmailVerification={(email, name) => {
+            setPendingEmail(email);
+            setPendingName(name);
+            setVerifyReturnTo("settings");
+            setScreen(SCREENS.VERIFY_EMAIL);
+          }}
+          onAccountDeleted={handleAccountDeleted}
+        />
+      )}
       {screen === SCREENS.DRILL && (
         <DrillScreen
           character={character}
@@ -360,6 +402,7 @@ export default function App() {
         onToggleDarkMode={toggleDarkMode}
         childId={childId}
         onOpenProgress={() => setScreen(SCREENS.PROGRESS)}
+        onOpenSettings={() => setScreen(SCREENS.SETTINGS)}
       />
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (

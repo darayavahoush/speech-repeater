@@ -3,7 +3,7 @@ import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
 import { getTheme } from "../utils/themes";
 
-const BACKEND_URL = "http://localhost:7860";
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", accent: "#5B9BD5", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5" },
@@ -16,7 +16,7 @@ const THEMES = {
 
 const LANG_NATIVE = { english: "English", hindi: "हिन्दी", kannada: "ಕನ್ನಡ" };
 
-export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode, childId, onOpenProgress }) {
+export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode, childId, onOpenProgress, onOpenSettings }) {
   const [open, setOpen] = useState(false);
   const [streak, setStreak] = useState(0);
   const th = getTheme(character, darkMode);
@@ -61,7 +61,7 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             borderRadius: "14px", padding: "12px 16px", cursor: "pointer",
             marginBottom: "10px", width: "100%",
           }}>
-            <span style={{ fontSize: "1.3rem" }}>🏠</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text, flexShrink: 0 }}><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z"/></svg>
             <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>Home</span>
           </button>
 
@@ -71,9 +71,34 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             borderRadius: "14px", padding: "12px 16px", cursor: "pointer",
             marginBottom: "20px", width: "100%",
           }}>
-            <span style={{ fontSize: "1.3rem" }}>❓</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text, flexShrink: 0 }}><circle cx="12" cy="12" r="9"/><path d="M9.3 9a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.2-2.6 4"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg>
             <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>How it works</span>
           </button>
+
+          {(onOpenProgress || onOpenSettings) && (
+            <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+              {onOpenProgress && (
+                <button onClick={() => { onOpenProgress(); setOpen(false); }} title="Progress" style={{
+                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                  background: "transparent", border: `1.5px solid ${th.accent}33`,
+                  borderRadius: "12px", padding: "10px 6px", cursor: "pointer",
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text }}><line x1="6" y1="20" x2="6" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+                  <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.62rem", color: th.text }}>Progress</span>
+                </button>
+              )}
+              {onOpenSettings && (
+                <button onClick={() => { onOpenSettings(); setOpen(false); }} title="Settings" style={{
+                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                  background: "transparent", border: `1.5px solid ${th.accent}33`,
+                  borderRadius: "12px", padding: "10px 6px", cursor: "pointer",
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text }}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.62rem", color: th.text }}>Settings</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <button onClick={onToggleDarkMode} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -82,7 +107,11 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             marginBottom: "20px", width: "100%",
           }}>
             <span style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{ fontSize: "1.3rem" }}>{darkMode ? "🌙" : "☀️"}</span>
+              {darkMode ? (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text, flexShrink: 0 }}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              ) : (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text, flexShrink: 0 }}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+              )}
               <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: th.text }}>
                 {darkMode ? "Dark mode" : "Light mode"}
               </span>
@@ -170,7 +199,7 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             color: "#fff",
           }}
         >
-          🔥 {streak}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> {streak}
         </button>
       )}
     </>

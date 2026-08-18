@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getTheme, getSurface } from "../utils/themes";
 import Spinner from "./Spinner";
 
-const BACKEND_URL = "http://localhost:7860";
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 const RANGE_OPTIONS = [7, 30, 90];
 
 export default function ProgressScreen({ childId, character, darkMode, onBack }) {

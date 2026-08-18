@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
 
-const BACKEND_URL = "http://localhost:7860";
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
 export default function Login({ onLogin, onGoToSignup, darkMode }) {
   const [email, setEmail] = useState("");
