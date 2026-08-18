@@ -67,7 +67,7 @@ export default function Login({ onLogin, onGoToSignup, darkMode }) {
               width: "100%", padding: "14px 16px", borderRadius: "14px",
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
               fontFamily: "Nunito, sans-serif", marginBottom: "18px",
-              outline: "none", boxSizing: "border-box",
+              outline: "none", boxSizing: "border-box", caretColor: "#E8825A",
               color: darkMode ? "#F0DCCF" : "#2C2C2A", background: getSurface(darkMode, 1),
             }}
           />
@@ -85,7 +85,7 @@ export default function Login({ onLogin, onGoToSignup, darkMode }) {
               width: "100%", padding: "14px 16px", borderRadius: "14px",
               border: "2px solid rgba(0,0,0,0.08)", fontSize: "1rem",
               fontFamily: "Nunito, sans-serif", marginBottom: "8px",
-              outline: "none", boxSizing: "border-box",
+              outline: "none", boxSizing: "border-box", caretColor: "#E8825A",
               color: darkMode ? "#F0DCCF" : "#2C2C2A", background: getSurface(darkMode, 1),
             }}
           />

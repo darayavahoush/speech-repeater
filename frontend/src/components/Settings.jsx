@@ -24,7 +24,7 @@ export default function Settings({ childId, childName, childEmail, trialStatus, 
     width: "100%", padding: "12px 14px", borderRadius: "12px",
     border: "2px solid rgba(0,0,0,0.08)", fontSize: "0.95rem",
     fontFamily: "Nunito, sans-serif", marginBottom: "12px",
-    outline: "none", boxSizing: "border-box",
+    outline: "none", boxSizing: "border-box", caretColor: "#E8825A",
     color: darkMode ? "#F0DCCF" : "#2C2C2A", background: getSurface(darkMode, 1),
   };
 
