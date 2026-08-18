@@ -1,4 +1,4 @@
-const BASE_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BASE_URL = "http://localhost:7860";
 
 export async function inputWord({ text, audio, character = "BOLT", language = "english", mood = "instruction" }) {
   const form = new FormData();
@@ -39,6 +39,15 @@ export async function getPhonemeCard(phoneme) {
 
 export async function getCharacters() {
   const res = await fetch(`${BASE_URL}/characters`);
+  return res.json();
+}
+
+export async function translateWord(text, targetLanguage) {
+  const form = new FormData();
+  form.append("text", text);
+  form.append("target_language", targetLanguage);
+
+  const res = await fetch(`${BASE_URL}/translate`, { method: "POST", body: form });
   return res.json();
 }
 
