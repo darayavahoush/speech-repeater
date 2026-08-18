@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
+import { LANGUAGES } from "../utils/i18n";
 import logo from "../assets/images/logo.png";
 
 const RAINBOW_GRADIENT = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)";
 const RAINBOW_GRADIENT_BAND = "linear-gradient(100deg, #E8825A 0%, #E8B84B 30%, #6BBF7A 60%, #4ABFBF 100%)";
+const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+
+const DEMO_WORDS = { english: "ball", hindi: "गेंद", kannada: "ಚೆಂಡು" };
 
 const FEATURES = [
   {
@@ -33,8 +37,36 @@ const STEPS = [
   { title: "See real progress", body: "Tricky sounds get extra practice, automatically." },
 ];
 
-export default function Homepage({ onSignIn, onGetStarted }) {
+export default function Homepage({ onSignIn, onGetStarted, onSeePlans }) {
   const [hoveredChar, setHoveredChar] = useState(null);
+  const [demoCharacter, setDemoCharacter] = useState("BOLT");
+  const [demoLanguage, setDemoLanguage] = useState("english");
+  const [demoPlaying, setDemoPlaying] = useState(false);
+  const [demoError, setDemoError] = useState(false);
+
+  const playDemoWord = async () => {
+    setDemoPlaying(true);
+    setDemoError(false);
+    try {
+      const form = new FormData();
+      form.append("word", DEMO_WORDS[demoLanguage]);
+      form.append("speed", "1.0");
+      form.append("language", demoLanguage);
+      form.append("character", demoCharacter);
+      const res = await fetch(`${BACKEND_URL}/speak/word`, { method: "POST", body: form });
+      if (!res.ok) throw new Error("bad response");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+      audio.onended = () => setDemoPlaying(false);
+    } catch {
+      setDemoPlaying(false);
+      setDemoError(true);
+    }
+  };
+
+  const demoChar = CHARACTERS[demoCharacter];
 
   return (
     <div style={{ minHeight: "100vh", background: RAINBOW_GRADIENT, fontFamily: "Inter, sans-serif" }}>
@@ -49,6 +81,14 @@ export default function Homepage({ onSignIn, onGetStarted }) {
           <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "#3A2E2C" }}>Vaakify</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          {onSeePlans && (
+            <button onClick={onSeePlans} style={{
+              background: "none", border: "none", color: "#3A2E2C", fontWeight: 700,
+              fontSize: "0.9rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
+            }}>
+              Plans & pricing
+            </button>
+          )}
           <button onClick={onSignIn} style={{
             background: "none", border: "none", color: "#3A2E2C", fontWeight: 700,
             fontSize: "0.9rem", cursor: "pointer", fontFamily: "Inter, sans-serif",
@@ -103,13 +143,13 @@ export default function Homepage({ onSignIn, onGetStarted }) {
             }}>
               Start free trial →
             </button>
-            <a href="#how-it-works" style={{
+            <a href="#try-it" style={{
               background: "rgba(255,255,255,0.7)", color: "#3A2E2C", border: "1.5px solid rgba(0,0,0,0.1)",
               borderRadius: "14px", padding: "16px 28px", fontWeight: 700, fontSize: "1rem",
               cursor: "pointer", fontFamily: "Inter, sans-serif", textDecoration: "none",
               display: "inline-block",
             }}>
-              See how it works
+              Try it live
             </a>
           </div>
         </div>
@@ -173,6 +213,101 @@ export default function Homepage({ onSignIn, onGetStarted }) {
         </div>
       </section>
 
+      {/* Live demo */}
+      <section id="try-it" style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 32px 80px" }}>
+        <h2 style={{
+          fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "2rem", color: "#2A211D",
+          textAlign: "center", margin: "0 0 12px 0",
+        }}>
+          Hear it for yourself
+        </h2>
+        <p style={{
+          fontFamily: "Fraunces, serif", fontStyle: "italic", fontSize: "1.05rem", color: "#5A4A42",
+          textAlign: "center", margin: "0 0 36px 0",
+        }}>
+          Pick a friend and a language, no sign-up needed.
+        </p>
+
+        <div style={{
+          maxWidth: "560px", margin: "0 auto", background: "rgba(255,255,255,0.85)",
+          borderRadius: "24px", padding: "32px 28px", border: "1.5px solid rgba(0,0,0,0.06)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+        }}>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#9A7A6A", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>
+            Choose a friend
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "22px" }}>
+            {Object.values(CHARACTERS).map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setDemoCharacter(c.id)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                  background: c.id === demoCharacter ? `${c.color}22` : "transparent",
+                  border: `1.5px solid ${c.id === demoCharacter ? c.color : "rgba(0,0,0,0.08)"}`,
+                  borderRadius: "14px", padding: "10px 12px", cursor: "pointer", transition: "all 0.2s",
+                }}
+              >
+                <img src={c.image} alt={c.name} style={{ width: "38px", height: "38px", objectFit: "contain" }} />
+                <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#3A2E2C", fontFamily: "Nunito, sans-serif" }}>{c.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.7rem", color: "#9A7A6A", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 10px 0" }}>
+            Choose a language
+          </p>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "26px" }}>
+            {LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => setDemoLanguage(lang.code)}
+                style={{
+                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  background: lang.code === demoLanguage ? "#E8825A" : "rgba(0,0,0,0.04)",
+                  color: lang.code === demoLanguage ? "#fff" : "#3A2E2C",
+                  border: "none", borderRadius: "12px", padding: "10px 8px", cursor: "pointer",
+                  fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.82rem", transition: "all 0.2s",
+                }}
+              >
+                <span>{lang.flag}</span> {lang.native}
+              </button>
+            ))}
+          </div>
+
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: "#FDF3DD", borderRadius: "16px", padding: "18px 20px", marginBottom: "18px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <img src={demoChar.image} alt={demoChar.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
+              <div>
+                <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.65rem", color: "#9A7A6A", letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 2px 0" }}>Word</p>
+                <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1.4rem", color: "#2A211D", margin: 0 }}>{DEMO_WORDS[demoLanguage]}</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={playDemoWord}
+            disabled={demoPlaying}
+            style={{
+              width: "100%", padding: "16px", background: "#E8825A", color: "#fff", border: "none",
+              borderRadius: "14px", fontFamily: "Nunito, sans-serif", fontSize: "1rem", fontWeight: 900,
+              cursor: demoPlaying ? "not-allowed" : "pointer", opacity: demoPlaying ? 0.7 : 1,
+              boxShadow: "0 4px 20px #E8825A44",
+            }}
+          >
+            {demoPlaying ? "Playing..." : `🔊 Hear ${demoChar.name} say it`}
+          </button>
+          {demoError && (
+            <p style={{ color: "#E05555", fontSize: "0.78rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, textAlign: "center", margin: "10px 0 0 0" }}>
+              Couldn't reach the demo right now — try again in a moment.
+            </p>
+          )}
+        </div>
+      </section>
+
       {/* How it works */}
       <section id="how-it-works" style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 32px 80px" }}>
         <h2 style={{
@@ -217,11 +352,12 @@ export default function Homepage({ onSignIn, onGetStarted }) {
         }}>
           Every child picks their own — and keeps them across every language.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "18px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "18px" }}>
           {Object.values(CHARACTERS).map((char) => (
             <div key={char.id} style={{
               background: "rgba(255,255,255,0.8)", borderRadius: "20px", padding: "20px",
               textAlign: "center", border: `1.5px solid ${char.color}33`,
+              width: "180px", flex: "0 0 auto",
             }}>
               <img src={char.image} alt={char.name} style={{ width: "72px", height: "72px", objectFit: "contain", margin: "0 auto 10px" }} />
               <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 900, fontSize: "1rem", color: "#2A211D", margin: "0 0 4px 0" }}>

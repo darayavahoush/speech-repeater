@@ -32,7 +32,7 @@ const PLANS = [
   },
 ];
 
-export default function Paywall({ name, darkMode }) {
+export default function Paywall({ name, darkMode, onBack }) {
   const [selectedPlan, setSelectedPlan] = useState("annual");
   const [loading, setLoading] = useState(false);
 
@@ -53,13 +53,28 @@ export default function Paywall({ name, darkMode }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: bgGradient, display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 20px" }}>
+    <div style={{ minHeight: "100vh", background: bgGradient, display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 20px", position: "relative" }}>
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: "absolute", top: "24px", left: "24px",
+            background: "none", border: "none", cursor: "pointer",
+            display: "flex", alignItems: "center", gap: "6px",
+            fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.85rem",
+            color: labelColor,
+          }}
+        >
+          ← Back
+        </button>
+      )}
+
       <div style={{ width: "100%", maxWidth: "960px" }}>
 
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
           <img src={logo} alt="Vaakify" style={{ width: "56px", height: "56px", objectFit: "contain", marginBottom: "10px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.9rem", fontWeight: 900, color: textColor, margin: "0 0 8px 0" }}>
-            {name ? `${name}'s free trial has ended` : "Your free trial has ended"}
+            {name ? `${name}'s free trial has ended` : "Choose your plan"}
           </h1>
           <p style={{ color: labelColor, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif" }}>
             Choose a plan to keep practicing

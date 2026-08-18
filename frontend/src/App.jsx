@@ -264,6 +264,7 @@ export default function App() {
       <Homepage
         onSignIn={() => setScreen(SCREENS.LOGIN)}
         onGetStarted={() => setScreen(SCREENS.SIGNUP)}
+        onSeePlans={() => setScreen(SCREENS.PAYWALL)}
       />
     );
   }
@@ -281,6 +282,7 @@ export default function App() {
           }
         }}
         onGoToLogin={() => setScreen(SCREENS.LOGIN)}
+        onSeePlans={() => setScreen(SCREENS.PAYWALL)}
         darkMode={darkMode}
       />
     );
@@ -320,7 +322,14 @@ export default function App() {
   }
 
   if (screen === SCREENS.PAYWALL) {
-    return <Paywall name={childName} darkMode={darkMode} />;
+    const forced = trialStatus === "expired";
+    return (
+      <Paywall
+        name={childName}
+        darkMode={darkMode}
+        onBack={forced ? null : () => setScreen(childId ? SCREENS.THERAPIST_INPUT : SCREENS.HOMEPAGE)}
+      />
+    );
   }
 
   return (
@@ -368,6 +377,9 @@ export default function App() {
           childId={childId}
           childName={childName}
           childEmail={childEmail}
+          trialStatus={trialStatus}
+          trialDaysRemaining={trialDaysRemaining}
+          onSeePlans={() => setScreen(SCREENS.PAYWALL)}
           darkMode={darkMode}
           onBack={() => setScreen(SCREENS.THERAPIST_INPUT)}
           onEmailChanged={(newEmail) => setChildEmail(newEmail)}
@@ -403,6 +415,7 @@ export default function App() {
         childId={childId}
         onOpenProgress={() => setScreen(SCREENS.PROGRESS)}
         onOpenSettings={() => setScreen(SCREENS.SETTINGS)}
+        onOpenPaywall={() => setScreen(SCREENS.PAYWALL)}
       />
       {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (

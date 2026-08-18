@@ -4,7 +4,7 @@ import logo from "../assets/images/logo.png";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
-export default function Signup({ onSignup, onGoToLogin, darkMode }) {
+export default function Signup({ onSignup, onGoToLogin, onSeePlans, darkMode }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -63,9 +63,14 @@ export default function Signup({ onSignup, onGoToLogin, darkMode }) {
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.9rem", fontWeight: 900, color: textColor, margin: "0 0 6px 0" }}>
             Start your free trial
           </h1>
-          <p style={{ color: "#E8825A", fontSize: "0.85rem", fontWeight: 700, margin: 0 }}>
+          <p style={{ color: "#E8825A", fontSize: "0.85rem", fontWeight: 700, margin: "0 0 10px 0" }}>
             7 days free — no card required
           </p>
+          {onSeePlans && (
+            <button onClick={onSeePlans} style={{ background: "none", border: "none", color: labelColor, fontSize: "0.78rem", fontWeight: 700, textDecoration: "underline", cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+              View plans & pricing
+            </button>
+          )}
         </div>
 
         <div style={{ background: getSurface(darkMode, 0.9), borderRadius: "22px", padding: "28px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>

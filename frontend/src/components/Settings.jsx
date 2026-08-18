@@ -3,7 +3,7 @@ import { getTheme, getSurface } from "../utils/themes";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
-export default function Settings({ childId, childName, childEmail, darkMode, onBack, onEmailChanged, onNeedsEmailVerification, onAccountDeleted }) {
+export default function Settings({ childId, childName, childEmail, trialStatus, trialDaysRemaining, onSeePlans, darkMode, onBack, onEmailChanged, onNeedsEmailVerification, onAccountDeleted }) {
   const theme = getTheme("BOLT", darkMode); // neutral palette; character isn't relevant here
   const textColor = darkMode ? "#F0DCCF" : "#3A2E2C";
   const labelColor = darkMode ? "#B08F7A" : "#9A7A6A";
@@ -109,6 +109,34 @@ export default function Settings({ childId, childName, childEmail, darkMode, onB
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.5rem", fontWeight: 900, color: theme.text, margin: 0 }}>
             Settings
           </h1>
+        </div>
+
+        <div style={cardStyle}>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "0.9rem", color: textColor, margin: "0 0 4px 0" }}>Subscription</p>
+          <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.85rem", color: labelColor, margin: "0 0 14px 0" }}>
+            {trialStatus === "expired"
+              ? "Your free trial has ended."
+              : trialStatus === "trial"
+              ? `Free trial — ${trialDaysRemaining != null ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} left` : "in progress"}`
+              : trialStatus
+              ? "Active subscription"
+              : "—"}
+          </p>
+          {onSeePlans && (
+            <button
+              onClick={onSeePlans}
+              style={{
+                width: "100%", padding: "13px",
+                background: trialStatus === "expired" ? "#E8825A" : "transparent",
+                color: trialStatus === "expired" ? "#fff" : theme.accent,
+                border: trialStatus === "expired" ? "none" : `2px solid ${theme.accent}55`,
+                borderRadius: "12px", fontFamily: "Nunito, sans-serif",
+                fontSize: "0.9rem", fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              {trialStatus === "expired" ? "Choose a plan" : "See plans & pricing"}
+            </button>
+          )}
         </div>
 
         <div style={cardStyle}>

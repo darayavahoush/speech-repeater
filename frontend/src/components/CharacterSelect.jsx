@@ -74,10 +74,10 @@ export default function CharacterSelect({ onSelect, language = "english", darkMo
                 }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.25rem", fontWeight: 900, color: isSelected ? ct.text : "#2C2C2A", margin: "0 0 4px 0", transition: "color 0.35s" }}>
+                  <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.25rem", fontWeight: 900, color: isSelected ? ct.text : (darkMode ? "#F0DCCF" : "#2C2C2A"), margin: "0 0 4px 0", transition: "color 0.35s" }}>
                     {char.name}
                   </p>
-                  <p style={{ color: isSelected ? ct.sub : "#888", fontSize: "0.78rem", margin: "0 0 10px 0", lineHeight: 1.4, transition: "color 0.35s" }}>
+                  <p style={{ color: isSelected ? ct.sub : (darkMode ? "#B08F7A" : "#888"), fontSize: "0.78rem", margin: "0 0 10px 0", lineHeight: 1.4, transition: "color 0.35s" }}>
                     {char[language === "hindi" ? "tagline_hindi" : language === "kannada" ? "tagline_kannada" : "tagline"] || char.tagline}
                   </p>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
