@@ -201,7 +201,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
           <div style={{ position: "relative", padding: "0 2px" }}>
             <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: "2px", height: "10px", background: `${th.accent}88`, borderRadius: "1px", pointerEvents: "none" }} />
             <input
-              type="range" min="0.3" max="1.7" step="0.05" value={speed}
+              type="range" min="0.5" max="1.5" step="0.05" value={speed}
               onChange={(e) => setSpeed(parseFloat(e.target.value))}
               onMouseUp={() => playWord(speed)}
               onTouchEnd={() => playWord(speed)}
@@ -212,8 +212,8 @@ export default function PracticeScreen({ character, language = "english", wordDa
             <button id="hint-hear-voice" onClick={() => { setSpeed(1.0); playWord(1.0); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "10px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.75rem", fontFamily: "Nunito, sans-serif" }}>
               🔊 Normal
             </button>
-            <button onClick={() => { setSpeed(0.35); playWord(0.35); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "10px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.75rem", fontFamily: "Nunito, sans-serif" }}>
-              🐌 Ultra Slow
+            <button onClick={() => { setSpeed(0.5); playWord(0.5); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "10px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.75rem", fontFamily: "Nunito, sans-serif" }}>
+              🐌 Slowest
             </button>
           </div>
         </div>
