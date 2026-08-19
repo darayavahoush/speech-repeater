@@ -220,6 +220,19 @@ async def speak_word_endpoint(
 
 
 
+@app.get("/speak/phoneme/{phoneme}")
+async def speak_phoneme_endpoint(
+    phoneme: str,
+    character: str = "BOLT",
+    speed: float = 1.0,
+    language: str = "english",
+):
+    """Isolated phoneme sound, for click-and-hear phoneme practice."""
+    from app.services.voice.tts import speak_phoneme
+    audio_bytes = speak_phoneme(phoneme, character=character, speed=speed, language=language)
+    return Response(content=audio_bytes, media_type="audio/wav")
+
+
 @app.get("/debug/voice/{character}")
 def debug_voice(character: str):
     from app.services.voice.tts import _render, CHARACTERS

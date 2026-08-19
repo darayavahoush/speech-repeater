@@ -12,6 +12,8 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
+  const [speed, setSpeed] = useState(1.0);
+  const [playingPhoneme, setPlayingPhoneme] = useState(null);
   const { isRecording, audioBlob, audioUrl, startRecording, stopRecording, reset } = useAudio();
   const char = CHARACTERS[character];
   const th = getTheme(character, darkMode);
@@ -35,6 +37,19 @@ export default function PracticeScreen({ character, language = "english", wordDa
       audio.play();
       audio.onended = () => setPlayingChar(false);
     } catch { setPlayingChar(false); }
+  };
+
+  const playPhoneme = async (p) => {
+    setPlayingPhoneme(p);
+    try {
+      const params = new URLSearchParams({ character, speed: String(speed), language });
+      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/speak/phoneme/${p}?${params}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+      audio.onended = () => setPlayingPhoneme(null);
+    } catch { setPlayingPhoneme(null); }
   };
 
   const playChildAudio = () => {
@@ -156,7 +171,17 @@ export default function PracticeScreen({ character, language = "english", wordDa
 
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
             {(wordData?.phonemes || []).map((p, i) => (
-              <div key={i} title={phonemeExample(p)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px", background: th.card, border: `1px solid ${th.accent}55`, borderRadius: "10px", padding: "6px 10px", cursor: "default" }}>
+              <div
+                key={i}
+                title={`Tap to hear /${p}/${phonemeExample(p) ? ` — ${phonemeExample(p)}` : ""}`}
+                onClick={() => playPhoneme(p)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: "2px",
+                  background: playingPhoneme === p ? `${th.accent}22` : th.card,
+                  border: `1.5px solid ${playingPhoneme === p ? th.accent : `${th.accent}55`}`,
+                  borderRadius: "10px", padding: "6px 10px", cursor: "pointer",
+                  transition: "all 0.15s", transform: playingPhoneme === p ? "scale(1.08)" : "scale(1)",
+                }}>
                 <span style={{ color: th.accent, fontFamily: "Nunito, sans-serif", fontSize: "0.95rem", fontWeight: 900, lineHeight: 1 }}>
                   {language === "english" ? friendlyPhoneme(p) : (displayPhoneme(p, language)?.label || p)}
                 </span>
@@ -164,14 +189,33 @@ export default function PracticeScreen({ character, language = "english", wordDa
               </div>
             ))}
           </div>
+          <p style={{ color: th.sub, fontSize: "0.65rem", textAlign: "center", margin: "4px 0 0 0", opacity: 0.7 }}>Tap a sound to hear it on its own</p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button id="hint-hear-voice" onClick={() => playWord(1.0)} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
-            🔊 Normal
-          </button>
-          <button onClick={() => playWord(0.65)} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "14px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: "Nunito, sans-serif" }}>
-            🐢 Slow
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ color: th.sub, fontSize: "0.7rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, minWidth: "58px" }}>
+              {speed.toFixed(2)}x
+            </span>
+            <input
+              type="range" min="0.3" max="1.3" step="0.05" value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+              style={{ flex: 1, accentColor: th.accent }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button id="hint-hear-voice" onClick={() => { setSpeed(1.0); playWord(1.0); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
+              🔊 Normal
+            </button>
+            <button onClick={() => { setSpeed(0.65); playWord(0.65); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
+              🐢 Slow
+            </button>
+            <button onClick={() => { setSpeed(0.35); playWord(0.35); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
+              🐌 Ultra Slow
+            </button>
+          </div>
+          <button onClick={() => playWord(speed)} disabled={playingChar} style={{ background: "transparent", border: `1.5px dashed ${th.accent}66`, borderRadius: "12px", padding: "8px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.72rem", fontFamily: "Nunito, sans-serif" }}>
+            ▶ Play at {speed.toFixed(2)}x
           </button>
         </div>
         {playingChar && <p style={{ color: th.sub, fontSize: "0.75rem", textAlign: "center", margin: "-8px 0 0 0" }}>Playing...</p>}

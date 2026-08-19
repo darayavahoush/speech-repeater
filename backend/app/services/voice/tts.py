@@ -28,8 +28,8 @@ CHARACTERS = {
     },
     "BEEP": {
         "voice": "hm_psi", "speed": 1.0,
-        "ffmpeg": "asetrate=38000,aresample=24000,atempo=0.63,vibrato=f=8:d=0.3,volume=4.0",
-        "ffmpeg_question": "asetrate=38000,aresample=24000,atempo=0.63,vibrato=f=12:d=0.4,aecho=0.7:0.4:15:0.2,volume=4.5",
+        "ffmpeg": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=6:d=0.15,volume=4.0",
+        "ffmpeg_question": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=9:d=0.2,aecho=0.7:0.4:15:0.2,volume=4.5",
     },
     "ECHO": {
         "voice": "hm_omega", "speed": 1.0,
@@ -144,13 +144,30 @@ def _render_gtts_raw(text: str, language: str) -> bytes:
         if os.path.exists(out_tmp.name):
             os.unlink(out_tmp.name)
 
+def _build_atempo_chain(speed: float) -> str:
+    """ffmpeg's atempo filter only accepts 0.5-2.0 per instance. Decompose any
+    speed outside that range into multiple chained atempo filters (e.g. 0.3 ->
+    atempo=0.5,atempo=0.6) so ultra-slow/ultra-fast playback actually reaches
+    the requested speed instead of silently clamping at the 0.5/2.0 floor/ceiling."""
+    if speed <= 0:
+        speed = 1.0
+    stages = []
+    remaining = speed
+    while remaining < 0.5:
+        stages.append(0.5)
+        remaining /= 0.5
+    while remaining > 2.0:
+        stages.append(2.0)
+        remaining /= 2.0
+    stages.append(remaining)
+    return ",".join(f"atempo={s}" for s in stages if abs(s - 1.0) > 1e-6)
+
+
 def _render_gtts(text: str, language: str, character: str, ffmpeg_filters: str = "", speed: float = 1.0) -> bytes:
     raw_bytes = _render_gtts_raw(text, language)
     pitch = GTTS_PITCH_SHIFT.get(character, 1.0)
     pitch_filter = f"asetrate=24000*{pitch},aresample=24000"
-    # atempo must stay within ffmpeg's 0.5-2.0 range per filter instance; clamp to be safe
-    clamped_speed = max(0.5, min(2.0, speed))
-    speed_filter = f"atempo={clamped_speed}" if clamped_speed != 1.0 else ""
+    speed_filter = _build_atempo_chain(speed)
     parts = [p for p in [pitch_filter, speed_filter, ffmpeg_filters] if p]
     combined_filters = ",".join(parts)
     return _apply_ffmpeg(raw_bytes, combined_filters)
@@ -184,6 +201,32 @@ def speak(text: str, character: str = "BOLT", mood: str = "default", speed: floa
 
 def get_characters():
     return [{"id": k, "name": k, "tagline": INTRO_LINES[k][:40]} for k in CHARACTERS]
+
+# gTTS can't say an isolated consonant cleanly ("B" -> letter name "bee"), so
+# each phoneme in PHONEME_DATA (app/services/phoneme/data.py) maps to a short
+# spelling that produces something close to the actual sound in isolation.
+# RT/RD (Indian retroflex stops) are best-effort only -- gTTS has no way to
+# force retroflex articulation from plain English text; the phoneme card's
+# `tip` text carries the real instruction for those two.
+PHONEME_SOUND_APPROXIMATIONS = {
+    "B": "buh", "P": "puh", "M": "mmm", "D": "duh", "T": "tuh", "N": "nnn",
+    "G": "guh", "K": "kuh", "F": "ffff", "V": "vvvv", "S": "sss", "Z": "zzz",
+    "SH": "shh", "CH": "ch", "JH": "j", "L": "lll", "R": "rrr", "W": "wuh",
+    "Y": "yuh", "H": "huh", "TH": "th",
+    "AE": "a", "AO": "aw", "EH": "eh", "IH": "ih", "IY": "ee", "UW": "oo",
+    "RT": "ta", "RD": "da",
+}
+
+def speak_phoneme(phoneme: str, character: str = "BOLT", speed: float = 1.0, language: str = "english") -> bytes:
+    """Isolated phoneme sound (e.g. 'B' -> 'buh'), rendered through the same
+    Indian-accented gTTS + character pitch/effects pipeline as everything
+    else, and disk-cached the same way via _render (keyed on the sound text,
+    so 'buh' at a given character/speed only ever renders once)."""
+    ph = phoneme.upper()
+    sound = PHONEME_SOUND_APPROXIMATIONS.get(ph, ph.lower())
+    char = character.upper()
+    cfg = CHARACTERS.get(char, CHARACTERS["BOLT"])
+    return _render(sound, char, cfg["voice"], speed, cfg["ffmpeg"], cfg.get("ffmpeg_question", ""), language=language)
 
 WORD_SPEEDS = (1.0, 0.65, 0.8)  # matches the speed buttons in PracticeScreen.jsx / PhonemeScreen.jsx / DrillScreen.jsx
 
