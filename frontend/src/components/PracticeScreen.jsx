@@ -193,30 +193,29 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ color: th.sub, fontSize: "0.7rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, minWidth: "58px" }}>
-              {speed.toFixed(2)}x
-            </span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ color: th.sub, fontSize: "0.65rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, opacity: 0.6 }}>🐌 SLOW</span>
+            <span style={{ color: th.accent, fontSize: "0.8rem", fontFamily: "Nunito, sans-serif", fontWeight: 900 }}>{speed.toFixed(2)}x</span>
+            <span style={{ color: th.sub, fontSize: "0.65rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, opacity: 0.6 }}>FAST 🐇</span>
+          </div>
+          <div style={{ position: "relative", padding: "0 2px" }}>
+            <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: "2px", height: "10px", background: `${th.accent}88`, borderRadius: "1px", pointerEvents: "none" }} />
             <input
-              type="range" min="0.3" max="1.3" step="0.05" value={speed}
+              type="range" min="0.3" max="1.7" step="0.05" value={speed}
               onChange={(e) => setSpeed(parseFloat(e.target.value))}
-              style={{ flex: 1, accentColor: th.accent }}
+              onMouseUp={() => playWord(speed)}
+              onTouchEnd={() => playWord(speed)}
+              style={{ width: "100%", accentColor: th.accent }}
             />
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button id="hint-hear-voice" onClick={() => { setSpeed(1.0); playWord(1.0); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
+            <button id="hint-hear-voice" onClick={() => { setSpeed(1.0); playWord(1.0); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "10px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.75rem", fontFamily: "Nunito, sans-serif" }}>
               🔊 Normal
             </button>
-            <button onClick={() => { setSpeed(0.65); playWord(0.65); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
-              🐢 Slow
-            </button>
-            <button onClick={() => { setSpeed(0.35); playWord(0.35); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "12px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.78rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", fontFamily: "Nunito, sans-serif" }}>
+            <button onClick={() => { setSpeed(0.35); playWord(0.35); }} disabled={playingChar} style={{ flex: 1, background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}44`, borderRadius: "14px", padding: "10px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.75rem", fontFamily: "Nunito, sans-serif" }}>
               🐌 Ultra Slow
             </button>
           </div>
-          <button onClick={() => playWord(speed)} disabled={playingChar} style={{ background: "transparent", border: `1.5px dashed ${th.accent}66`, borderRadius: "12px", padding: "8px", cursor: "pointer", color: th.accent, fontWeight: 700, fontSize: "0.72rem", fontFamily: "Nunito, sans-serif" }}>
-            ▶ Play at {speed.toFixed(2)}x
-          </button>
         </div>
         {playingChar && <p style={{ color: th.sub, fontSize: "0.75rem", textAlign: "center", margin: "-8px 0 0 0" }}>Playing...</p>}
 
