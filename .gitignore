@@ -29,3 +29,4 @@ backend/app/data/tts_cache/
 .vercel
 backend/kokoro-v1.0.onnx
 backend/voices-v1.0.bin
+frontend/.env
