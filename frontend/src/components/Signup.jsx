@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
+import GoogleAuthButton from "./GoogleAuthButton";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
-export default function Signup({ onSignup, onGoToLogin, onSeePlans, darkMode }) {
+export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePlans, darkMode }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -115,6 +116,30 @@ export default function Signup({ onSignup, onGoToLogin, onSeePlans, darkMode }) 
             }}
           >
             {loading ? "..." : "Start free trial 🚀"}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "20px 0" }}>
+            <div style={{ flex: 1, height: "1px", background: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} />
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: labelColor, fontFamily: "Nunito, sans-serif" }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} />
+          </div>
+
+          <GoogleAuthButton
+            darkMode={darkMode}
+            onSuccess={(data) => onSignup(data, data.is_new)}
+            onError={setError}
+          />
+
+          <button
+            onClick={onGoToPhoneAuth}
+            style={{
+              width: "100%", padding: "13px 16px", marginTop: "10px",
+              background: "none", border: darkMode ? "2px solid rgba(255,255,255,0.12)" : "2px solid rgba(0,0,0,0.1)",
+              borderRadius: "14px", fontFamily: "Nunito, sans-serif", fontSize: "0.95rem",
+              fontWeight: 800, color: darkMode ? "#F0DCCF" : "#2C2C2A", cursor: "pointer",
+            }}
+          >
+            📱 Continue with phone
           </button>
 
           <p style={{ fontSize: "0.8rem", color: labelColor, textAlign: "center", marginTop: "16px", fontFamily: "Nunito, sans-serif" }}>

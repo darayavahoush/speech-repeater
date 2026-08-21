@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Homepage from "./components/Homepage";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import PhoneAuth from "./components/PhoneAuth";
 import Paywall from "./components/Paywall";
 import VerifyEmail from "./components/VerifyEmail";
 import CharacterSelect from "./components/CharacterSelect";
@@ -25,6 +26,7 @@ const SCREENS = {
   HOMEPAGE: "homepage",
   LOGIN: "login",
   SIGNUP: "signup",
+  PHONE_AUTH: "phone_auth",
   VERIFY_EMAIL: "verify_email",
   PAYWALL: "paywall",
   LANGUAGE_SELECT: "language_select",
@@ -62,6 +64,7 @@ export default function App() {
   const [pendingName, setPendingName] = useState(null);
   const [childEmail, setChildEmail] = useState(null);
   const [verifyReturnTo, setVerifyReturnTo] = useState("signup");
+  const [phoneAuthReturnTo, setPhoneAuthReturnTo] = useState(SCREENS.LOGIN);
   const [darkMode, setDarkMode] = useState(() => getStoredDarkMode());
 
   const toggleDarkMode = () => {
@@ -295,7 +298,21 @@ export default function App() {
           }
         }}
         onGoToLogin={() => setScreen(SCREENS.LOGIN)}
+        onGoToPhoneAuth={() => {
+          setPhoneAuthReturnTo(SCREENS.SIGNUP);
+          setScreen(SCREENS.PHONE_AUTH);
+        }}
         onSeePlans={() => setScreen(SCREENS.PAYWALL)}
+        darkMode={darkMode}
+      />
+    );
+  }
+
+  if (screen === SCREENS.PHONE_AUTH) {
+    return (
+      <PhoneAuth
+        onAuthed={(data, isNew) => handleLogin(data, isNew)}
+        onGoBack={() => setScreen(phoneAuthReturnTo)}
         darkMode={darkMode}
       />
     );
@@ -329,6 +346,10 @@ export default function App() {
           setScreen(SCREENS.VERIFY_EMAIL);
         }}
         onGoToSignup={() => setScreen(SCREENS.SIGNUP)}
+        onGoToPhoneAuth={() => {
+          setPhoneAuthReturnTo(SCREENS.LOGIN);
+          setScreen(SCREENS.PHONE_AUTH);
+        }}
         darkMode={darkMode}
       />
     );

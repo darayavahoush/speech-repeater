@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
+import GoogleAuthButton from "./GoogleAuthButton";
 
 const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
 
-export default function Login({ onLogin, onGoToSignup, darkMode }) {
+export default function Login({ onLogin, onGoToSignup, onGoToPhoneAuth, darkMode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -108,6 +109,30 @@ export default function Login({ onLogin, onGoToSignup, darkMode }) {
             }}
           >
             {loading ? "..." : "Sign in →"}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "20px 0" }}>
+            <div style={{ flex: 1, height: "1px", background: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} />
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: darkMode ? "#B08F7A" : "#9A7A6A", fontFamily: "Nunito, sans-serif" }}>or</span>
+            <div style={{ flex: 1, height: "1px", background: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)" }} />
+          </div>
+
+          <GoogleAuthButton
+            darkMode={darkMode}
+            onSuccess={(data) => onLogin(data, data.is_new)}
+            onError={setError}
+          />
+
+          <button
+            onClick={onGoToPhoneAuth}
+            style={{
+              width: "100%", padding: "13px 16px", marginTop: "10px",
+              background: "none", border: darkMode ? "2px solid rgba(255,255,255,0.12)" : "2px solid rgba(0,0,0,0.1)",
+              borderRadius: "14px", fontFamily: "Nunito, sans-serif", fontSize: "0.95rem",
+              fontWeight: 800, color: darkMode ? "#F0DCCF" : "#2C2C2A", cursor: "pointer",
+            }}
+          >
+            📱 Continue with phone
           </button>
 
           <p style={{ fontSize: "0.8rem", color: darkMode ? "#B08F7A" : "#9A7A6A", textAlign: "center", marginTop: "16px", fontFamily: "Nunito, sans-serif" }}>

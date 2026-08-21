@@ -11,10 +11,16 @@ CACHE_DIR = Path(__file__).resolve().parents[2] / "data" / "tts_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 CHARACTERS = {
+    # BOLT/BEEP/ECHO were previously boosted with a flat `volume=4.0-4.5`
+    # gain, which clips the waveform (gTTS output is already close to full
+    # scale) — that clipping, not the character effect itself, is what was
+    # making them sound distorted/unclear. Fix: much lower gain, a lighter
+    # touch on aecho/vibrato/tremolo depth so words stay intelligible, and
+    # an alimiter as a safety net against any remaining peaks.
     "BOLT": {
         "voice": "hm_omega", "speed": 1.0,
-        "ffmpeg": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.9:0.7:35:0.5,volume=4.0",
-        "ffmpeg_question": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.9:0.7:35:0.5,vibrato=f=2:d=0.15,volume=4.0",
+        "ffmpeg": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.5:0.25:20:0.2,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg_question": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.5:0.25:20:0.2,vibrato=f=2:d=0.08,volume=2.2,alimiter=limit=0.95",
     },
     "ZARA": {
         "voice": "hf_alpha", "speed": 1.0,
@@ -28,13 +34,13 @@ CHARACTERS = {
     },
     "BEEP": {
         "voice": "hm_psi", "speed": 1.0,
-        "ffmpeg": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=6:d=0.15,volume=4.0",
-        "ffmpeg_question": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=9:d=0.2,aecho=0.7:0.4:15:0.2,volume=4.5",
+        "ffmpeg": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=6:d=0.08,volume=2.0,alimiter=limit=0.95",
+        "ffmpeg_question": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=8:d=0.1,aecho=0.5:0.25:15:0.15,volume=2.2,alimiter=limit=0.95",
     },
     "ECHO": {
         "voice": "hm_omega", "speed": 1.0,
-        "ffmpeg": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.8:0.6:60:0.4,tremolo=f=2:d=0.3,volume=4.0",
-        "ffmpeg_question": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.8:0.6:60:0.4,tremolo=f=3:d=0.4,vibrato=f=1:d=0.2,volume=4.0",
+        "ffmpeg": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.6:0.3:45:0.2,tremolo=f=2:d=0.15,volume=2.0,alimiter=limit=0.95",
+        "ffmpeg_question": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.6:0.3:45:0.2,tremolo=f=3:d=0.2,vibrato=f=1:d=0.1,volume=2.2,alimiter=limit=0.95",
     },
     "MIRA": {
         "voice": "hf_alpha", "speed": 1.0,
@@ -77,11 +83,17 @@ def _is_question(text: str) -> bool:
     question_words = ("shall", "can", "could", "would", "should", "is", "are", "do", "does", "did", "ready", "want")
     return t.endswith("?") or t.lower().startswith(question_words)
 
+# Bump this whenever a CHARACTERS ffmpeg chain changes. The cache key doesn't
+# otherwise depend on the filter string, so without this, existing disk-cached
+# clips (rendered with the old, clipped-and-distorted filters) would keep
+# being served forever instead of picking up the fix.
+AUDIO_FILTER_VERSION = 2
+
 def _cache_key(text: str, character: str, language: str, speed: float) -> str:
     # ffmpeg_filters/ffmpeg_question aren't part of the key: which one applies
     # is fully determined by _is_question(text), so text+character+language+speed
     # already pins down the exact audio that would be rendered.
-    raw = f"{language}|{character}|{speed}|{text}"
+    raw = f"v{AUDIO_FILTER_VERSION}|{language}|{character}|{speed}|{text}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 def _cache_get(key: str) -> bytes | None:

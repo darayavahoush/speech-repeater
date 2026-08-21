@@ -19,9 +19,15 @@ class Child(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False, unique=True)
-    email = Column(String, nullable=False, unique=True)
-    mobile = Column(String, nullable=True)
-    password_hash = Column(String, nullable=False)
+    # Nullable now: a phone-only signup has no email, and a Google signup
+    # never sets a password. Application logic (auth.py) still enforces
+    # "email + password" OR "google_id" OR "verified mobile" so every
+    # account has at least one way to sign back in.
+    email = Column(String, nullable=True, unique=True)
+    mobile = Column(String, nullable=True, unique=True)
+    password_hash = Column(String, nullable=True)
+    mobile_verified = Column(Boolean, default=False)
+    google_id = Column(String, nullable=True, unique=True)
 
     character = Column(String, nullable=True)
     language = Column(String, nullable=True)
@@ -51,6 +57,8 @@ class Child(Base):
             "email_verified": self.email_verified,
             "email_otp": self.email_otp,
             "email_otp_expires_at": self.email_otp_expires_at.isoformat() if self.email_otp_expires_at else None,
+            "mobile_verified": self.mobile_verified,
+            "google_id": self.google_id,
         }
 
 

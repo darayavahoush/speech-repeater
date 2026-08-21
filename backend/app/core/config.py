@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     GMAIL_APP_PASSWORD: Optional[str] = None
     RESEND_API_KEY: Optional[str] = None
     REQUIRE_EMAIL_VERIFICATION: bool = False  # flip to True once real SMTP works (e.g. on Azure)
+    GOOGLE_CLIENT_ID: Optional[str] = None  # OAuth web client ID, also used to verify the ID token
+    TWILIO_ACCOUNT_SID: Optional[str] = None
+    TWILIO_AUTH_TOKEN: Optional[str] = None
+    TWILIO_VERIFY_SERVICE_SID: Optional[str] = None  # Twilio Verify service, handles SMS OTP send+check
 
     class Config:
         env_file = ".env"

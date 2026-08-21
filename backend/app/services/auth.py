@@ -18,6 +18,9 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
+    if not password or not password_hash:
+        # Google/phone-only accounts have no password_hash to check against.
+        return False
     return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
@@ -37,8 +40,27 @@ def get_account_by_mobile(mobile: str):
         return child.to_dict() if child else None
 
 
-def create_account(name: str, email: str, password: str, mobile: str = None):
-    password_hash = hash_password(password)
+def get_account_by_google_id(google_id: str):
+    with get_session() as session:
+        child = session.query(Child).filter(Child.google_id == google_id).first()
+        return child.to_dict() if child else None
+
+
+def _unique_placeholder_name(session, base: str) -> str:
+    """`name` is unique, so a bare first-name from a Google profile (or the
+    fallback for a phone-only signup) may already be taken. Suffix with a
+    short counter until it isn't."""
+    base = (base or "Friend").strip() or "Friend"
+    candidate = base
+    n = 1
+    while session.query(Child).filter(Child.name == candidate).first():
+        n += 1
+        candidate = f"{base} {n}"
+    return candidate
+
+
+def create_account(name: str, email: str = None, password: str = None, mobile: str = None):
+    password_hash = hash_password(password) if password else None
     now = datetime.now(timezone.utc)
     with get_session() as session:
         child = Child(
@@ -55,6 +77,77 @@ def create_account(name: str, email: str, password: str, mobile: str = None):
         session.commit()
         session.refresh(child)
         return child.to_dict()
+
+
+def get_or_create_google_account(name: str, email: str, google_id: str):
+    """Find-or-create for 'Sign in with Google'. If an account already
+    exists with this email (e.g. signed up with a password originally), the
+    Google identity is linked to it rather than creating a duplicate."""
+    now = datetime.now(timezone.utc)
+    with get_session() as session:
+        child = session.query(Child).filter(Child.google_id == google_id).first()
+        if child:
+            return child.to_dict(), False
+
+        child = session.query(Child).filter(func.lower(Child.email) == email.lower()).first()
+        if child:
+            child.google_id = google_id
+            child.email_verified = True  # Google already verified this address
+            session.commit()
+            session.refresh(child)
+            return child.to_dict(), False
+
+        unique_name = _unique_placeholder_name(session, name)
+        child = Child(
+            name=unique_name,
+            email=email,
+            password_hash=None,
+            google_id=google_id,
+            email_verified=True,
+            trial_started_at=now,
+            subscription_status="trial",
+            character=None,
+            language=None,
+        )
+        session.add(child)
+        session.commit()
+        session.refresh(child)
+        return child.to_dict(), True
+
+
+def get_or_create_phone_account(mobile: str, name: str = None):
+    """Find-or-create for phone (Twilio Verify) sign-in. Only call this
+    AFTER the OTP has been confirmed. Returns (account_dict, is_new). If the
+    number is new and no name was supplied, raises ValueError('name_required')
+    so the caller can prompt for one and retry."""
+    now = datetime.now(timezone.utc)
+    with get_session() as session:
+        child = session.query(Child).filter(Child.mobile == mobile).first()
+        if child:
+            if not child.mobile_verified:
+                child.mobile_verified = True
+                session.commit()
+                session.refresh(child)
+            return child.to_dict(), False
+
+        if not name or not name.strip():
+            raise ValueError("name_required")
+
+        unique_name = _unique_placeholder_name(session, name.strip())
+        child = Child(
+            name=unique_name,
+            mobile=mobile,
+            password_hash=None,
+            mobile_verified=True,
+            trial_started_at=now,
+            subscription_status="trial",
+            character=None,
+            language=None,
+        )
+        session.add(child)
+        session.commit()
+        session.refresh(child)
+        return child.to_dict(), True
 
 
 def update_account_profile(account_id: str, character: str = None, language: str = None):

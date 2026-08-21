@@ -811,6 +811,118 @@ async def auth_delete_account(req: DeleteAccountRequest):
     return {"success": True}
 
 
+def _account_auth_response(account: dict, is_new: bool = False) -> dict:
+    """Shared response shape for Google/phone sign-in, matching /auth/login
+    and /auth/signup so the frontend's existing handleLogin(data, isNew)
+    works unchanged regardless of which auth method was used."""
+    from app.services.auth import get_trial_status
+    trial = get_trial_status(account)
+    return {
+        "success": True,
+        "account_id": account["id"],
+        "name": account["name"],
+        "email": account["email"],
+        "mobile": account["mobile"],
+        "character": account["character"],
+        "language": account["language"],
+        "trial_status": trial["status"],
+        "trial_days_remaining": trial["days_remaining"],
+        "is_new": is_new,
+    }
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str  # the ID token from @react-oauth/google
+
+
+@app.post("/auth/google")
+async def auth_google(req: GoogleAuthRequest):
+    from app.services.google_auth import verify_google_token
+    from app.services.auth import get_or_create_google_account
+
+    try:
+        info = verify_google_token(req.credential)
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        print(f"Google token verify error: {e}")
+        return {"success": False, "error": "Could not verify your Google sign-in. Please try again."}
+
+    if not info["email_verified"]:
+        return {"success": False, "error": "That Google account's email address isn't verified."}
+
+    try:
+        account, is_new = get_or_create_google_account(info["name"], info["email"], info["google_id"])
+    except Exception as e:
+        print(f"Google auth error: {e}")
+        return {"success": False, "error": "Sign-in with Google is temporarily unavailable. Please try again shortly."}
+
+    return _account_auth_response(account, is_new)
+
+
+class SendPhoneOtpRequest(BaseModel):
+    mobile: str
+
+
+class VerifyPhoneOtpRequest(BaseModel):
+    mobile: str
+    code: str
+    name: Optional[str] = None  # required only the first time a new number verifies
+
+
+@app.post("/auth/send-phone-otp")
+async def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
+    from app.services.phone_otp import send_phone_otp
+
+    mobile = req.mobile.strip()
+    if not mobile:
+        return {"success": False, "error": "Please enter a mobile number."}
+
+    try:
+        send_phone_otp(mobile)
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        print(f"Phone OTP send error: {e}")
+        return {"success": False, "error": "Could not send the verification code. Please try again."}
+
+    return {"success": True}
+
+
+@app.post("/auth/verify-phone-otp")
+async def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest):
+    from app.services.phone_otp import check_phone_otp
+    from app.services.auth import get_or_create_phone_account
+
+    mobile = req.mobile.strip()
+    code = req.code.strip()
+    if not mobile or not code:
+        return {"success": False, "error": "Mobile number and code are required."}
+
+    try:
+        approved = check_phone_otp(mobile, code)
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        print(f"Phone OTP verify error: {e}")
+        return {"success": False, "error": "Could not verify the code. Please try again."}
+
+    if not approved:
+        return {"success": False, "error": "Incorrect or expired code."}
+
+    try:
+        account, is_new = get_or_create_phone_account(mobile, name=req.name)
+    except ValueError:
+        # New number, no name supplied yet — let the frontend collect one
+        # and retry the same call with `name` set, without re-sending the OTP.
+        return {"success": False, "needs_name": True, "error": "What should we call you?"}
+    except Exception as e:
+        print(f"Phone account error: {e}")
+        return {"success": False, "error": "Could not sign you in. Please try again."}
+
+    return _account_auth_response(account, is_new)
+
+
 @app.get("/progress/{child_id}/history")
 async def get_child_progress_history(child_id: str, days: int = 30, limit: int = 200):
     from app.services.progress import get_word_history

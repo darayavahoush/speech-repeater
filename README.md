@@ -63,6 +63,7 @@ The first run will download several models (Whisper, IndicWav2Vec2, wav2vec2-kn)
 ```bash
 cd frontend
 npm install
+cp .env.example .env   # set VITE_GOOGLE_CLIENT_ID, see Configuration below
 npm run dev
 ```
 
@@ -79,8 +80,30 @@ Backend environment variables (`.env`):
 | `WHISPER_COMPUTE_TYPE` | quantization | `int8` |
 | `MAX_ATTEMPTS` | attempts before drill mode consideration | `3` |
 | `SCORE_PASS` / `SCORE_RETRY` / `SCORE_SIMPLIFY` / `SCORE_SUPPORT` | scoring thresholds | `80` / `60` / `40` / `20` |
+| `DATABASE_URL` | local PostgreSQL connection string | `postgresql://vaakify:vaakify@localhost:5432/vaakify` |
+| `GMAIL_ADDRESS` / `GMAIL_APP_PASSWORD` / `RESEND_API_KEY` | email OTP delivery | — |
+| `GOOGLE_CLIENT_ID` | verifies "Sign in with Google" tokens; must match frontend's `VITE_GOOGLE_CLIENT_ID` | — |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_VERIFY_SERVICE_SID` | phone-number OTP via Twilio Verify | — |
+
+Frontend environment variables (`.env`):
+
+| Variable | Description |
+|---|---|
+| `VITE_GOOGLE_CLIENT_ID` | same OAuth client ID as the backend's `GOOGLE_CLIENT_ID` |
 
 A Hugging Face access token (`hf auth login`) is required locally to download the gated IndicWav2Vec2 Hindi model on first run.
+
+### Setting up Google sign-in
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create (or reuse) a project, then **Create Credentials → OAuth client ID → Web application**.
+2. Add `http://localhost:5173` (and your deployed frontend origin) under **Authorized JavaScript origins**. No redirect URI is needed — the frontend uses the token-based sign-in flow, not a redirect.
+3. Copy the client ID into both `backend/.env` (`GOOGLE_CLIENT_ID`) and `frontend/.env` (`VITE_GOOGLE_CLIENT_ID`) — they must match, since the backend verifies the token was issued for this exact client.
+
+### Setting up phone sign-in (Twilio Verify)
+
+1. In the [Twilio Console](https://console.twilio.com), grab your **Account SID** and **Auth Token** from the dashboard.
+2. Under **Verify → Services**, create a new Verify service (SMS channel). Copy its SID (starts with `VA`).
+3. Add all three to `backend/.env`: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`. Twilio trial accounts can only text verified numbers — add test numbers under **Verified Caller IDs**, or upgrade the account for general use.
 
 ## Deployment
 
