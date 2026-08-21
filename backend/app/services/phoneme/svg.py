@@ -18,7 +18,7 @@ def _icon_b64(filename: str) -> str:
     return _ICON_CACHE[filename]
 
 
-def _icon(filename: str, x=40, y=4, w=110, h=108) -> str:
+def _icon(filename: str, x=50, y=8, w=90, h=90) -> str:
     b64 = _icon_b64(filename)
     return (
         f'<image href="data:image/png;base64,{b64}" x="{x}" y="{y}" '
@@ -48,13 +48,20 @@ def _hum():
 
 def _wrap(content, label, badge):
     return f'''<svg viewBox="0 0 190 120" xmlns="http://www.w3.org/2000/svg">
-  <rect width="190" height="120" rx="10" fill="#0D1117" stroke="#1E2B1A" stroke-width="1"/>
-  <rect x="10" y="6" width="52" height="24" rx="6" fill="#1A2E14"/>
-  <text x="36" y="23" text-anchor="middle" font-size="13" font-weight="700" fill="#A8FF6F" font-family="monospace">{badge}</text>
-  <g transform="translate(0,4)">
-    {content}
+  <defs>
+    <clipPath id="cardClip">
+      <rect width="190" height="120" rx="10"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#cardClip)">
+    <rect width="190" height="120" rx="10" fill="#0D1117" stroke="#1E2B1A" stroke-width="1"/>
+    <g transform="translate(0,4)">
+      {content}
+    </g>
+    <rect x="10" y="6" width="52" height="24" rx="6" fill="#1A2E14"/>
+    <text x="36" y="23" text-anchor="middle" font-size="13" font-weight="700" fill="#A8FF6F" font-family="monospace">{badge}</text>
+    <text x="95" y="116" text-anchor="middle" font-size="8.5" fill="#4A5548" font-family="sans-serif">{label}</text>
   </g>
-  <text x="95" y="116" text-anchor="middle" font-size="8.5" fill="#4A5548" font-family="sans-serif">{label}</text>
 </svg>'''
 
 
