@@ -249,15 +249,15 @@ export default function PracticeScreen({ character, language = "english", wordDa
             {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
             {!cardLoading && phonemeCard && (
               <>
-                <p style={{ color: th.text, fontWeight: 800, fontSize: "1.25rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px", width: "100%" }}>
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px", width: "100%", minHeight: "180px" }}>
                   {phonemeCard.mouth_svg && (
-                    <div style={{ width: "220px", height: "170px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                    <div style={{ width: "260px", height: "210px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
                   )}
                   <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: "1 1 0", minWidth: 0 }}>
                     {phonemeCard.tip}
                   </p>
                 </div>
+                <p style={{ color: th.text, fontWeight: 800, fontSize: "1.25rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
                 <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px 20px", color: th.accent, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                   {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
                 </button>
