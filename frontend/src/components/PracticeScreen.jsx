@@ -142,7 +142,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
       <CharacterBackdrop character={character || "BOLT"} />
-      <div style={{ width: "100%", maxWidth: "900px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: "980px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", position: "relative", zIndex: 1 }}>
       <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -245,7 +245,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         {selectedPhoneme && (
-          <div style={{ flex: "1 1 280px", maxWidth: "340px", alignSelf: "stretch", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "20px" }}>
+          <div style={{ flex: "1 1 380px", maxWidth: "460px", alignSelf: "stretch", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "20px" }}>
             {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
             {!cardLoading && phonemeCard && (
               <>
@@ -254,7 +254,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
                   {phonemeCard.mouth_svg && (
                     <div style={{ width: "220px", height: "170px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
                   )}
-                  <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: 1 }}>
+                  <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: "1 1 0", minWidth: 0 }}>
                     {phonemeCard.tip}
                   </p>
                 </div>
