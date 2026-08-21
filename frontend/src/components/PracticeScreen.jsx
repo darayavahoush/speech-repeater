@@ -143,9 +143,9 @@ export default function PracticeScreen({ character, language = "english", wordDa
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
       <CharacterBackdrop character={character || "BOLT"} />
       <div style={{ width: "100%", maxWidth: "980px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", position: "relative", zIndex: 1 }}>
-      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <img src={char.image} alt={char.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
             <span style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", fontFamily: "Nunito, sans-serif" }}>{char.name}</span>
