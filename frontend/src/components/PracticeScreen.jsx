@@ -250,12 +250,14 @@ export default function PracticeScreen({ character, language = "english", wordDa
             {!cardLoading && phonemeCard && (
               <>
                 <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
-                {phonemeCard.mouth_svg && (
-                  <div style={{ width: "200px", height: "120px" }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
-                )}
-                <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "center", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px" }}>
-                  {phonemeCard.tip}
-                </p>
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", width: "100%" }}>
+                  {phonemeCard.mouth_svg && (
+                    <div style={{ width: "140px", height: "110px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                  )}
+                  <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px", flex: 1 }}>
+                    {phonemeCard.tip}
+                  </p>
+                </div>
                 <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                   {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
                 </button>
