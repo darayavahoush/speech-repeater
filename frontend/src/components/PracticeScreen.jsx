@@ -249,11 +249,11 @@ export default function PracticeScreen({ character, language = "english", wordDa
             {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
             {!cardLoading && phonemeCard && (
               <>
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px", width: "100%", minHeight: "180px" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", width: "100%", minHeight: "180px" }}>
                   {phonemeCard.mouth_svg && (
                     <div style={{ width: "260px", height: "210px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
                   )}
-                  <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: "1 1 0", minWidth: 0 }}>
+                  <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "center", borderLeft: "none", paddingLeft: 0, width: "100%" }}>
                     {phonemeCard.tip}
                   </p>
                 </div>
