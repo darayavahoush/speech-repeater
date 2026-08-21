@@ -8,6 +8,8 @@ import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { t } from "../utils/i18n";
 import { getTheme, getSurface } from "../utils/themes";
 
+const BASE = "https://anabaena-vaaksiddhi.hf.space";
+
 export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode, childId }) {
   const [phase, setPhase] = useState("listen");
   const [playingChar, setPlayingChar] = useState(false);
@@ -19,6 +21,10 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const th = getTheme(character, darkMode);
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
+  const [selectedPhoneme, setSelectedPhoneme] = useState(null);
+  const [phonemeCard, setPhonemeCard] = useState(null);
+  const [cardLoading, setCardLoading] = useState(false);
+  const [playingInstructions, setPlayingInstructions] = useState(false);
 
   useEffect(() => { document.body.style.background = th.bg; document.body.style.transition = "background 0.5s ease"; }, [th.bg]);
 
@@ -43,13 +49,56 @@ export default function PracticeScreen({ character, language = "english", wordDa
     setPlayingPhoneme(p);
     try {
       const params = new URLSearchParams({ character, speed: String(speed), language });
-      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/speak/phoneme/${p}?${params}`);
+      const res = await fetch(`${BASE}/speak/phoneme/${p}?${params}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.play();
       audio.onended = () => setPlayingPhoneme(null);
     } catch { setPlayingPhoneme(null); }
+  };
+
+  const fetchPhonemeCard = async (p, lang) => {
+    setCardLoading(true);
+    try {
+      const params = new URLSearchParams({ language: lang });
+      const res = await fetch(`${BASE}/phoneme-card/${p}?${params}`);
+      const data = await res.json();
+      setPhonemeCard(data.error ? null : data);
+    } catch {
+      setPhonemeCard(null);
+    } finally {
+      setCardLoading(false);
+    }
+  };
+
+  const handlePhonemeClick = (p) => {
+    playPhoneme(p);
+    setSelectedPhoneme(p);
+    fetchPhonemeCard(p, language);
+  };
+
+  // Re-fetch instructions in the new language if a phoneme card is already open
+  useEffect(() => {
+    if (selectedPhoneme) fetchPhonemeCard(selectedPhoneme, language);
+  }, [language]);
+
+  const playInstructions = async () => {
+    if (!phonemeCard?.tip) return;
+    setPlayingInstructions(true);
+    try {
+      const form = new FormData();
+      form.append("text", phonemeCard.tip);
+      form.append("character", character);
+      form.append("speed", "0.95");
+      form.append("language", language);
+      const res = await fetch(`${BASE}/speak`, { method: "POST", body: form });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.play();
+      audio.onended = () => setPlayingInstructions(false);
+    } catch { setPlayingInstructions(false); }
   };
 
   const playChildAudio = () => {
@@ -174,11 +223,11 @@ export default function PracticeScreen({ character, language = "english", wordDa
               <div
                 key={i}
                 title={`Tap to hear /${p}/${phonemeExample(p) ? ` — ${phonemeExample(p)}` : ""}`}
-                onClick={() => playPhoneme(p)}
+                onClick={() => handlePhonemeClick(p)}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center", gap: "2px",
-                  background: playingPhoneme === p ? `${th.accent}22` : th.card,
-                  border: `1.5px solid ${playingPhoneme === p ? th.accent : `${th.accent}55`}`,
+                  background: (playingPhoneme === p || selectedPhoneme === p) ? `${th.accent}22` : th.card,
+                  border: `1.5px solid ${(playingPhoneme === p || selectedPhoneme === p) ? th.accent : `${th.accent}55`}`,
                   borderRadius: "10px", padding: "6px 10px", cursor: "pointer",
                   transition: "all 0.15s", transform: playingPhoneme === p ? "scale(1.08)" : "scale(1)",
                 }}>
@@ -190,6 +239,29 @@ export default function PracticeScreen({ character, language = "english", wordDa
             ))}
           </div>
           <p style={{ color: th.sub, fontSize: "0.65rem", textAlign: "center", margin: "4px 0 0 0", opacity: 0.7 }}>Tap a sound to hear it on its own</p>
+
+          {selectedPhoneme && (
+            <div style={{ width: "100%", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+              {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0 }}>Loading...</p>}
+              {!cardLoading && phonemeCard && (
+                <>
+                  <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif" }}>{phonemeCard.name}</p>
+                  {phonemeCard.mouth_svg && (
+                    <div style={{ width: "200px", height: "120px" }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                  )}
+                  <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "center", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px" }}>
+                    {phonemeCard.tip}
+                  </p>
+                  <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                    {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
+                  </button>
+                </>
+              )}
+              {!cardLoading && !phonemeCard && (
+                <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0 }}>No instructions found for this sound.</p>
+              )}
+            </div>
+          )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
