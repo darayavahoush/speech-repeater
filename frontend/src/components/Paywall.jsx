@@ -6,7 +6,7 @@ const PLANS = [
   {
     id: "monthly",
     label: "Monthly",
-    price: "₹499",
+    price: "₹199",
     period: "/month",
     tagline: "Flexible, cancel anytime",
     features: ["Full access to all languages", "All characters unlocked", "Progress tracking"],
@@ -15,20 +15,11 @@ const PLANS = [
   {
     id: "annual",
     label: "Annual",
-    price: "₹3,999",
+    price: "₹1,599",
     period: "/year",
     tagline: "Best value — save 33%",
     features: ["Everything in Monthly", "2 months free", "Priority support"],
     highlight: true,
-  },
-  {
-    id: "lifetime",
-    label: "Lifetime",
-    price: "₹9,999",
-    period: " one-time",
-    tagline: "Pay once, use forever",
-    features: ["Everything in Annual", "All future languages & characters", "No renewals, ever"],
-    highlight: false,
   },
 ];
 
