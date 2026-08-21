@@ -17,6 +17,11 @@ const STEPS = [
     text: "Your friend will say the word out loud. You can listen as many times as you like — even slowly!",
   },
   {
+    emoji: "👄",
+    title: "See the mouth shape",
+    text: "Tap any sound under the word to see a picture of how the mouth should look, plus a tip for saying it — and you can hear that sound all by itself too!",
+  },
+  {
     emoji: "🎤",
     title: "Now you try!",
     text: "Tap the microphone and say the word yourself. Don't worry about getting it perfect — just give it a try!",

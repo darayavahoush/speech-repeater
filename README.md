@@ -33,7 +33,7 @@ backend/    FastAPI, deployed on Hugging Face Spaces (Docker)
 
 - **Speech-to-text**: [`faster-whisper`](https://github.com/SYSTRAN/faster-whisper) for transcription.
 - **Confusable-phoneme evaluation**: dedicated CTC models — [`ai4bharat/indicwav2vec-hindi`](https://huggingface.co/ai4bharat/indicwav2vec-hindi) and [`amoghsgopadi/wav2vec2-large-xlsr-kn`](https://huggingface.co/amoghsgopadi/wav2vec2-large-xlsr-kn) — score audio directly against known confusable sound pairs (e.g. त/ट, क/ख, vowel length pairs) rather than relying solely on open transcription, which is unreliable for these distinctions. Every confusable sound present in a target word is checked, not just the first one found. Only one model is kept resident in memory at a time; switching languages evicts and reloads the other.
-- **Text-to-speech**: [Kokoro ONNX](https://github.com/thewh1teagle/kokoro-onnx) for English (a distinct voice per character), gTTS + per-character pitch-shifting via ffmpeg for Hindi/Kannada (gTTS only offers one voice per language, so pitch shift + audio effects give each character a distinct identity).
+- **Text-to-speech**: [gTTS](https://github.com/pndurette/gTTS) (Indian-accented, `tld=co.in`) for all three languages, run through a per-character pitch-shift + ffmpeg effects chain (echo/vibrato/tremolo/chorus) so BOLT/ZARA/NOVA/BEEP/ECHO/MIRA each sound distinct from the same base voice. Kokoro ONNX was used for English in an earlier version and has since been fully replaced by this gTTS pipeline.
 - **In-app assistant chatbot**: answers questions about the app and speech therapy using a hand-curated Q&A bank + [`sentence-transformers`](https://www.sbert.net/) similarity matching — **no LLM calls involved**, fully local, free, and instant. Falls back to a friendly "I'm not sure" message for genuinely unmatched questions.
 - **Acoustic analysis**: `praat-parselmouth` and `librosa` for pitch, loudness, jitter/shimmer/HNR, and speaking rate.
 - **Phoneme transcription** (for scoring, separate from the confusable-sound model): `epitran` for Hindi/Kannada IPA, `g2p-en` for English.
@@ -42,6 +42,49 @@ backend/    FastAPI, deployed on Hugging Face Spaces (Docker)
 
 - React + Vite + Tailwind, deployed on Vercel.
 - Each character has a themed color palette, unique voice, and an animated decorative background (`CharacterBackdrop.jsx`) — circuit hexes for BOLT, sparkles for ZARA, falling leaves for NOVA, bouncing blips for BEEP, glitch scan-lines for ECHO, bubbles and fish for MIRA.
+
+## Database schema
+
+PostgreSQL (hosted on [Neon](https://neon.tech) in production), managed via Alembic migrations in `backend/alembic/versions/`.
+
+### `children`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID (PK) | |
+| `name` | String, unique, not null | |
+| `email` | String, unique, nullable | nullable — phone-only and Google sign-ups never collect one |
+| `mobile` | String, unique, nullable | |
+| `password_hash` | String, nullable | nullable for Google/phone-only accounts |
+| `mobile_verified` | Boolean | default `false` |
+| `google_id` | String, unique, nullable | set on Google sign-in |
+| `character` | String, nullable | last-picked character |
+| `language` | String, nullable | last-picked language |
+| `trial_started_at` | DateTime (tz-aware) | |
+| `subscription_status` | String | default `"trial"` |
+| `email_verified` | Boolean | |
+| `email_otp` / `email_otp_expires_at` | String / DateTime | one-time email verification code |
+| `created_at` | DateTime (tz-aware) | |
+
+Every account needs at least one sign-in path — email+password, Google, or a verified mobile — enforced in application logic (`auth.py`), not a DB constraint.
+
+### `practice_attempts`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID (PK) | |
+| `child_id` | UUID (FK → `children.id`) | |
+| `word` | String, not null | |
+| `language` | String, not null | |
+| `character` | String, nullable | |
+| `success` | Boolean | |
+| `created_at` | DateTime (tz-aware) | |
+
+### Migrations
+
+Two revisions so far: an initial schema, then `c4a7f9e21d3b_google_and_phone_auth`, which added `mobile_verified`/`google_id` and made `email`/`password_hash` nullable. After pulling new migrations, run `alembic upgrade head` — production (Neon) doesn't apply these automatically, so it has to be run by hand against the prod `DATABASE_URL`.
+
+> `quest-games` (the mini-games repo) has its own separate database (`breathquest`) with its own models — not covered here.
 
 ## Running locally
 

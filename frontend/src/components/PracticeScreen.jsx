@@ -241,24 +241,26 @@ export default function PracticeScreen({ character, language = "english", wordDa
           <p style={{ color: th.sub, fontSize: "0.65rem", textAlign: "center", margin: "4px 0 0 0", opacity: 0.7 }}>Tap a sound to hear it on its own</p>
 
           {selectedPhoneme && (
-            <div style={{ width: "100%", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-              {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0 }}>Loading...</p>}
+            <div style={{ width: "100%", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
               {!cardLoading && phonemeCard && (
                 <>
-                  <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif" }}>{phonemeCard.name}</p>
-                  {phonemeCard.mouth_svg && (
-                    <div style={{ width: "200px", height: "120px" }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
-                  )}
-                  <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "center", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px" }}>
-                    {phonemeCard.tip}
-                  </p>
-                  <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                  <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    {phonemeCard.mouth_svg && (
+                      <div style={{ width: "200px", height: "120px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                    )}
+                    <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: 1 }}>
+                      {phonemeCard.tip}
+                    </p>
+                  </div>
+                  <button onClick={playInstructions} disabled={playingInstructions} style={{ alignSelf: "center", background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                     {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
                   </button>
                 </>
               )}
               {!cardLoading && !phonemeCard && (
-                <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0 }}>No instructions found for this sound.</p>
+                <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>No instructions found for this sound.</p>
               )}
             </div>
           )}

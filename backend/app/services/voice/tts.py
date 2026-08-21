@@ -19,8 +19,8 @@ CHARACTERS = {
     # an alimiter as a safety net against any remaining peaks.
     "BOLT": {
         "voice": "hm_omega", "speed": 1.0,
-        "ffmpeg": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.5:0.25:20:0.2,volume=2.2,alimiter=limit=0.95",
-        "ffmpeg_question": "asetrate=16000,aresample=24000,atempo=1.5,aecho=0.5:0.25:20:0.2,vibrato=f=2:d=0.08,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg": "aecho=0.5:0.25:20:0.2,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg_question": "aecho=0.5:0.25:20:0.2,vibrato=f=2:d=0.08,volume=2.2,alimiter=limit=0.95",
     },
     "ZARA": {
         "voice": "hf_alpha", "speed": 1.0,
@@ -34,13 +34,13 @@ CHARACTERS = {
     },
     "BEEP": {
         "voice": "hm_psi", "speed": 1.0,
-        "ffmpeg": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=6:d=0.08,volume=2.0,alimiter=limit=0.95",
-        "ffmpeg_question": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=8:d=0.1,aecho=0.5:0.25:15:0.15,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg": "vibrato=f=6:d=0.08,volume=2.0,alimiter=limit=0.95",
+        "ffmpeg_question": "vibrato=f=8:d=0.1,aecho=0.5:0.25:15:0.15,volume=2.2,alimiter=limit=0.95",
     },
     "ECHO": {
         "voice": "hm_omega", "speed": 1.0,
-        "ffmpeg": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.6:0.3:45:0.2,tremolo=f=2:d=0.15,volume=2.0,alimiter=limit=0.95",
-        "ffmpeg_question": "asetrate=18000,aresample=24000,atempo=1.33,aecho=0.6:0.3:45:0.2,tremolo=f=3:d=0.2,vibrato=f=1:d=0.1,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg": "aecho=0.6:0.3:45:0.2,tremolo=f=2:d=0.15,volume=2.0,alimiter=limit=0.95",
+        "ffmpeg_question": "aecho=0.6:0.3:45:0.2,tremolo=f=3:d=0.2,vibrato=f=1:d=0.1,volume=2.2,alimiter=limit=0.95",
     },
     "MIRA": {
         "voice": "hf_alpha", "speed": 1.0,
@@ -87,7 +87,7 @@ def _is_question(text: str) -> bool:
 # otherwise depend on the filter string, so without this, existing disk-cached
 # clips (rendered with the old, clipped-and-distorted filters) would keep
 # being served forever instead of picking up the fix.
-AUDIO_FILTER_VERSION = 2
+AUDIO_FILTER_VERSION = 3
 
 def _cache_key(text: str, character: str, language: str, speed: float) -> str:
     # ffmpeg_filters/ffmpeg_question aren't part of the key: which one applies
