@@ -245,20 +245,20 @@ export default function PracticeScreen({ character, language = "english", wordDa
         </div>
 
         {selectedPhoneme && (
-          <div style={{ flex: "1 1 280px", maxWidth: "340px", alignSelf: "stretch", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+          <div style={{ flex: "1 1 280px", maxWidth: "340px", alignSelf: "stretch", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "20px" }}>
             {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
             {!cardLoading && phonemeCard && (
               <>
-                <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "12px", width: "100%" }}>
+                <p style={{ color: th.text, fontWeight: 800, fontSize: "1.25rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "16px", width: "100%" }}>
                   {phonemeCard.mouth_svg && (
-                    <div style={{ width: "140px", height: "110px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                    <div style={{ width: "220px", height: "170px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
                   )}
-                  <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px", flex: 1 }}>
+                  <p style={{ color: th.sub, fontSize: "1.05rem", margin: 0, lineHeight: 1.7, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: 1 }}>
                     {phonemeCard.tip}
                   </p>
                 </div>
-                <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px 20px", color: th.accent, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
                   {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
                 </button>
               </>
