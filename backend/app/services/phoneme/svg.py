@@ -97,6 +97,12 @@ MOUTH_SVGS = {
 
 "tongue_between_teeth": _wrap(_icon("TH.png") + _airflow(), "tongue tip peeks between teeth", "/TH/"),
 
+"tongue_between_teeth_voiced": _wrap(_icon("TH.png") + _airflow() + _voicing(), "like TH, but voice on", "/DH/"),
+
+"tongue_back_up_hum": _wrap(_icon("NG.png") + _hum(), "back of tongue up, hum through nose", "/NG/"),
+
+"lips_rounded_push_voiced_zh": _wrap(_icon("SH_CH_J.png") + _airflow(x=134) + _voicing(), "like SH, but voice on", "/ZH/"),
+
 "tongue_tip_up_sides_open": _wrap(_icon("L.png"), "tongue tip up, air flows past sides", "/L/"),
 
 "tongue_curled_lips_rounded": _wrap(_icon("R.png"), "lips round, tongue curls back", "/R/"),
@@ -105,7 +111,7 @@ MOUTH_SVGS = {
 
 "tongue_high_slide": _wrap(_icon("Y.png"), "tongue high, slides into next sound", "/Y/"),
 
-"mouth_open_breathe": _wrap(_icon("H.png") + _airflow(x=160), "mouth relaxed open, breathe out", "/H/"),
+"mouth_open_breathe": _wrap(_icon("H.png") + _airflow(x=160), "mouth relaxed open, breathe out", "/HH/"),
 
 "mouth_wide_open": _wrap(_icon("AE.png"), "mouth wide open", "/AE/"),
 
@@ -118,6 +124,26 @@ MOUTH_SVGS = {
 "mouth_smile_closed": _wrap(_icon("EE.png"), "wide smile, teeth close together", "/IY/"),
 
 "lips_small_circle": _wrap(_icon("OO.png"), "tight small circle", "/UW/"),
+
+"mouth_open_wide_relaxed": _wrap(_icon("AH.png"), "mouth open wide, relaxed", "/AA/"),
+
+"mouth_open_relaxed_mid": _wrap(_icon("AH.png"), "mouth open a little, relaxed", "/AH/"),
+
+"mouth_relaxed_neutral": _wrap(_icon("AH.png"), "mouth relaxed, neutral", "/AX/"),
+
+"mouth_open_round_glide": _wrap(_icon("OW.png"), "mouth open, glides to a round pucker", "/AW/"),
+
+"mouth_open_glide_smile": _wrap(_icon("AI.png"), "mouth open, glides into a smile", "/AY/"),
+
+"mouth_relaxed_curl": _wrap(_icon("ER.png"), "lips relaxed, tongue curls back", "/ER/"),
+
+"mouth_half_open_glide_smile": _wrap(_icon("EH.png"), "mouth half open, glides into a smile", "/EY/"),
+
+"lips_rounded_o": _wrap(_icon("OW.png"), "lips round into an O", "/OW/"),
+
+"lips_rounded_glide_smile": _wrap(_icon("OH.png"), "lips round, glides into a smile", "/OY/"),
+
+"lips_relaxed_small_round": _wrap(_icon("UH.png"), "lips relaxed, small round shape", "/UH/"),
 
 "tongue_curled_back_touch": _wrap(_icon("R.png"), "curl tongue tip back", "/RT/"),
 
@@ -141,6 +167,7 @@ def get_phoneme_card(phoneme: str) -> dict:
         "name": data["name"],
         "example_word": data["example_word"],
         "tip": data["tip"],
+        "tongue": data.get("tongue", ""),
         "mouth_svg": get_phoneme_svg(data["mouth_shape"]),
         "common_errors": data["common_errors"],
         "category": data["category"],

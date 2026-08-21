@@ -6,12 +6,12 @@ const BASE = "https://anabaena-vaaksiddhi.hf.space";
 
 const PHONEME_GROUPS = {
   "Stops": ["B", "P", "D", "T", "G", "K"],
-  "Nasals": ["M", "N"],
-  "Fricatives": ["F", "V", "S", "Z", "SH", "H", "TH"],
+  "Nasals": ["M", "N", "NG"],
+  "Fricatives": ["F", "V", "S", "Z", "SH", "ZH", "HH", "TH", "DH"],
   "Affricates": ["CH", "JH"],
   "Liquids": ["L", "R"],
   "Glides": ["W", "Y"],
-  "Vowels": ["AE", "AO", "EH", "IH", "IY", "UW"],
+  "Vowels": ["AE", "AO", "EH", "IH", "IY", "UW", "AA", "AH", "AW", "AY", "ER", "EY", "OW", "OY", "UH"],
   "Indian": ["RT", "RD"],
 };
 

@@ -19,8 +19,8 @@ CHARACTERS = {
     # an alimiter as a safety net against any remaining peaks.
     "BOLT": {
         "voice": "hm_omega", "speed": 1.0,
-        "ffmpeg": "aecho=0.5:0.25:20:0.2,volume=2.2,alimiter=limit=0.95",
-        "ffmpeg_question": "aecho=0.5:0.25:20:0.2,vibrato=f=2:d=0.08,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg": "vibrato=f=3:d=0.04,volume=2.2,alimiter=limit=0.95",
+        "ffmpeg_question": "vibrato=f=4:d=0.06,volume=2.2,alimiter=limit=0.95",
     },
     "ZARA": {
         "voice": "hf_alpha", "speed": 1.0,
@@ -69,11 +69,11 @@ GTTS_LANG_CONFIG = {
 }
 
 GTTS_PITCH_SHIFT = {
-    "BOLT": 0.85,   # deeper
+    "BOLT": 0.9,    # slightly deep, clean
     "ZARA": 1.25,   # higher/alien
     "NOVA": 1.0,    # neutral
     "BEEP": 1.5,    # very high/squeaky
-    "ECHO": 0.75,   # lowest/eerie
+    "ECHO": 0.65,   # lowest/eerie, further from BOLT now that both are single-stage shifts
     "MIRA": 1.1,    # slightly high
 }
 
@@ -87,7 +87,7 @@ def _is_question(text: str) -> bool:
 # otherwise depend on the filter string, so without this, existing disk-cached
 # clips (rendered with the old, clipped-and-distorted filters) would keep
 # being served forever instead of picking up the fix.
-AUDIO_FILTER_VERSION = 3
+AUDIO_FILTER_VERSION = 4
 
 def _cache_key(text: str, character: str, language: str, speed: float) -> str:
     # ffmpeg_filters/ffmpeg_question aren't part of the key: which one applies
@@ -220,12 +220,23 @@ def get_characters():
 # RT/RD (Indian retroflex stops) are best-effort only -- gTTS has no way to
 # force retroflex articulation from plain English text; the phoneme card's
 # `tip` text carries the real instruction for those two.
+#
+# gTTS is real language TTS, not a phonetic synthesizer: it only pronounces
+# text it recognizes as an actual word/interjection. Feed it a string that
+# isn't one (e.g. "ffff", "ih") and it falls back to unpredictable behavior --
+# reading letters by name ("ih" -> "eye aitch") or inserting filler vowels
+# between repeated letters ("ffff" -> "fu-fu-fu-fu"). F and IH hit exactly
+# this. Prefer real, common English words/interjections gTTS is guaranteed
+# to know, even if they carry a small amount of extra sound around the
+# target phoneme.
 PHONEME_SOUND_APPROXIMATIONS = {
     "B": "buh", "P": "puh", "M": "mmm", "D": "duh", "T": "tuh", "N": "nnn",
-    "G": "guh", "K": "kuh", "F": "ffff", "V": "vvvv", "S": "sss", "Z": "zzz",
+    "G": "guh", "K": "kuh", "F": "fuh", "V": "vuh", "S": "sss", "Z": "zzz",
     "SH": "shh", "CH": "ch", "JH": "j", "L": "lll", "R": "rrr", "W": "wuh",
-    "Y": "yuh", "H": "huh", "TH": "th",
-    "AE": "a", "AO": "aw", "EH": "eh", "IH": "ih", "IY": "ee", "UW": "oo",
+    "Y": "yuh", "HH": "huh", "TH": "th", "DH": "the", "NG": "ing", "ZH": "zhuh",
+    "AE": "a", "AO": "aw", "EH": "eh", "IH": "ick", "IY": "ee", "UW": "oo",
+    "AA": "ah", "AH": "uh", "AX": "uh", "AW": "ow", "AY": "eye", "ER": "er",
+    "EY": "ay", "OW": "oh", "OY": "oy", "UH": "uh",
     "RT": "ta", "RD": "da",
 }
 

@@ -959,6 +959,8 @@ def phoneme_card(phoneme: str, language: str = "english"):
         card = dict(card)
         if card.get("tip"):
             card["tip"] = translate_to_language(card["tip"], language)
+        if card.get("tongue"):
+            card["tongue"] = translate_to_language(card["tongue"], language)
         if card.get("name"):
             card["name"] = translate_to_language(card["name"], language)
     return card

@@ -116,7 +116,7 @@ export default function ResultScreen({ character, language = "english", result, 
         )}
 
         {score < 80 && matches.filter(m => !m.correct).length > 0 && (
-          <PhonemeHelp matches={matches} char={char} th={th} language={language} />
+          <PhonemeHelp matches={matches} char={char} th={th} language={language} darkMode={darkMode} />
         )}
 
         {result?.feedback && (
@@ -153,7 +153,7 @@ export default function ResultScreen({ character, language = "english", result, 
   );
 }
 
-function PhonemeHelp({ matches, char, th, language = "english" }) {
+function PhonemeHelp({ matches, char, th, language = "english", darkMode }) {
   const [cards, setCards] = useState({});
   const wrongPhonemes = matches.filter(m => !m.correct).map(m => m.expected);
 
@@ -184,6 +184,7 @@ function PhonemeHelp({ matches, char, th, language = "english" }) {
             </div>
             {card?.mouth_svg && <div style={{ width: "200px", height: "120px", alignSelf: "center" }} dangerouslySetInnerHTML={{ __html: card.mouth_svg }} />}
             {card?.tip && <p style={{ color: th.text, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${th.accent}` }}>{card.tip}</p>}
+            {card?.tongue && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, lineHeight: 1.6, paddingLeft: "12px", borderLeft: `3px solid ${th.accent}88` }}><span style={{ fontWeight: 800 }}>👅 Tongue: </span>{card.tongue}</p>}
             {card?.example_word && <p style={{ color: th.sub, fontSize: "0.75rem", margin: 0 }}>Example: <span style={{ color: th.text, fontFamily: "Nunito, sans-serif", fontWeight: 700 }}>{card.example_word}</span></p>}
           </div>
         );

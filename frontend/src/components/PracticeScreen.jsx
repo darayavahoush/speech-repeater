@@ -142,7 +142,8 @@ export default function PracticeScreen({ character, language = "english", wordDa
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
       <CharacterBackdrop character={character || "BOLT"} />
-      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px", position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: "900px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", position: "relative", zIndex: 1 }}>
+      <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -168,8 +169,10 @@ export default function PracticeScreen({ character, language = "english", wordDa
             </div>
           </div>
         )}
+        </div>
 
-        <div style={{ background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${th.accent}18` }}>
+        <div style={{ display: "flex", gap: "16px", alignItems: "flex-start", flexWrap: "wrap", justifyContent: "center", width: "100%" }}>
+        <div style={{ flex: "1 1 380px", maxWidth: "480px", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "24px", padding: "28px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", boxShadow: `0 4px 24px ${th.accent}18` }}>
           {(() => {
             const imgs = wordData?.images?.length > 0 ? wordData.images : imageUrl ? [{ label: wordData?.word, image_base64: wordData?.image_base64 }] : [];
             const idx = Math.min(imageIndex, Math.max(imgs.length - 1, 0));
@@ -239,33 +242,33 @@ export default function PracticeScreen({ character, language = "english", wordDa
             ))}
           </div>
           <p style={{ color: th.sub, fontSize: "0.65rem", textAlign: "center", margin: "4px 0 0 0", opacity: 0.7 }}>Tap a sound to hear it on its own</p>
-
-          {selectedPhoneme && (
-            <div style={{ width: "100%", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-              {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
-              {!cardLoading && phonemeCard && (
-                <>
-                  <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    {phonemeCard.mouth_svg && (
-                      <div style={{ width: "200px", height: "120px", flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
-                    )}
-                    <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "left", borderLeft: `2px solid ${th.accent}`, paddingLeft: "12px", flex: 1 }}>
-                      {phonemeCard.tip}
-                    </p>
-                  </div>
-                  <button onClick={playInstructions} disabled={playingInstructions} style={{ alignSelf: "center", background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
-                    {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
-                  </button>
-                </>
-              )}
-              {!cardLoading && !phonemeCard && (
-                <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>No instructions found for this sound.</p>
-              )}
-            </div>
-          )}
         </div>
 
+        {selectedPhoneme && (
+          <div style={{ flex: "1 1 280px", maxWidth: "340px", alignSelf: "stretch", background: getSurface(darkMode, 0.7), border: `1.5px solid ${th.accent}33`, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+            {cardLoading && <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>Loading...</p>}
+            {!cardLoading && phonemeCard && (
+              <>
+                <p style={{ color: th.text, fontWeight: 800, fontSize: "0.95rem", margin: 0, fontFamily: "Nunito, sans-serif", textAlign: "center" }}>{phonemeCard.name}</p>
+                {phonemeCard.mouth_svg && (
+                  <div style={{ width: "200px", height: "120px" }} dangerouslySetInnerHTML={{ __html: phonemeCard.mouth_svg }} />
+                )}
+                <p style={{ color: th.sub, fontSize: "0.85rem", margin: 0, lineHeight: 1.6, textAlign: "center", borderLeft: `2px solid ${th.accent}`, paddingLeft: "10px" }}>
+                  {phonemeCard.tip}
+                </p>
+                <button onClick={playInstructions} disabled={playingInstructions} style={{ background: `${th.accent}22`, border: `1.5px solid ${th.accent}44`, borderRadius: "10px", padding: "8px 14px", color: th.accent, fontSize: "0.8rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
+                  {playingInstructions ? "Playing..." : "🔊 Hear instructions"}
+                </button>
+              </>
+            )}
+            {!cardLoading && !phonemeCard && (
+              <p style={{ color: th.sub, fontSize: "0.8rem", margin: 0, textAlign: "center" }}>No instructions found for this sound.</p>
+            )}
+          </div>
+        )}
+        </div>
+
+        <div style={{ width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "16px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ color: th.sub, fontSize: "0.65rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, opacity: 0.6 }}>🐌 SLOW</span>
@@ -342,6 +345,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
             <p style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 600 }}>Analysing your voice...</p>
           </div>
         )}
+        </div>
       </div>
 
       <style>{`
