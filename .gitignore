@@ -31,3 +31,6 @@ backend/kokoro-v1.0.onnx
 backend/voices-v1.0.bin
 frontend/.env
 !frontend/src/assets/images/logo.png
+!frontend/public/favicon-16x16.png
+!frontend/public/favicon-32x32.png
+!frontend/public/apple-touch-icon.png

@@ -22,15 +22,29 @@ CHARACTERS = {
         "ffmpeg": "vibrato=f=3:d=0.04,volume=2.2,alimiter=limit=0.95",
         "ffmpeg_question": "vibrato=f=4:d=0.06,volume=2.2,alimiter=limit=0.95",
     },
+    # ZARA/NOVA/MIRA had the same double-pitch-shift-plus-clipping bug that
+    # was fixed for BOLT/BEEP/ECHO above (see history: 95c071c, bf14af6) —
+    # they were just missed at the time. Each had its own asetrate/atempo
+    # pitch block stacked on top of the global GTTS_PITCH_SHIFT (applied to
+    # every character in _render_gtts), which compounds into a much more
+    # extreme pitch shift than intended, and none of them had an alimiter
+    # despite carrying the highest volume gains in this file (MIRA was at
+    # volume=6.0) — so on top of the pitch stacking, they were clipping hard.
+    # In practice this made the character voice differences unintelligible/
+    # noisy rather than "not applying" in the sense of doing nothing — but
+    # the audible effect a listener reports is the same either way. Fix:
+    # drop the redundant pitch block (GTTS_PITCH_SHIFT already gives each of
+    # these three a distinct pitch), keep only the per-character flavor
+    # effects, lower the gain, and add alimiter as a safety net.
     "ZARA": {
         "voice": "hf_alpha", "speed": 1.0,
-        "ffmpeg": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=5:d=0.25,aphaser=in_gain=0.8:out_gain=0.9:delay=3:decay=0.4:speed=1.5:type=t,volume=3.0",
-        "ffmpeg_question": "asetrate=32000,aresample=24000,atempo=0.75,vibrato=f=7:d=0.35,aphaser=in_gain=0.8:out_gain=0.9:delay=3:decay=0.4:speed=2.0:type=t,volume=3.5",
+        "ffmpeg": "vibrato=f=5:d=0.25,aphaser=in_gain=0.8:out_gain=0.9:delay=3:decay=0.4:speed=1.5:type=t,volume=1.6,alimiter=limit=0.95",
+        "ffmpeg_question": "vibrato=f=7:d=0.35,aphaser=in_gain=0.8:out_gain=0.9:delay=3:decay=0.4:speed=2.0:type=t,volume=1.8,alimiter=limit=0.95",
     },
     "NOVA": {
         "voice": "hf_beta", "speed": 1.0,
-        "ffmpeg": "asetrate=21000,aresample=24000,atempo=1.14,chorus=0.5:0.9:50:0.4:0.25:2,volume=3.0",
-        "ffmpeg_question": "asetrate=21000,aresample=24000,atempo=1.14,chorus=0.6:0.9:50:0.5:0.3:2,vibrato=f=1.5:d=0.1,volume=3.0",
+        "ffmpeg": "chorus=0.5:0.9:50:0.4:0.25:2,volume=1.6,alimiter=limit=0.95",
+        "ffmpeg_question": "chorus=0.6:0.9:50:0.5:0.3:2,vibrato=f=1.5:d=0.1,volume=1.7,alimiter=limit=0.95",
     },
     "BEEP": {
         "voice": "hm_psi", "speed": 1.0,
@@ -44,8 +58,8 @@ CHARACTERS = {
     },
     "MIRA": {
         "voice": "hf_alpha", "speed": 1.0,
-        "ffmpeg": "asetrate=20000,aresample=24000,atempo=1.2,aphaser=in_gain=0.8:out_gain=0.9:delay=5:decay=0.5:speed=0.8:type=t,chorus=0.6:0.9:60:0.4:0.3:2,volume=6.0",
-        "ffmpeg_question": "asetrate=20000,aresample=24000,atempo=1.2,aphaser=in_gain=0.8:out_gain=0.9:delay=5:decay=0.5:speed=1.2:type=t,chorus=0.7:0.9:60:0.5:0.35:2,tremolo=f=4:d=0.3,volume=6.0",
+        "ffmpeg": "aphaser=in_gain=0.8:out_gain=0.9:delay=5:decay=0.5:speed=0.8:type=t,chorus=0.6:0.9:60:0.4:0.3:2,volume=1.8,alimiter=limit=0.95",
+        "ffmpeg_question": "aphaser=in_gain=0.8:out_gain=0.9:delay=5:decay=0.5:speed=1.2:type=t,chorus=0.7:0.9:60:0.5:0.35:2,tremolo=f=4:d=0.3,volume=2.0,alimiter=limit=0.95",
     },
 }
 
@@ -87,7 +101,7 @@ def _is_question(text: str) -> bool:
 # otherwise depend on the filter string, so without this, existing disk-cached
 # clips (rendered with the old, clipped-and-distorted filters) would keep
 # being served forever instead of picking up the fix.
-AUDIO_FILTER_VERSION = 4
+AUDIO_FILTER_VERSION = 5
 
 def _cache_key(text: str, character: str, language: str, speed: float) -> str:
     # ffmpeg_filters/ffmpeg_question aren't part of the key: which one applies
