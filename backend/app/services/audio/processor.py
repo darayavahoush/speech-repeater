@@ -7,6 +7,7 @@ import noisereduce as nr
 import tempfile
 import os
 from app.core.config import settings
+from app.services.audio.vad import select_child_segment
 
 
 def load_and_clean(audio_path: str):
@@ -19,7 +20,12 @@ def load_and_clean(audio_path: str):
     y, sr = librosa.load(tmp_wav.name, sr=16000, mono=True)
     os.unlink(tmp_wav.name)
     y_clean = nr.reduce_noise(y=y, sr=sr, stationary=False)
-    return y_clean, sr
+    # Isolate the child's actual speech before measuring anything -- see
+    # app/services/audio/vad.py. VAD returning nothing speech-like just
+    # falls through to the input unchanged, so this can't be a new failure
+    # mode, only an improvement when it finds something.
+    y_isolated = select_child_segment(y_clean, sr)
+    return y_isolated, sr
 
 
 def save_temp(y, sr: int) -> str:

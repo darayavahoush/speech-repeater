@@ -37,6 +37,7 @@ gTTS
 deep-translator
 torch==2.12.0
 torchaudio==2.11.0
+silero-vad==5.1.2
 transformers==5.10.2
 anthropic
 bcrypt

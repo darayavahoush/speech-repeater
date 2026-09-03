@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 import uuid
@@ -33,10 +33,17 @@ class PhonemeScores(BaseModel):
     error_types: List[str]
 
 class AttemptResult(BaseModel):
-    attempt_id: str = str(uuid.uuid4())
+    # Was `= str(uuid.uuid4())` / `= datetime.now()` -- Pydantic (and plain
+    # Python) evaluates a bare field default exactly once, at class
+    # definition time, not per-instance. Every AttemptResult built without
+    # explicitly passing attempt_id/timestamp would silently get the exact
+    # same UUID and the exact same startup-time timestamp for the entire
+    # life of the process. Ported from the identical fix in agenti_ai's
+    # flashcards schema, which this file was itself copied from.
+    attempt_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     session_id: str
     child_id: Optional[str]
-    timestamp: datetime = datetime.now()
+    timestamp: datetime = Field(default_factory=datetime.now)
     target_word: str
     target_phonemes: List[str]
     transcript: str
