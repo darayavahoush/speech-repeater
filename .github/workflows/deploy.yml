@@ -1,0 +1,84 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [main]
+
+env:
+  RESOURCE_GROUP: vaakify-rg
+  ACR_NAME: vaakifyacr
+  BACKEND_APP: vaakify-backend
+  FRONTEND_APP: vaakify-frontend
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+
+  deploy-backend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build & push backend image
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image vaakify-backend:${{ github.sha }} \
+            --image vaakify-backend:latest \
+            ./backend
+
+      - name: Update backend Container App
+        run: |
+          az containerapp update \
+            --name ${{ env.BACKEND_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/vaakify-backend:${{ github.sha }}
+
+  deploy-frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build & push frontend image
+        run: |
+          az acr build \
+            --registry ${{ env.ACR_NAME }} \
+            --image vaakify-frontend:${{ github.sha }} \
+            --image vaakify-frontend:latest \
+            --build-arg VITE_API_BASE_URL=https://api.vaakify.manaslearning.com \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
+            ./frontend
+
+      - name: Update frontend Container App
+        run: |
+          az containerapp update \
+            --name ${{ env.FRONTEND_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/vaakify-frontend:${{ github.sha }}
