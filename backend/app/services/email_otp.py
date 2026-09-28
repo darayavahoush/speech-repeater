@@ -1,7 +1,8 @@
 """
 Email verification via a 6-digit one-time code, sent through Gmail SMTP.
 """
-import random
+import secrets
+import hmac
 import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime, timezone, timedelta
@@ -14,7 +15,7 @@ OTP_EXPIRY_MINUTES = 10
 
 
 def generate_otp() -> str:
-    return f"{random.randint(0, 999999):06d}"
+    return f"{secrets.randbelow(1_000_000):06d}"
 
 
 def send_otp_email(to_email: str, name: str, code: str):
@@ -73,7 +74,7 @@ def verify_otp(email: str, code: str) -> tuple[bool, str]:
         if datetime.now(timezone.utc) > expiry:
             return False, "This code has expired. Please request a new one."
 
-        if code.strip() != stored_code:
+        if not hmac.compare_digest(code.strip().encode(), stored_code.encode()):
             return False, "Incorrect code. Please try again."
 
         child.email_verified = True

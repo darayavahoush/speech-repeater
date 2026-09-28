@@ -31,58 +31,71 @@ INDIAN_ACCENT_EQUIVALENTS = {
     frozenset(["R", "RD"]),      # tapped r
 }
 
-def score_phonemes(expected: List[str], detected: List[str]) -> PhonemeScores:
-    matches = []
-    error_types = set()
+def _strip_diacritics(p: str) -> str:
+    """Base symbol of an IPA phoneme: drops aspiration, length, dental/retroflex marks."""
+    base = p.replace("ʰ", "").replace("ː", "").replace("\u032a", "").replace("\u0324", "")
+    return {"ʈ": "t", "ɖ": "d", "ɳ": "n", "ʂ": "s", "ʃ": "s", "ɽ": "r", "ɾ": "r", "ɭ": "l"}.get(base, base)
 
-    # Normalise case
+
+def _is_near_match(ep: str, dp: str) -> bool:
+    """True when two phonemes differ only in aspiration / length / place (kʰ~k, ʈ~t, aː~a).
+    These are real speech-therapy targets, so they get partial credit rather than a flat zero."""
+    return ep != dp and _strip_diacritics(ep) == _strip_diacritics(dp)
+
+
+def score_phonemes(expected: List[str], detected: List[str]) -> PhonemeScores:
+    from difflib import SequenceMatcher
+
     exp_upper = [p.upper() for p in expected]
     det_upper = [p.upper() for p in detected]
+    error_types = set()
 
+    # Align instead of comparing index-by-index, so one inserted/dropped sound
+    # doesn't turn every following phoneme into an error.
+    sm = SequenceMatcher(a=expected, b=detected, autojunk=False)
+    aligned = [None] * len(expected)  # expected idx -> detected idx
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            for k in range(i2 - i1):
+                aligned[i1 + k] = j1 + k
+        elif tag == "replace":
+            # pair up positionally within the replaced block
+            for k in range(min(i2 - i1, j2 - j1)):
+                aligned[i1 + k] = j1 + k
+
+    matches = []
+    credit = 0.0
     for i, ep in enumerate(exp_upper):
-        if i < len(det_upper):
-            dp = det_upper[i]
-            correct = ep == dp
-            # Accept Indian accent equivalents as correct
-            if not correct:
-                pair = frozenset([ep, dp])
-                if pair in INDIAN_ACCENT_EQUIVALENTS:
-                    correct = True
-                    error_types.add("indian_variant")
-            # Partial credit: single-char near miss
-            if not correct:
-                if len(ep) == len(dp) == 1 and abs(ord(ep) - ord(dp)) <= 3:
-                    error_types.add("near_miss")
-                else:
-                    error_types.add("substitution")
-            matches.append(PhonemeMatch(expected=expected[i], detected=detected[i] if i < len(detected) else None, correct=correct))
-        else:
+        j = aligned[i]
+        if j is None:
             matches.append(PhonemeMatch(expected=expected[i], detected=None, correct=False))
             error_types.add("omission")
+            continue
+        dp = det_upper[j]
+        correct = expected[i] == detected[j] or ep == dp
+        if correct:
+            credit += 1.0
+        else:
+            pair = frozenset([ep, dp])
+            if pair in INDIAN_ACCENT_EQUIVALENTS:
+                correct = True
+                credit += 1.0
+                error_types.add("indian_variant")
+            elif _is_near_match(expected[i], detected[j]):
+                # e.g. kʰ heard as k: not fully right, but very close
+                credit += 0.5
+                error_types.add("near_miss")
+            else:
+                error_types.add("substitution")
+        matches.append(PhonemeMatch(expected=expected[i], detected=detected[j], correct=correct))
 
     if len(detected) > len(expected):
         error_types.add("addition")
 
-    dist = levenshtein(exp_upper, det_upper)
-    max_len = max(len(expected), len(detected), 1)
-
-    # Base accuracy from edit distance
-    base_accuracy = max(0.0, (1 - dist / max_len) * 100)
-
-    # Bonus: if transcript word roughly matches target, boost by up to 10pts
-    correct_count = sum(1 for m in matches if m.correct)
     total = max(len(expected), 1)
-    precision = correct_count / total
+    accuracy = round(min(100.0, credit / max(total, len(detected)) * 100), 2)
 
-    # Weighted blend: edit distance (70%) + precision (30%)
-    accuracy = round(base_accuracy * 0.7 + precision * 100 * 0.3, 2)
-    accuracy = min(100.0, accuracy)
-
-    return PhonemeScores(
-        matches=matches,
-        accuracy=accuracy,
-        error_types=list(error_types)
-    )
+    return PhonemeScores(matches=matches, accuracy=accuracy, error_types=list(error_types))
 
 
 def compute_composite(

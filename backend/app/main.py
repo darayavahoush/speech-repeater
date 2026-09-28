@@ -358,9 +358,13 @@ async def compare(
                                 result.phoneme_scores.matches[idx].detected = predicted_phonemes[0]
                         break
 
-            correct_count = sum(1 for m in result.phoneme_scores.matches if m.correct)
+            from app.services.evaluation.scorer import _is_near_match
+            credit = sum(
+                1.0 if m.correct else (0.5 if m.detected and _is_near_match(m.expected, m.detected) else 0.0)
+                for m in result.phoneme_scores.matches
+            )
             total = max(len(result.phoneme_scores.matches), 1)
-            new_accuracy = round((correct_count / total) * 100, 2)
+            new_accuracy = round((credit / total) * 100, 2)
             result.phoneme_scores.accuracy = new_accuracy
             result.composite_score = compute_composite(new_accuracy, acoustic_raw, condition)
         return result
@@ -515,9 +519,13 @@ async def evaluate(
                                 result.phoneme_scores.matches[idx].detected = predicted_phonemes[0]
                         break
 
-            correct_count = sum(1 for m in result.phoneme_scores.matches if m.correct)
+            from app.services.evaluation.scorer import _is_near_match
+            credit = sum(
+                1.0 if m.correct else (0.5 if m.detected and _is_near_match(m.expected, m.detected) else 0.0)
+                for m in result.phoneme_scores.matches
+            )
             total = max(len(result.phoneme_scores.matches), 1)
-            new_accuracy = round((correct_count / total) * 100, 2)
+            new_accuracy = round((credit / total) * 100, 2)
             result.phoneme_scores.accuracy = new_accuracy
             result.composite_score = compute_composite(new_accuracy, acoustic_raw, condition)
 

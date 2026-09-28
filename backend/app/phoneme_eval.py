@@ -103,12 +103,18 @@ def score_target_char(audio_path, target_char, confusable_chars, language):
         for c, cid in confusable_ids.items() if cid is not None
     }
 
-    best = max([("target", target_score)] + list(confusable_scores.items()), key=lambda x: x[1])
+    # The word being practised is known, so give the target a head start: the
+    # model has to be clearly more confident in a confusable sound (not merely
+    # marginally so) before we call it a mispronunciation. Raw max-vs-max
+    # unfairly favoured frequent letters like क over ख / त over ट.
+    TARGET_BIAS = 1.5
+    best_conf = max(confusable_scores.items(), key=lambda x: x[1], default=(None, 0.0))
+    is_correct = target_score * TARGET_BIAS >= best_conf[1]
     return {
         "target_score": target_score,
         "confusable_scores": confusable_scores,
-        "predicted": best[0],
-        "correct": best[0] == "target",
+        "predicted": "target" if is_correct else best_conf[0],
+        "correct": is_correct,
     }
 
 def find_all_confusable_groups(word: str, language: str):
