@@ -2,8 +2,9 @@ import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
 import GoogleAuthButton from "./GoogleAuthButton";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePlans, darkMode }) {
   const [name, setName] = useState("");

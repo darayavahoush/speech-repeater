@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { getTheme, getSurface } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
-export default function Settings({ childId, childName, childEmail, trialStatus, trialDaysRemaining, onSeePlans, darkMode, onBack, onEmailChanged, onNeedsEmailVerification, onAccountDeleted }) {
+export default function Settings({ childId, childName, childEmail, trialStatus, trialDaysRemaining, onSeePlans, darkMode, onBack, onEmailChanged, onNeedsEmailVerification, onAccountDeleted, onSwitchAccount }) {
   const theme = getTheme("BOLT", darkMode); // neutral palette; character isn't relevant here
   const textColor = darkMode ? "#F0DCCF" : "#3A2E2C";
   const labelColor = darkMode ? "#B08F7A" : "#9A7A6A";
@@ -179,6 +180,14 @@ export default function Settings({ childId, childName, childEmail, trialStatus, 
             This permanently deletes the account and all practice history. This can't be undone.
           </p>
 
+          {onSwitchAccount && (
+            <button
+              onClick={onSwitchAccount}
+              style={{ width: "100%", padding: "13px", marginBottom: "14px", background: "none", border: "2px solid rgba(232,130,90,0.5)", color: "#E8825A", borderRadius: "12px", fontFamily: "Nunito, sans-serif", fontSize: "0.9rem", fontWeight: 900, cursor: "pointer" }}
+            >
+              Switch account
+            </button>
+          )}
           {!showDeleteConfirm ? (
             <button
               onClick={() => setShowDeleteConfirm(true)}

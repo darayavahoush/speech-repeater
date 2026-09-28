@@ -6,6 +6,7 @@ import { t } from "../utils/i18n";
 import { friendlyPhoneme } from "../utils/phonemeMap";
 import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { getTheme, getSurface } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
 export default function ResultScreen({ character, language = "english", result, onRetry, onNextWord, onDrill, childAudioUrl, darkMode }) {
   const char = CHARACTERS[character];
@@ -161,7 +162,7 @@ function PhonemeHelp({ matches, char, th, language = "english", darkMode }) {
     wrongPhonemes.forEach(async (ph) => {
       if (!cards[ph]) {
         try {
-          const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/phoneme-card/${ph}?language=${language}`);
+          const res = await fetch(`${API_BASE}/phoneme-card/${ph}?language=${language}`);
           const data = await res.json();
           setCards(prev => ({ ...prev, [ph]: data }));
         } catch {}

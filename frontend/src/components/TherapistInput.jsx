@@ -6,6 +6,7 @@ import { inputWord } from "../utils/api";
 import { t } from "../utils/i18n";
 import { WORD_SUGGESTIONS } from "../utils/wordSuggestions";
 import { getTheme, getSurface } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
 const SUGGESTION_CATEGORIES = ["animals", "food", "colours", "family", "actions", "objects"];
 
@@ -40,7 +41,7 @@ export default function TherapistInput({ character, language = "english", onWord
     if (!englishWord.trim()) return;
     setTranslating(true);
     try {
-      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/translate`, {
+      const res = await fetch(`${API_BASE}/translate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: englishWord, target_language: language }),

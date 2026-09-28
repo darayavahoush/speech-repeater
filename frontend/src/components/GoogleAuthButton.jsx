@@ -1,7 +1,8 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 // GoogleLogin's default flow returns a signed ID token (credentialResponse
 // .credential) rather than an access token — that's what the backend

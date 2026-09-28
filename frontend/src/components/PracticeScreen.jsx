@@ -7,8 +7,9 @@ import { friendlyPhoneme, phonemeExample } from "../utils/phonemeMap";
 import { displayPhoneme } from "../utils/phonemeMapIndic";
 import { t } from "../utils/i18n";
 import { getTheme, getSurface } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
-const BASE = "https://anabaena-vaaksiddhi.hf.space";
+const BASE = API_BASE;
 
 export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode, childId }) {
   const [phase, setPhase] = useState("listen");
@@ -36,7 +37,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
       form.append("speed", String(speed));
       form.append("language", language);
       form.append("character", character);
-      const res = await fetch("https://anabaena-vaaksiddhi.hf.space/speak/word", { method: "POST", body: form });
+      const res = await fetch(`${API_BASE}/speak/word`, { method: "POST", body: form });
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);

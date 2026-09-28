@@ -3,8 +3,9 @@ import { CHARACTERS } from "../assets/characters";
 import CharacterBackdrop from "./CharacterBackdrop";
 import { getPhonemeCard } from "../utils/api";
 import { useAudio } from "../hooks/useAudio";
+import { API_BASE } from "../utils/config";
 
-const BASE = "https://anabaena-vaaksiddhi.hf.space";
+const BASE = API_BASE;
 
 export default function DrillScreen({ character, drillSequence, onComplete }) {
   const char = CHARACTERS[character];

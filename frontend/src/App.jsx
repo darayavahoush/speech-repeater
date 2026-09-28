@@ -19,8 +19,11 @@ import ProgressScreen from "./components/ProgressScreen";
 import Settings from "./components/Settings";
 import LegalPage from "./components/LegalPage";
 import { inputWord, translateWord } from "./utils/api";
+import { API_BASE } from "./utils/config";
+import WhoIsContinuing from "./components/WhoIsContinuing";
+import { getAccounts, rememberAccount, forgetAccount } from "./utils/accounts";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 const SCREENS = {
   HOMEPAGE: "homepage",
@@ -39,10 +42,12 @@ const SCREENS = {
   SETTINGS: "settings",
   PRIVACY: "privacy",
   TERMS: "terms",
+  WHO: "who",
 };
 
 export default function App() {
-  const [screen, setScreen] = useState(SCREENS.HOMEPAGE);
+  const [screen, setScreen] = useState(() => (getAccounts().length ? SCREENS.WHO : SCREENS.HOMEPAGE));
+  const [prefillEmail, setPrefillEmail] = useState("");
   const [childId, setChildId] = useState(null);
   const [childName, setChildName] = useState(null);
   const [language, setLanguage] = useState("english");
@@ -129,6 +134,7 @@ export default function App() {
   };
 
   const handleLogin = (data, isNew = false) => {
+    rememberAccount({ account_id: data.account_id, name: data.name, email: data.email });
     setChildId(data.account_id);
     setChildName(data.name);
     setIsNewUser(isNew);
@@ -252,7 +258,17 @@ export default function App() {
     setScreen(SCREENS.THERAPIST_INPUT);
   };
 
+  const handleSwitchAccount = () => {
+    setChildId(null); setChildName(null); setChildEmail(null);
+    setCharacter(null); setLanguage("english");
+    setWordData(null); setResult(null);
+    setTrialStatus(null); setTrialDaysRemaining(null);
+    setPrefillEmail("");
+    setScreen(SCREENS.WHO);
+  };
+
   const handleAccountDeleted = () => {
+    if (childId) forgetAccount(childId);
     setChildId(null);
     setChildName(null);
     setChildEmail(null);
@@ -271,6 +287,16 @@ export default function App() {
 
   if (screen === SCREENS.TERMS) {
     return <LegalPage type="terms" onBack={() => setScreen(SCREENS.HOMEPAGE)} />;
+  }
+
+  if (screen === SCREENS.WHO) {
+    return (
+      <WhoIsContinuing
+        darkMode={darkMode}
+        onPick={(a) => { setPrefillEmail(a.email || ""); setScreen(SCREENS.LOGIN); }}
+        onAddAccount={() => { setPrefillEmail(""); setScreen(SCREENS.LOGIN); }}
+      />
+    );
   }
 
   if (screen === SCREENS.HOMEPAGE) {
@@ -340,6 +366,8 @@ export default function App() {
     return (
       <Login
         onLogin={handleLogin}
+        prefillEmail={prefillEmail}
+        onBack={getAccounts().length ? () => setScreen(SCREENS.WHO) : null}
         onNeedsVerification={(email, name) => {
           setPendingEmail(email);
           setPendingName(name);
@@ -424,6 +452,7 @@ export default function App() {
             setScreen(SCREENS.VERIFY_EMAIL);
           }}
           onAccountDeleted={handleAccountDeleted}
+          onSwitchAccount={handleSwitchAccount}
         />
       )}
       {screen === SCREENS.DRILL && (

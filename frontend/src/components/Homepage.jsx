@@ -3,10 +3,11 @@ import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
 import logo from "../assets/images/logo.png";
 import AboutSection from "./AboutSection";
+import { API_BASE } from "../utils/config";
 
 const RAINBOW_GRADIENT = "linear-gradient(160deg, #FDEDEA 0%, #FDF3DD 30%, #FBFAE0 55%, #E9F6EA 75%, #E2F5F2 100%)";
 const RAINBOW_GRADIENT_BAND = "linear-gradient(100deg, #E8825A 0%, #E8B84B 30%, #6BBF7A 60%, #4ABFBF 100%)";
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 // Injected once for the Plans & pricing nav button hover state (inline styles can't do :hover)
 if (typeof document !== "undefined" && !document.getElementById("plans-pricing-btn-style")) {

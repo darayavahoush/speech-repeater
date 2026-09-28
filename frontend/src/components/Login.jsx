@@ -2,11 +2,12 @@ import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
 import GoogleAuthButton from "./GoogleAuthButton";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
-export default function Login({ onLogin, onGoToSignup, onGoToPhoneAuth, darkMode }) {
-  const [email, setEmail] = useState("");
+export default function Login({ onLogin, onNeedsVerification, onGoToSignup, onGoToPhoneAuth, onBack, prefillEmail = "", darkMode }) {
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,9 @@ export default function Login({ onLogin, onGoToSignup, onGoToPhoneAuth, darkMode
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.needs_verification && onNeedsVerification) {
+        onNeedsVerification(data.email || email.trim(), data.name);
+      } else if (data.success) {
         onLogin(data, false);
       } else {
         setError(data.error || "Something went wrong. Please try again.");
@@ -44,6 +47,11 @@ export default function Login({ onLogin, onGoToSignup, onGoToPhoneAuth, darkMode
     <div style={{ minHeight: "100vh", background: bgGradient, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", position: "relative" }}>
       <div style={{ width: "100%", maxWidth: "380px", position: "relative", zIndex: 1 }}>
 
+        {onBack && (
+          <button onClick={onBack} style={{ background: "none", border: "none", color: "#E8825A", fontWeight: 800, cursor: "pointer", fontFamily: "Nunito, sans-serif", fontSize: "0.9rem", padding: 0, marginBottom: "16px" }}>
+            ← Switch account
+          </button>
+        )}
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
           <img src={logo} alt="Vaakify" style={{ width: "72px", height: "72px", objectFit: "contain", marginBottom: "12px", display: "block", marginLeft: "auto", marginRight: "auto" }} />
           <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "2.2rem", fontWeight: 900, color: textColor, margin: "0 0 8px 0" }}>
@@ -81,6 +89,7 @@ export default function Login({ onLogin, onGoToSignup, onGoToPhoneAuth, darkMode
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             placeholder="••••••••"
+            autoFocus={!!prefillEmail}
             type="password"
             style={{
               width: "100%", padding: "14px 16px", borderRadius: "14px",

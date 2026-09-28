@@ -1,4 +1,5 @@
-const BASE_URL = "https://anabaena-vaaksiddhi.hf.space";
+import { API_BASE } from "./config";
+const BASE_URL = API_BASE;
 
 export async function inputWord({ text, audio, character = "BOLT", language = "english", mood = "instruction" }) {
   const form = new FormData();

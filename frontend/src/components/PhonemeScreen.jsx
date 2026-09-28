@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { useAudio } from "../hooks/useAudio";
+import { API_BASE } from "../utils/config";
 
-const BASE = "https://anabaena-vaaksiddhi.hf.space";
+const BASE = API_BASE;
 
 const PHONEME_GROUPS = {
   "Stops": ["B", "P", "D", "T", "G", "K"],

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { CHARACTERS } from "../assets/characters";
 import { LANGUAGES } from "../utils/i18n";
 import { getTheme } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 const THEMES = {
   BOLT:  { bg: "#EEF4FB", accent: "#5B9BD5", card: "#DDEAF7", text: "#1A3A5C", sub: "#4A7AA5" },

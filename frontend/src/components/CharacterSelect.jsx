@@ -3,6 +3,7 @@ import { CHARACTERS } from "../assets/characters";
 import { t } from "../utils/i18n";
 import CharacterBackdrop from "./CharacterBackdrop";
 import { getTheme, getSurface } from "../utils/themes";
+import { API_BASE } from "../utils/config";
 
 export default function CharacterSelect({ onSelect, language = "english", darkMode }) {
   const [selected, setSelected] = useState(null);
@@ -14,7 +15,7 @@ export default function CharacterSelect({ onSelect, language = "english", darkMo
   const handlePreview = async (charId) => {
     setPreviewing(charId);
     try {
-      const res = await fetch(`https://anabaena-vaaksiddhi.hf.space/speak/intro/${charId}`);
+      const res = await fetch(`${API_BASE}/speak/intro/${charId}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);

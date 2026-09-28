@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
+import { API_BASE } from "../utils/config";
 
-const BACKEND_URL = "https://anabaena-vaaksiddhi.hf.space";
+const BACKEND_URL = API_BASE;
 
 // Three steps: enter number -> enter the SMS code -> (new numbers only)
 // give a name, since Twilio Verify confirms the number but knows nothing
