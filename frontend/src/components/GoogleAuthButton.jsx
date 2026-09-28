@@ -10,6 +10,8 @@ const BACKEND_URL = API_BASE;
 // frontend never has to be trusted on its own.
 export default function GoogleAuthButton({ onSuccess, onError, darkMode }) {
   const [loading, setLoading] = useState(false);
+  // No client ID baked into the build -> hide the button instead of showing a broken one
+  if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) return null;
 
   const handleCredential = async (credentialResponse) => {
     if (!credentialResponse?.credential) {
@@ -37,13 +39,13 @@ export default function GoogleAuthButton({ onSuccess, onError, darkMode }) {
   };
 
   return (
-    <div style={{ width: "100%", opacity: loading ? 0.6 : 1, pointerEvents: loading ? "none" : "auto" }}>
+    <div style={{ display: "flex", justifyContent: "center", opacity: loading ? 0.6 : 1, pointerEvents: loading ? "none" : "auto" }}>
       <GoogleLogin
         onSuccess={handleCredential}
         onError={() => onError("Google sign-in was cancelled or failed.")}
         theme={darkMode ? "filled_black" : "outline"}
         shape="pill"
-        width="100%"
+        width="300"
       />
     </div>
   );
