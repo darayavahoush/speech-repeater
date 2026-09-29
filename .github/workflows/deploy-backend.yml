@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 concurrency:
   group: deploy-backend
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,11 +17,22 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Prepare Azure CLI
         run: az extension add --name containerapp --upgrade --only-show-errors
-      - name: Build image in ACR
+      - name: Ensure base image (rebuilt only when deps change)
+        run: |
+          TAG=$(cat backend/requirements.txt backend/Dockerfile.base | sha256sum | cut -c1-12)
+          echo "BASE_TAG=$TAG" >> "$GITHUB_ENV"
+          if az acr repository show --name vaakifyacr --image vaakify-backend-base:$TAG >/dev/null 2>&1; then
+            echo "Base image $TAG already exists, skipping"
+          else
+            az acr build --registry vaakifyacr --image vaakify-backend-base:$TAG -f Dockerfile.base ./backend
+          fi
+      - name: Build app image in ACR
         run: >
           az acr build --registry vaakifyacr
           --image vaakify-backend:${{ github.sha }}
-          --image vaakify-backend:latest -f backend/Dockerfile .
+          --image vaakify-backend:latest
+          --build-arg BASE_TAG=${{ env.BASE_TAG }}
+          -f backend/Dockerfile .
       - name: Deploy to Container Apps
         run: >
           az containerapp update -g vaakify-rg -n vaakify-backend

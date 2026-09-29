@@ -8,3 +8,4 @@ frontend/dist
 .venv
 venv
 *.log
+frontend
