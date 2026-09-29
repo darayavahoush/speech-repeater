@@ -38,8 +38,8 @@ export function setCursorCharacter(name) {
 }
 
 // Hotspot = tip of the upper horn inside the 32x32 svg.
-const HX = 8.3;
-const HY = 8.7;
+const HX = 17.8;
+const HY = 5.0;
 
 const TEXT_SEL =
   'textarea, [contenteditable=""], [contenteditable="true"], input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]):not([type=reset]):not([type=range]):not([type=file]):not([type=color])';
@@ -83,7 +83,7 @@ const SVG = `
       <stop offset="1" style="stop-color:var(--mc-b, ${DEFAULT_COLORS.b})"/>
     </linearGradient>
   </defs>
-  <g transform="rotate(-35 17 17)">
+  <g transform="rotate(15 17 17)">
     <path d="M14.64 5.24 A12 12 0 1 0 28.76 19.36 A10 10 0 0 1 14.64 5.24 Z"
           fill="url(#mc-g)" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
     <path d="M21.6 11.2 l0.9 2.2 2.2 0.9 -2.2 0.9 -0.9 2.2 -0.9 -2.2 -2.2 -0.9 2.2 -0.9z" fill="#fff"/>
@@ -153,7 +153,7 @@ export function initMoonCursor() {
 
     if (lastX !== null) {
       dist += Math.hypot(x - lastX, y - lastY);
-      if (dist > 24 && mode !== "text") { dist = 0; spark(x + 6, y + 8, 22, false); }
+      if (dist > 24 && mode !== "text") { dist = 0; spark(x - 1, y + 12, 22, false); }
     }
     lastX = x; lastY = y;
   };
@@ -161,7 +161,7 @@ export function initMoonCursor() {
   const onDown = () => {
     root.classList.add("mc-down");
     if (mode === "text") return;
-    for (let i = 0; i < 7; i += 1) spark(x + 6, y + 8, 46, true);
+    for (let i = 0; i < 7; i += 1) spark(x - 1, y + 12, 46, true);
   };
   const onUp = () => root.classList.remove("mc-down");
   const onLeave = () => { inside = false; setMode("hidden"); };
