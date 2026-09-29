@@ -4,18 +4,15 @@ import CharacterBackdrop from "./CharacterBackdrop";
 import { useAudio } from "../hooks/useAudio";
 import { inputWord } from "../utils/api";
 import { t } from "../utils/i18n";
-import { WORD_SUGGESTIONS } from "../utils/wordSuggestions";
+import WordPicker from "./WordPicker";
 import { getTheme, getSurface } from "../utils/themes";
 import { API_BASE } from "../utils/config";
-
-const SUGGESTION_CATEGORIES = ["animals", "food", "colours", "family", "actions", "objects"];
 
 export default function TherapistInput({ character, language = "english", onWordReady, onSwitchCharacter, darkMode, childId, onOpenProgress }) {
   const [mode, setMode] = useState("text");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSwitcher, setShowSwitcher] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("animals");
   const [showTranslate, setShowTranslate] = useState(false);
   const [englishWord, setEnglishWord] = useState("");
   const [translating, setTranslating] = useState(false);
@@ -54,8 +51,6 @@ export default function TherapistInput({ character, language = "english", onWord
       }
     } catch (err) { console.error(err); } finally { setTranslating(false); }
   };
-
-  const suggestions = WORD_SUGGESTIONS[language]?.[activeCategory] || [];
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 20px", position: "relative" }}>
@@ -136,26 +131,7 @@ export default function TherapistInput({ character, language = "english", onWord
               </div>
             )}
 
-            {/* Word suggestions */}
-            <div style={{ marginBottom: "16px" }}>
-              <p style={{ color: th.sub, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 8px 0" }}>{t(language, "suggestions")}</p>
-              {/* Category tabs */}
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                {SUGGESTION_CATEGORIES.map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)} style={{ background: activeCategory === cat ? th.accent : th.card, color: activeCategory === cat ? "#fff" : th.sub, border: "none", borderRadius: "20px", padding: "4px 12px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>
-                    {t(language, cat)}
-                  </button>
-                ))}
-              </div>
-              {/* Word chips */}
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {suggestions.map((word, i) => (
-                  <button key={i} onClick={() => setText(word)} style={{ background: text === word ? th.accent : getSurface(darkMode, 0.8), color: text === word ? "#fff" : th.text, border: `1.5px solid ${text === word ? th.accent : th.accent + "33"}`, borderRadius: "20px", padding: "6px 14px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif", transition: "all 0.2s" }}>
-                    {word}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <WordPicker language={language} value={text} onPick={setText} th={th} darkMode={darkMode} />
           </>
         )}
 
