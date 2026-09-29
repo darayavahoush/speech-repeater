@@ -46,7 +46,12 @@ const SCREENS = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState(() => (getAccounts().length ? SCREENS.WHO : SCREENS.HOMEPAGE));
+  const [screen, setScreen] = useState(() => {
+    const path = window.location.pathname.replace(/\/+$/, "");
+    if (path === "/privacy") return SCREENS.PRIVACY;
+    if (path === "/terms") return SCREENS.TERMS;
+    return getAccounts().length ? SCREENS.WHO : SCREENS.HOMEPAGE;
+  });
   const [prefillEmail, setPrefillEmail] = useState("");
   const [childId, setChildId] = useState(null);
   const [childName, setChildName] = useState(null);
@@ -71,6 +76,14 @@ export default function App() {
   const [verifyReturnTo, setVerifyReturnTo] = useState("signup");
   const [phoneAuthReturnTo, setPhoneAuthReturnTo] = useState(SCREENS.LOGIN);
   const [darkMode, setDarkMode] = useState(() => getStoredDarkMode());
+
+  useEffect(() => {
+    const want = screen === SCREENS.PRIVACY ? "/privacy" : screen === SCREENS.TERMS ? "/terms" : "/";
+    const legalPaths = ["/privacy", "/terms"];
+    const here = window.location.pathname.replace(/\/+$/, "") || "/";
+    if (want !== "/" && here !== want) window.history.pushState({}, "", want);
+    else if (want === "/" && legalPaths.includes(here)) window.history.replaceState({}, "", "/");
+  }, [screen]);
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {

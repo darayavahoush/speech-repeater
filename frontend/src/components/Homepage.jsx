@@ -447,14 +447,10 @@ export default function Homepage({ onSignIn, onGetStarted, onSeePlans, onSeePriv
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "18px", flexWrap: "wrap" }}>
           {onSeePrivacy && (
-            <button onClick={onSeePrivacy} style={{ background: "none", border: "none", color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
-              Privacy Policy
-            </button>
+            <a href="/privacy" onClick={(e) => { e.preventDefault(); onSeePrivacy(); }} style={{ color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", textDecoration: "underline" }}>Privacy Policy</a>
           )}
           {onSeeTerms && (
-            <button onClick={onSeeTerms} style={{ background: "none", border: "none", color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
-              Terms of Service
-            </button>
+            <a href="/terms" onClick={(e) => { e.preventDefault(); onSeeTerms(); }} style={{ color: "#999", fontFamily: "Inter, sans-serif", fontSize: "0.78rem", textDecoration: "underline" }}>Terms of Service</a>
           )}
           <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.78rem", color: "#999", margin: 0 }}>
             © {new Date().getFullYear()} Vaakify. All rights reserved.
