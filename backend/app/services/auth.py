@@ -226,3 +226,9 @@ def delete_account(account_id: str, password: str):
         session.delete(child)
         session.commit()
         return True, ""
+
+
+def get_account_by_id(account_id: str):
+    with get_session() as session:
+        child = session.query(Child).filter(Child.id == account_id).first()
+        return child.to_dict() if child else None

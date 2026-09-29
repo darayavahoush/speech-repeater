@@ -24,6 +24,7 @@ from app.services.voice.tts import speak_word, speak, speak_intro
 from app.services.image.matcher import get_image_for_phrase
 from app.services.chat_cache import find_cached_answer, store_answer
 from pydantic import BaseModel
+from app.services.session import make_session_token
 
 app = FastAPI(title="VaakSiddhi Autism", version="1.0.0")
 
@@ -683,6 +684,7 @@ async def auth_signup(req: SignupRequest):
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
         "needs_verification": settings.REQUIRE_EMAIL_VERIFICATION,
+        "session_token": None if settings.REQUIRE_EMAIL_VERIFICATION else make_session_token(account["id"]),
     }
 
 
@@ -740,6 +742,7 @@ async def verify_email_otp(req: VerifyOtpRequest):
         "language": account["language"],
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
+        "session_token": make_session_token(account["id"]),
     }
 
 
@@ -778,6 +781,7 @@ async def auth_login(req: LoginRequest):
         "language": account["language"],
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
+        "session_token": make_session_token(account["id"]),
     }
 
 
@@ -836,6 +840,7 @@ def _account_auth_response(account: dict, is_new: bool = False) -> dict:
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
         "is_new": is_new,
+        "session_token": make_session_token(account["id"]),
     }
 
 
@@ -929,6 +934,31 @@ async def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest):
         return {"success": False, "error": "Could not sign you in. Please try again."}
 
     return _account_auth_response(account, is_new)
+
+
+class ResumeRequest(BaseModel):
+    token: str
+
+
+@app.post("/auth/resume")
+async def auth_resume(req: ResumeRequest):
+    from app.services.session import verify_session_token
+    from app.services.auth import get_account_by_id
+
+    account_id = verify_session_token(req.token)
+    if not account_id:
+        return {"success": False, "expired": True}
+
+    try:
+        account = get_account_by_id(account_id)
+    except Exception as e:
+        print(f"Resume lookup error: {e}")
+        return {"success": False, "error": "Could not resume your session. Please try again."}
+
+    if not account:
+        return {"success": False, "expired": True}
+
+    return _account_auth_response(account)
 
 
 @app.get("/progress/{child_id}/history")
