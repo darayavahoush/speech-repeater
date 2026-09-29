@@ -21,7 +21,7 @@ jobs:
         run: >
           az acr build --registry vaakifyacr
           --image vaakify-backend:${{ github.sha }}
-          --image vaakify-backend:latest ./backend
+          --image vaakify-backend:latest -f backend/Dockerfile .
       - name: Deploy to Container Apps
         run: >
           az containerapp update -g vaakify-rg -n vaakify-backend
