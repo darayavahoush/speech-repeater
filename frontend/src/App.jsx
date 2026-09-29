@@ -21,7 +21,7 @@ import LegalPage from "./components/LegalPage";
 import { inputWord, translateWord } from "./utils/api";
 import { API_BASE } from "./utils/config";
 import WhoIsContinuing from "./components/WhoIsContinuing";
-import { getAccounts, rememberAccount, forgetAccount } from "./utils/accounts";
+import { getAccounts, rememberAccount, forgetAccount, saveSession, getSession, clearSession } from "./utils/accounts";
 
 const BACKEND_URL = API_BASE;
 
@@ -148,6 +148,7 @@ export default function App() {
 
   const handleLogin = (data, isNew = false) => {
     rememberAccount({ account_id: data.account_id, name: data.name, email: data.email });
+    saveSession(data.account_id, data.session_token);
     setChildId(data.account_id);
     setChildName(data.name);
     setIsNewUser(isNew);
@@ -306,7 +307,23 @@ export default function App() {
     return (
       <WhoIsContinuing
         darkMode={darkMode}
-        onPick={(a) => { setPrefillEmail(a.email || ""); setScreen(SCREENS.LOGIN); }}
+        onPick={async (a) => {
+          const token = getSession(a.account_id);
+          if (token) {
+            try {
+              const res = await fetch(`${BACKEND_URL}/auth/resume`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token }),
+              });
+              const data = await res.json();
+              if (data.success) { handleLogin(data); return; }
+              if (data.expired) clearSession(a.account_id);
+            } catch { /* offline or server error: fall back to login screen */ }
+          }
+          setPrefillEmail(a.email || "");
+          setScreen(SCREENS.LOGIN);
+        }}
         onAddAccount={() => { setPrefillEmail(""); setScreen(SCREENS.LOGIN); }}
       />
     );
