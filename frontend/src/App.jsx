@@ -22,7 +22,7 @@ import LegalPage from "./components/LegalPage";
 import { inputWord, translateWord } from "./utils/api";
 import { API_BASE } from "./utils/config";
 import WhoIsContinuing from "./components/WhoIsContinuing";
-import { getAccounts, rememberAccount, forgetAccount, saveSession, getSession, clearSession } from "./utils/accounts";
+import { getAccounts, rememberAccount, forgetAccount, saveSession, getSession, clearSession, setLastActive, getLastActive, clearLastActive } from "./utils/accounts";
 
 const BACKEND_URL = API_BASE;
 
@@ -150,9 +150,37 @@ export default function App() {
   useEffect(() => initMoonCursor(), []);
   useEffect(() => { setCursorCharacter(character); }, [character]);
 
+  const [resuming, setResuming] = useState(() => {
+    try { const id = getLastActive(); return !!(id && getSession(id)); } catch { return false; }
+  });
+
+  useEffect(() => {
+    const id = getLastActive();
+    const token = id ? getSession(id) : null;
+    if (!token) { setResuming(false); return undefined; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/auth/resume`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.success) handleLogin(data);
+        else if (data.expired) clearSession(id);
+      } catch { /* offline or server error: fall back to the profile picker */ }
+      finally { if (!cancelled) setResuming(false); }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogin = (data, isNew = false) => {
     rememberAccount({ account_id: data.account_id, name: data.name, email: data.email });
     saveSession(data.account_id, data.session_token);
+    setLastActive(data.account_id);
     setChildId(data.account_id);
     setChildName(data.name);
     setIsNewUser(isNew);
@@ -277,6 +305,7 @@ export default function App() {
   };
 
   const handleSwitchAccount = () => {
+    clearLastActive();
     setChildId(null); setChildName(null); setChildEmail(null);
     setCharacter(null); setLanguage("english");
     setWordData(null); setResult(null);
@@ -298,6 +327,8 @@ export default function App() {
     setTrialDaysRemaining(null);
     setScreen(SCREENS.HOMEPAGE);
   };
+
+  if (resuming) return <div style={{ minHeight: "100vh" }} />;
 
   if (screen === SCREENS.PRIVACY) {
     return <LegalPage type="privacy" onBack={() => setScreen(SCREENS.HOMEPAGE)} />;

@@ -25,6 +25,7 @@ export function rememberAccount({ account_id, name, email }) {
 
 export function forgetAccount(account_id) {
   clearSession(account_id);
+  if (getLastActive() === account_id) clearLastActive();
   try {
     localStorage.setItem(KEY, JSON.stringify(getAccounts().filter((a) => a.account_id !== account_id)));
   } catch { /* non-fatal */ }
@@ -46,4 +47,16 @@ export function clearSession(account_id) {
     const s = readSessions(); delete s[account_id];
     localStorage.setItem(SESSION_KEY, JSON.stringify(s));
   } catch { /* non-fatal */ }
+}
+
+// Which profile was signed in last on this device, so a refresh can pick up where you left off.
+const LAST_KEY = "vaakify_last_active";
+export function setLastActive(account_id) {
+  try { if (account_id) localStorage.setItem(LAST_KEY, account_id); } catch { /* non-fatal */ }
+}
+export function getLastActive() {
+  try { return localStorage.getItem(LAST_KEY); } catch { return null; }
+}
+export function clearLastActive() {
+  try { localStorage.removeItem(LAST_KEY); } catch { /* non-fatal */ }
 }
