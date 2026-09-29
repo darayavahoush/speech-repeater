@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { initMoonCursor, setCursorCharacter } from "./utils/moonCursor";
 import Homepage from "./components/Homepage";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
@@ -145,6 +146,9 @@ export default function App() {
       // Non-fatal — profile save failing shouldn't block the child from practicing
     }
   };
+
+  useEffect(() => initMoonCursor(), []);
+  useEffect(() => { setCursorCharacter(character); }, [character]);
 
   const handleLogin = (data, isNew = false) => {
     rememberAccount({ account_id: data.account_id, name: data.name, email: data.email });
