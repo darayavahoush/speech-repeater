@@ -1,10 +1,10 @@
 // Vaakify crescent-moon cursor.
 //  - crescent follows the mouse exactly (no lag), tip of the upper horn is the click point
-//  - soft glow eases along behind it, sparkles trail off as you move
+//  - sparkles trail off as you move
 //  - colours follow the chosen character (setCursorCharacter)
 //  - grows on clickable things, shrinks + bursts on click, fades over text fields / disabled controls
 //  - only runs with a real mouse; touch devices keep their normal behaviour
-//  - respects "reduce motion": crescent only, no glow easing or sparkles
+//  - respects "reduce motion": crescent only, no sparkles
 // Call initMoonCursor() once (returns a cleanup fn) and setCursorCharacter(name) whenever it changes.
 
 const DEFAULT_COLORS = { a: "#F5C04A", b: "#E8825A" };
@@ -51,15 +51,7 @@ const CSS = `
 html.mc-on, html.mc-on * { cursor: none !important; }
 html.mc-on :is(${TEXT_SEL}) { cursor: text !important; }
 #mc-root { position: fixed; inset: 0; pointer-events: none; z-index: 2147483647; overflow: hidden; }
-#mc-root .mc-glow, #mc-root .mc-cur { position: absolute; left: 0; top: 0; will-change: transform; }
-#mc-root .mc-glow {
-  width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%;
-  background: radial-gradient(circle,
-    color-mix(in srgb, var(--mc-a, ${DEFAULT_COLORS.a}) 55%, transparent) 0%,
-    color-mix(in srgb, var(--mc-b, ${DEFAULT_COLORS.b}) 22%, transparent) 45%,
-    transparent 70%);
-  transition: opacity .2s ease, width .25s ease, height .25s ease, margin .25s ease;
-}
+#mc-root .mc-cur { position: absolute; left: 0; top: 0; will-change: transform; }
 #mc-root .mc-cur { width: 32px; height: 32px; }
 #mc-root .mc-inner {
   width: 32px; height: 32px; transform-origin: ${HX}px ${HY}px;
@@ -67,12 +59,10 @@ html.mc-on :is(${TEXT_SEL}) { cursor: text !important; }
   filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
 }
 #mc-root .mc-inner svg { display: block; }
-#mc-root[data-mode="hidden"] .mc-cur, #mc-root[data-mode="hidden"] .mc-glow { opacity: 0; }
-#mc-root[data-mode="text"] .mc-cur, #mc-root[data-mode="text"] .mc-glow { opacity: 0; }
+#mc-root[data-mode="hidden"] .mc-cur { opacity: 0; }
+#mc-root[data-mode="text"] .mc-cur { opacity: 0; }
 #mc-root[data-mode="click"] .mc-inner { transform: scale(1.22) rotate(-14deg); }
-#mc-root[data-mode="click"] .mc-glow { width: 76px; height: 76px; margin: -38px 0 0 -38px; }
 #mc-root[data-mode="disabled"] .mc-inner { opacity: .45; }
-#mc-root[data-mode="disabled"] .mc-glow { opacity: .3; }
 #mc-root.mc-down .mc-inner { transform: scale(.82) rotate(-8deg); }
 #mc-root .mc-sp {
   position: absolute; width: 11px; height: 11px;
@@ -115,19 +105,16 @@ export function initMoonCursor() {
   const root = document.createElement("div");
   root.id = "mc-root";
   root.dataset.mode = "hidden";
-  root.innerHTML = `<div class="mc-glow"></div><div class="mc-cur"><div class="mc-inner">${SVG}</div></div>`;
+  root.innerHTML = `<div class="mc-cur"><div class="mc-inner">${SVG}</div></div>`;
   document.body.appendChild(root);
   document.documentElement.classList.add("mc-on");
 
-  const glow = root.querySelector(".mc-glow");
   const cur = root.querySelector(".mc-cur");
 
   let x = -100, y = -100;          // real mouse position
-  let gx = -100, gy = -100;        // glow position (eased)
   let lastX = null, lastY = null;
   let dist = 0;
   let live = 0;
-  let raf = 0;
   let mode = "hidden";
   let inside = true;
 
@@ -153,15 +140,6 @@ export function initMoonCursor() {
     root.appendChild(el);
   };
 
-  const tick = () => {
-    raf = 0;
-    if (reduce) { gx = x; gy = y; }
-    else { gx += (x - gx) * 0.2; gy += (y - gy) * 0.2; }
-    glow.style.transform = `translate3d(${gx + (17 - HX)}px, ${gy + (17 - HY)}px, 0)`;
-    if (!reduce && (Math.abs(x - gx) > 0.3 || Math.abs(y - gy) > 0.3)) raf = requestAnimationFrame(tick);
-  };
-  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
-
   const onMove = (e) => {
     x = e.clientX; y = e.clientY;
     cur.style.transform = `translate3d(${x - HX}px, ${y - HY}px, 0)`;
@@ -178,7 +156,6 @@ export function initMoonCursor() {
       if (dist > 24 && mode !== "text") { dist = 0; spark(x + 6, y + 8, 22, false); }
     }
     lastX = x; lastY = y;
-    kick();
   };
 
   const onDown = () => {
@@ -199,7 +176,6 @@ export function initMoonCursor() {
     document.removeEventListener("mousedown", onDown, true);
     document.removeEventListener("mouseup", onUp, true);
     document.documentElement.removeEventListener("mouseleave", onLeave);
-    if (raf) cancelAnimationFrame(raf);
     document.documentElement.classList.remove("mc-on");
     root.remove();
     style.remove();
