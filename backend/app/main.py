@@ -961,6 +961,56 @@ async def auth_resume(req: ResumeRequest):
     return _account_auth_response(account)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+
+@app.post("/auth/forgot-password")
+async def auth_forgot_password(req: ForgotPasswordRequest):
+    from app.services.auth import get_account_by_email
+    from app.services.email_otp import issue_otp
+
+    email = req.email.strip().lower()
+    if not email:
+        return {"success": False, "error": "Please enter your email address."}
+    try:
+        account = get_account_by_email(email)
+        if account:
+            issue_otp(email, account["name"])
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+    # Same response whether or not the account exists
+    return {"success": True, "message": "If an account exists for that email, we've sent a 6-digit code."}
+
+
+@app.post("/auth/reset-password")
+async def auth_reset_password(req: ResetPasswordRequest):
+    from app.services.email_otp import verify_otp
+    from app.services.auth import set_password_by_email
+
+    email = req.email.strip().lower()
+    if len(req.new_password) < 6:
+        return {"success": False, "error": "Password should be at least 6 characters."}
+
+    ok, error = verify_otp(email, req.code.strip())
+    if not ok:
+        return {"success": False, "error": error or "Incorrect or expired code."}
+
+    try:
+        if not set_password_by_email(email, req.new_password):
+            return {"success": False, "error": "Could not reset your password. Please try again."}
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        return {"success": False, "error": "Could not reset your password. Please try again."}
+    return {"success": True}
+
+
 @app.get("/progress/{child_id}/history")
 async def get_child_progress_history(child_id: str, days: int = 30, limit: int = 200):
     from app.services.progress import get_word_history

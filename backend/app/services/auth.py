@@ -232,3 +232,13 @@ def get_account_by_id(account_id: str):
     with get_session() as session:
         child = session.query(Child).filter(Child.id == account_id).first()
         return child.to_dict() if child else None
+
+
+def set_password_by_email(email: str, new_password: str) -> bool:
+    with get_session() as session:
+        child = session.query(Child).filter(func.lower(Child.email) == email.lower()).first()
+        if not child:
+            return False
+        child.password_hash = hash_password(new_password)
+        session.commit()
+        return True
