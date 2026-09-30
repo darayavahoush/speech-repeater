@@ -18,13 +18,15 @@ jobs:
       - name: Prepare Azure CLI
         run: az extension add --name containerapp --upgrade --only-show-errors
       - name: Ensure base image (rebuilt only when deps change)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           TAG=$(cat backend/requirements.txt backend/Dockerfile.base backend/prefetch_models.py | sha256sum | cut -c1-12)
           echo "BASE_TAG=$TAG" >> "$GITHUB_ENV"
           if az acr repository show --name vaakifyacr --image vaakify-backend-base:$TAG >/dev/null 2>&1; then
             echo "Base image $TAG already exists, skipping"
           else
-            (cd backend && az acr build --registry vaakifyacr --image vaakify-backend-base:$TAG -f Dockerfile.base .)
+            (cd backend && az acr build --registry vaakifyacr --image vaakify-backend-base:$TAG --secret-build-arg HF_TOKEN="$HF_TOKEN" -f Dockerfile.base .)
           fi
       - name: Build app image in ACR
         run: >
