@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import threading
 import requests
 import cv2
 import numpy as np
@@ -14,6 +15,7 @@ ARASAAC_API = "https://api.arasaac.org/v1"
 _index: dict = {}
 _embeddings = None
 _embedding_model = None
+_model_lock = threading.Lock()
 
 
 def load_index():
@@ -32,8 +34,10 @@ def save_index():
 def load_embedding_model():
     global _embedding_model
     if _embedding_model is None:
-        from sentence_transformers import SentenceTransformer
-        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+        with _model_lock:
+            if _embedding_model is None:
+                from sentence_transformers import SentenceTransformer
+                _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
     return _embedding_model
 
 

@@ -1,7 +1,10 @@
 import nltk
 from typing import Optional
-nltk.download('averaged_perceptron_tagger_eng', quiet=True)
-nltk.download('cmudict', quiet=True)
+for _res, _pkg in (("taggers/averaged_perceptron_tagger_eng", "averaged_perceptron_tagger_eng"), ("corpora/cmudict", "cmudict")):
+    try:
+        nltk.data.find(_res)
+    except LookupError:
+        nltk.download(_pkg, quiet=True)
 from fastapi import FastAPI, UploadFile, File, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
@@ -175,13 +178,13 @@ CHAR_VOICES = {
 }
 
 @app.get("/speak/intro/{character}")
-async def speak_intro_endpoint(character: str):
+def speak_intro_endpoint(character: str):
     audio_bytes = speak_intro(character)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 
 @app.post("/translate")
-async def translate_word(
+def translate_word(
     text: str = Form(...),
     target_language: str = Form(default="hindi"),
 ):
@@ -204,11 +207,11 @@ async def translate_word(
         return {"translated": text, "error": str(e)}
 
 @app.get("/characters")
-async def get_characters_endpoint():
+def get_characters_endpoint():
     return {"characters": list(INTRO_LINES.keys())}
 
 @app.post("/speak/word")
-async def speak_word_endpoint(
+def speak_word_endpoint(
     word: str = Form(...),
     speed: float = Form(default=1.0),
     character: str = Form(default="BOLT"),
@@ -222,7 +225,7 @@ async def speak_word_endpoint(
 
 
 @app.get("/speak/phoneme/{phoneme}")
-async def speak_phoneme_endpoint(
+def speak_phoneme_endpoint(
     phoneme: str,
     character: str = "BOLT",
     speed: float = 1.0,
@@ -259,17 +262,17 @@ def root():
     return {"status": "VaakSiddhi Autism backend running", "version": "1.0.0"}
 
 @app.post("/phonemes")
-async def phonemes(word: str = Form(...), language: str = Form(default="english")):
+def phonemes(word: str = Form(...), language: str = Form(default="english")):
     phones = get_phonemes(word, language)
     return {"word": word, "phonemes": phones, "language": language}
 
 @app.post("/speak")
-async def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default"), speed: float = Form(default=1.0), language: str = Form(default="english")):
+def speak_endpoint(text: str = Form(...), character: str = Form(default="BOLT"), mood: str = Form(default="default"), speed: float = Form(default=1.0), language: str = Form(default="english")):
     audio_bytes = speak(text, character, mood, speed, language=language)
     return Response(content=audio_bytes, media_type="audio/wav")
 
 @app.post("/image")
-async def image_endpoint(phrase: str = Form(...)):
+def image_endpoint(phrase: str = Form(...)):
     result = get_image_for_phrase(phrase)
     if not result["found"]:
         return {"found": False, "phrase": phrase}
@@ -286,7 +289,7 @@ async def image_endpoint(phrase: str = Form(...)):
     }
 
 @app.post("/compare")
-async def compare(
+def compare(
     audio: UploadFile = File(...),
     target_word: str = Form(...),
     language: str = Form(default="english"),
@@ -301,7 +304,7 @@ async def compare(
 
     import subprocess
     raw = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
-    raw.write(await audio.read())
+    raw.write(audio.file.read())
     raw.close()
     tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
     tmp_wav.close()
@@ -374,7 +377,7 @@ async def compare(
 
 
 @app.post("/input-word")
-async def input_word(
+def input_word(
     text: str = Form(default=None),
     audio: UploadFile = File(default=None),
     language: str = Form(default="english"),
@@ -390,7 +393,7 @@ async def input_word(
         word = text.strip().lower()
     elif audio:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            tmp.write(await audio.read())
+            tmp.write(audio.file.read())
             tmp_path = tmp.name
         try:
             segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="A single English word spoken clearly. Indian English accent.")
@@ -429,7 +432,7 @@ async def input_word(
 
 
 @app.get("/progress/{child_id}")
-async def get_child_progress(child_id: str, days: int = 30):
+def get_child_progress(child_id: str, days: int = 30):
     from app.services.progress import get_progress
     try:
         return {"success": True, **get_progress(child_id, days)}
@@ -439,7 +442,7 @@ async def get_child_progress(child_id: str, days: int = 30):
 
 
 @app.post("/evaluate")
-async def evaluate(
+def evaluate(
     audio: UploadFile = File(...),
     target_word: str = Form(...),
     language: str = Form(default="english"),
@@ -461,7 +464,7 @@ async def evaluate(
 
     import subprocess
     raw = tempfile.NamedTemporaryFile(delete=False, suffix=".webm")
-    raw.write(await audio.read())
+    raw.write(audio.file.read())
     raw.close()
     tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
     tmp_wav.close()
@@ -627,7 +630,7 @@ class DeleteAccountRequest(BaseModel):
 
 
 @app.post("/auth/signup")
-async def auth_signup(req: SignupRequest):
+def auth_signup(req: SignupRequest):
     from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status, get_account_by_mobile
 
     name = req.name.strip()
@@ -698,7 +701,7 @@ class VerifyOtpRequest(BaseModel):
 
 
 @app.post("/auth/send-email-otp")
-async def send_email_otp(req: SendOtpRequest):
+def send_email_otp(req: SendOtpRequest):
     from app.services.auth import get_account_by_email
     from app.services.email_otp import issue_otp
 
@@ -722,7 +725,7 @@ async def send_email_otp(req: SendOtpRequest):
 
 
 @app.post("/auth/verify-email-otp")
-async def verify_email_otp(req: VerifyOtpRequest):
+def verify_email_otp(req: VerifyOtpRequest):
     from app.services.email_otp import verify_otp
     from app.services.auth import get_account_by_email, get_trial_status
 
@@ -747,7 +750,7 @@ async def verify_email_otp(req: VerifyOtpRequest):
 
 
 @app.post("/auth/login")
-async def auth_login(req: LoginRequest):
+def auth_login(req: LoginRequest):
     from app.services.auth import get_account_by_email, verify_password, get_trial_status
 
     email = req.email.strip().lower()
@@ -786,7 +789,7 @@ async def auth_login(req: LoginRequest):
 
 
 @app.post("/auth/profile")
-async def auth_update_profile(req: ProfileUpdateRequest):
+def auth_update_profile(req: ProfileUpdateRequest):
     from app.services.auth import update_account_profile
     try:
         updated = update_account_profile(req.account_id, character=req.character, language=req.language)
@@ -797,7 +800,7 @@ async def auth_update_profile(req: ProfileUpdateRequest):
 
 
 @app.post("/auth/change-email")
-async def auth_change_email(req: ChangeEmailRequest):
+def auth_change_email(req: ChangeEmailRequest):
     from app.services.auth import change_email
     from app.services.email_otp import issue_otp
 
@@ -814,7 +817,7 @@ async def auth_change_email(req: ChangeEmailRequest):
 
 
 @app.post("/auth/delete-account")
-async def auth_delete_account(req: DeleteAccountRequest):
+def auth_delete_account(req: DeleteAccountRequest):
     from app.services.auth import delete_account
 
     success, error = delete_account(req.account_id, req.password)
@@ -849,7 +852,7 @@ class GoogleAuthRequest(BaseModel):
 
 
 @app.post("/auth/google")
-async def auth_google(req: GoogleAuthRequest):
+def auth_google(req: GoogleAuthRequest):
     from app.services.google_auth import verify_google_token
     from app.services.auth import get_or_create_google_account
 
@@ -884,7 +887,7 @@ class VerifyPhoneOtpRequest(BaseModel):
 
 
 @app.post("/auth/send-phone-otp")
-async def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
+def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
     from app.services.phone_otp import send_phone_otp
 
     mobile = req.mobile.strip()
@@ -903,7 +906,7 @@ async def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
 
 
 @app.post("/auth/verify-phone-otp")
-async def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest):
+def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest):
     from app.services.phone_otp import check_phone_otp
     from app.services.auth import get_or_create_phone_account
 
@@ -941,7 +944,7 @@ class ResumeRequest(BaseModel):
 
 
 @app.post("/auth/resume")
-async def auth_resume(req: ResumeRequest):
+def auth_resume(req: ResumeRequest):
     from app.services.session import verify_session_token
     from app.services.auth import get_account_by_id
 
@@ -972,7 +975,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 @app.post("/auth/forgot-password")
-async def auth_forgot_password(req: ForgotPasswordRequest):
+def auth_forgot_password(req: ForgotPasswordRequest):
     from app.services.auth import get_account_by_email
     from app.services.email_otp import issue_otp
 
@@ -990,7 +993,7 @@ async def auth_forgot_password(req: ForgotPasswordRequest):
 
 
 @app.post("/auth/reset-password")
-async def auth_reset_password(req: ResetPasswordRequest):
+def auth_reset_password(req: ResetPasswordRequest):
     from app.services.email_otp import verify_otp
     from app.services.auth import set_password_by_email
 
@@ -1012,7 +1015,7 @@ async def auth_reset_password(req: ResetPasswordRequest):
 
 
 @app.get("/progress/{child_id}/history")
-async def get_child_progress_history(child_id: str, days: int = 30, limit: int = 200):
+def get_child_progress_history(child_id: str, days: int = 30, limit: int = 200):
     from app.services.progress import get_word_history
     try:
         return {"success": True, "attempts": get_word_history(child_id, days, limit)}
@@ -1028,7 +1031,7 @@ FALLBACK_REPLIES = {
 }
 
 @app.post("/chat")
-async def chat(req: ChatRequest):
+def chat(req: ChatRequest):
     cached = find_cached_answer(req.message)
     if cached:
         return {"reply": cached, "matched": True}
@@ -1055,7 +1058,7 @@ def phoneme_card(phoneme: str, language: str = "english"):
 
 
 @app.post("/playback-compare")
-async def playback_compare(
+def playback_compare(
     child_audio: UploadFile = File(...),
     target_word: str = Form(...),
     character: str = Form(default="BOLT"),
@@ -1065,7 +1068,7 @@ async def playback_compare(
     Returns both the child recording and character audio
     so the child can compare them side by side.
     """
-    child_bytes = await child_audio.read()
+    child_bytes = child_audio.file.read()
     character_text = f"{target_word}"
     character_audio = speak(character_text, character, "instruction")
 

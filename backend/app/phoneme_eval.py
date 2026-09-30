@@ -8,12 +8,15 @@ MODEL_IDS = {
 }
 
 import gc
+import threading
+
+_lock = threading.RLock()  # endpoints run in worker threads; keep one wav2vec model in flight
 
 _processors = {}
 _models = {}
 _current_language = None
 
-def _get_model(language: str):
+def _get_model_unlocked(language: str):
     global _current_language
 
     if language == _current_language and language in _models:
@@ -33,6 +36,11 @@ def _get_model(language: str):
     _current_language = language
 
     return _models[language], _processors[language]
+
+def _get_model(language: str):
+    with _lock:
+        return _get_model_unlocked(language)
+
 
 # Hindi confusable groups (dental/retroflex, aspiration, nukta, sibilants)
 HINDI_CONFUSABLE_GROUPS = [
@@ -136,7 +144,7 @@ def find_all_confusable_groups(word: str, language: str):
                 break
     return matches
 
-def check_confusable_phonemes(audio_path: str, target_word: str, language: str):
+def _check_confusable_phonemes_impl(audio_path: str, target_word: str, language: str):
     """
     Checks EVERY known confusable character in target_word (not just the first),
     scoring the audio against each one vs its confusables. This gives a full
@@ -161,3 +169,8 @@ def check_confusable_phonemes(audio_path: str, target_word: str, language: str):
         result["character"] = target_char
         results.append(result)
     return results
+
+
+def check_confusable_phonemes(*args, **kwargs):
+    with _lock:
+        return _check_confusable_phonemes_impl(*args, **kwargs)

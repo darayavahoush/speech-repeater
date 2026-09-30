@@ -6,6 +6,7 @@
 # scoring ran over the whole denoised clip -- dead air before a kid starts
 # talking, a parent's voice in the background, a mic pop -- all included.
 import logging
+import threading
 from typing import List
 
 import numpy as np
@@ -13,6 +14,7 @@ import torch
 from silero_vad import get_speech_timestamps, load_silero_vad
 
 logger = logging.getLogger(__name__)
+_vad_lock = threading.Lock()  # silero keeps per-call state on the shared model
 
 try:
     vad_model = load_silero_vad()
@@ -27,7 +29,8 @@ def vad_split(y: np.ndarray, sr: int) -> List[np.ndarray]:
         return [y]
 
     y_tensor = torch.tensor(y)
-    timestamps = get_speech_timestamps(y_tensor, vad_model, sampling_rate=sr)
+    with _vad_lock:
+        timestamps = get_speech_timestamps(y_tensor, vad_model, sampling_rate=sr)
 
     segments = []
     for seg in timestamps:

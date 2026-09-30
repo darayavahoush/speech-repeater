@@ -10,3 +10,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+ENV HF_HOME=/opt/hf NLTK_DATA=/opt/nltk_data
+COPY prefetch_models.py /tmp/prefetch_models.py
+RUN mkdir -p $NLTK_DATA && python /tmp/prefetch_models.py

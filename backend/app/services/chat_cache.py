@@ -6,12 +6,14 @@ a previously-generated answer instead of re-hitting the Claude API.
 """
 import json
 import os
+import threading
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
 CACHE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "chat_answer_cache.json")
 SIMILARITY_THRESHOLD = 0.5  # calibrated empirically: true matches score 0.64-0.89, true negatives cap ~0.33
 
+_lock = threading.Lock()
 _embedder = None
 _cache = None  # list of {"question": str, "answer": str, "embedding": list[float]}
 
@@ -19,25 +21,31 @@ _cache = None  # list of {"question": str, "answer": str, "embedding": list[floa
 def _get_embedder():
     global _embedder
     if _embedder is None:
-        _embedder = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+        with _lock:
+            if _embedder is None:
+                _embedder = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
     return _embedder
 
 
 def _load_cache():
     global _cache
     if _cache is None:
-        if os.path.exists(CACHE_PATH):
-            with open(CACHE_PATH, "r", encoding="utf-8") as f:
-                _cache = json.load(f)
-        else:
-            _cache = []
+        with _lock:
+            if _cache is None:
+                if os.path.exists(CACHE_PATH):
+                    with open(CACHE_PATH, "r", encoding="utf-8") as f:
+                        _cache = json.load(f)
+                else:
+                    _cache = []
     return _cache
 
 
 def _save_cache():
     os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
-    with open(CACHE_PATH, "w", encoding="utf-8") as f:
+    tmp = CACHE_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(_cache, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, CACHE_PATH)
 
 
 def _cosine_sim(a, b):
@@ -72,5 +80,6 @@ def store_answer(question: str, answer: str):
     cache = _load_cache()
     embedder = _get_embedder()
     q_emb = embedder.encode(question).tolist()
-    cache.append({"question": question, "answer": answer, "embedding": q_emb})
-    _save_cache()
+    with _lock:
+        cache.append({"question": question, "answer": answer, "embedding": q_emb})
+        _save_cache()
