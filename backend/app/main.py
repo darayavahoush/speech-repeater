@@ -63,6 +63,33 @@ g2p = G2p()
 epi_hindi = epitran.Epitran("hin-Deva")
 epi_kannada = epitran.Epitran("kan-Knda")
 
+from functools import lru_cache as _lru_cache
+
+@_lru_cache(maxsize=1)  # one translator at a time to bound memory
+def _get_translator(model_id):
+    from transformers import pipeline
+    return pipeline("translation", model=model_id)
+
+def _warmup():
+    t0 = _time.perf_counter()
+    try:
+        import numpy as np
+        import importlib
+        whisper.transcribe(np.zeros(16000, dtype="float32"), language="en", beam_size=1)
+        g2p("cat")
+        lang = os.getenv("WARMUP_PHONEME_LANG", "hindi")
+        if lang != "none":
+            import torch
+            pe = importlib.import_module("app.phoneme_eval")
+            model, _proc = pe._get_model(lang)
+            with torch.inference_mode():
+                model(torch.zeros(1, 16000))
+        print(f"[warmup] done in {_time.perf_counter() - t0:.1f}s", flush=True)
+    except Exception as e:
+        print(f"[warmup] failed: {e!r}", flush=True)
+
+_warmup()
+
 
 # Common word dictionary for image lookup
 WORD_DICT = {
@@ -215,7 +242,7 @@ def translate_word(
         else:
             return {"translated": text}
         
-        translator = pipeline("translation", model=model)
+        translator = _get_translator(model)
         result = translator(text, max_length=100)
         translated = result[0]["translation_text"]
         return {"translated": translated, "original": text, "language": target_language}

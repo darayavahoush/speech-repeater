@@ -16,3 +16,8 @@ for mid in ("ai4bharat/indicwav2vec-hindi", "amoghsgopadi/wav2vec2-large-xlsr-kn
 from sentence_transformers import SentenceTransformer
 for name in ("paraphrase-multilingual-MiniLM-L12-v2", "all-MiniLM-L6-v2"):
     SentenceTransformer(name)
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+for _mid in ("Helsinki-NLP/opus-mt-en-hi", "Helsinki-NLP/opus-mt-en-dra"):
+    AutoTokenizer.from_pretrained(_mid)
+    AutoModelForSeq2SeqLM.from_pretrained(_mid)
