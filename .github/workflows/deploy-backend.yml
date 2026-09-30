@@ -24,7 +24,7 @@ jobs:
           if az acr repository show --name vaakifyacr --image vaakify-backend-base:$TAG >/dev/null 2>&1; then
             echo "Base image $TAG already exists, skipping"
           else
-            az acr build --registry vaakifyacr --image vaakify-backend-base:$TAG -f Dockerfile.base ./backend
+            (cd backend && az acr build --registry vaakifyacr --image vaakify-backend-base:$TAG -f Dockerfile.base .)
           fi
       - name: Build app image in ACR
         run: >
