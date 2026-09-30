@@ -39,8 +39,25 @@ app.add_middleware(
 )
 
 print("Loading Whisper model...")
-whisper = WhisperModel(settings.WHISPER_MODEL, device=settings.WHISPER_DEVICE, compute_type=settings.WHISPER_COMPUTE_TYPE)
+whisper = WhisperModel(settings.WHISPER_MODEL, device=settings.WHISPER_DEVICE, compute_type=settings.WHISPER_COMPUTE_TYPE, cpu_threads=int(os.getenv("CPU_THREADS", "2")))
 print("Whisper loaded.")
+
+import time as _time
+_orig_transcribe = whisper.transcribe
+def _timed_transcribe(*a, **k):
+    t0 = _time.perf_counter()
+    segs, info = _orig_transcribe(*a, **k)
+    segs = list(segs)  # decoding happens while iterating
+    print(f"[timing] whisper {_time.perf_counter() - t0:.2f}s", flush=True)
+    return segs, info
+whisper.transcribe = _timed_transcribe
+
+@app.middleware("http")
+async def _log_request_time(request, call_next):
+    t0 = _time.perf_counter()
+    resp = await call_next(request)
+    print(f"[timing] {request.method} {request.url.path} {_time.perf_counter() - t0:.2f}s", flush=True)
+    return resp
 
 g2p = G2p()
 epi_hindi = epitran.Epitran("hin-Deva")
