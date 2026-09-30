@@ -331,7 +331,7 @@ def compare(
 
     try:
         whisper_lang = "hi" if language == "hindi" else "kn" if language == "kannada" else "en"
-        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
+        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=1, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
@@ -413,7 +413,7 @@ def input_word(
             tmp.write(audio.file.read())
             tmp_path = tmp.name
         try:
-            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0, initial_prompt="A single English word spoken clearly. Indian English accent.")
+            segments, _ = whisper.transcribe(tmp_path, language="en", condition_on_previous_text=False, beam_size=1, temperature=0.0, initial_prompt="A single English word spoken clearly. Indian English accent.")
             word = " ".join([s.text.strip() for s in segments]).strip().lower()
         finally:
             os.unlink(tmp_path)
@@ -491,7 +491,7 @@ def evaluate(
 
     try:
         whisper_lang = "hi" if language == "hindi" else "kn" if language == "kannada" else "en"
-        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=5, best_of=5, temperature=0.0)
+        segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=1, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
         target_phonemes = get_phonemes(target_word, language)
         detected_phonemes = get_phonemes(transcript, language) if transcript else []
