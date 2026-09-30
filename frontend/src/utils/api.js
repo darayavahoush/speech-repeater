@@ -29,8 +29,15 @@ export async function evaluateAttempt({ audio, targetWord, character, language, 
   if (childId) form.append("child_id", childId);
   form.append("attempt_history", JSON.stringify(attemptHistory || []));
 
-  const res = await fetch(`${BASE_URL}/evaluate`, { method: "POST", body: form });
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90000);
+  try {
+    const res = await fetch(`${BASE_URL}/evaluate`, { method: "POST", body: form, signal: controller.signal });
+    if (!res.ok) throw new Error(`evaluate failed: ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function getPhonemeCard(phoneme) {

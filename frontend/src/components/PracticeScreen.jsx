@@ -13,6 +13,15 @@ const BASE = API_BASE;
 
 export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode, childId }) {
   const [phase, setPhase] = useState("listen");
+  const [waitStage, setWaitStage] = useState(0);
+  const [submitError, setSubmitError] = useState(false);
+  useEffect(() => {
+    setWaitStage(0);
+    if (phase !== "loading") return;
+    const t1 = setTimeout(() => setWaitStage(1), 6000);
+    const t2 = setTimeout(() => setWaitStage(2), 15000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [phase]);
   const [playingChar, setPlayingChar] = useState(false);
   const [playingChild, setPlayingChild] = useState(false);
   const [speed, setSpeed] = useState(1.0);
@@ -118,6 +127,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
   const handleSubmit = async () => {
     if (!audioBlob) return;
     setPhase("loading");
+    setSubmitError(false);
     try {
       const result = await evaluateAttempt({
         audio: audioBlob,
@@ -134,6 +144,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
       onResult({ ...result, attemptNumber, attemptHistory: newHistory, childAudioUrl: audioUrl });
     } catch (err) {
       console.error(err);
+      setSubmitError(true);
       setPhase("record");
     }
   };
@@ -333,10 +344,15 @@ export default function PracticeScreen({ character, language = "english", wordDa
                 {playingChar ? "Playing..." : `🔊 Hear ${char.name}`}
               </button>
             </div>
+            {submitError && (
+              <p role="status" style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 700, textAlign: "center", margin: 0 }}>
+                Oops, that didn't go through. Let's try again! 💛
+              </p>
+            )}
             <button onClick={handleSubmit} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "20px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Check my answer! ✨
             </button>
-            <button id="hint-mic-button" onClick={() => { reset(); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
+            <button id="hint-mic-button" onClick={() => { reset(); setSubmitError(false); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
               Try again
             </button>
           </div>
@@ -344,8 +360,11 @@ export default function PracticeScreen({ character, language = "english", wordDa
 
         {phase === "loading" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", padding: "32px" }}>
-            <div style={{ width: "44px", height: "44px", border: `3px solid ${th.accent}33`, borderTop: `3px solid ${th.accent}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-            <p style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 600 }}>Analysing your voice...</p>
+            <img src={char.image} alt="" style={{ width: "72px", height: "72px", objectFit: "contain", animation: "bob 1.4s ease-in-out infinite" }} />
+            <div style={{ width: "36px", height: "36px", border: `3px solid ${th.accent}33`, borderTop: `3px solid ${th.accent}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <p role="status" aria-live="polite" style={{ color: th.sub, fontSize: "0.9rem", fontWeight: 700, textAlign: "center", margin: 0, fontFamily: "Nunito, sans-serif" }}>
+              {waitStage === 0 ? `Got it! ${char.name} is listening... 🎧` : waitStage === 1 ? "Still listening carefully..." : "Thanks for waiting, this one is taking a little longer. Almost there! 🌟"}
+            </p>
           </div>
         )}
         </div>
@@ -354,6 +373,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes ping { 75%, 100% { transform: scale(2.2); opacity: 0; } }
+        @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
       `}</style>
     </div>
   );
