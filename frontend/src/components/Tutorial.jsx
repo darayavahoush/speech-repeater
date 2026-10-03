@@ -38,7 +38,7 @@ const STEPS = [
   },
 ];
 
-export default function Tutorial({ onClose, darkMode }) {
+export default function Tutorial({ onClose, onSkip, darkMode }) {
   const [step, setStep] = useState(0);
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
@@ -58,7 +58,8 @@ export default function Tutorial({ onClose, darkMode }) {
         position: "relative",
       }}>
         <button
-          onClick={onClose}
+          onClick={onSkip || onClose}
+          aria-label="Close tutorial"
           style={{
             position: "absolute", top: "16px", right: "16px",
             background: "rgba(0,0,0,0.06)", border: "none", borderRadius: "50%",
@@ -117,7 +118,7 @@ export default function Tutorial({ onClose, darkMode }) {
 
         {!isLast && (
           <button
-            onClick={onClose}
+            onClick={onSkip || onClose}
             style={{
               display: "block", margin: "14px auto 0 auto", background: "none",
               border: "none", color: "#aaa", fontSize: "0.75rem",

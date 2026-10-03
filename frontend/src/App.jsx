@@ -51,7 +51,7 @@ export default function App() {
     const path = window.location.pathname.replace(/\/+$/, "");
     if (path === "/privacy") return SCREENS.PRIVACY;
     if (path === "/terms") return SCREENS.TERMS;
-    return getAccounts().length ? SCREENS.WHO : SCREENS.HOMEPAGE;
+    return getAccounts().length ? SCREENS.WHO : SCREENS.LOGIN;
   });
   const [prefillEmail, setPrefillEmail] = useState("");
   const [childId, setChildId] = useState(null);
@@ -118,9 +118,28 @@ export default function App() {
 
   const spotlightSeenKey = (scr) => `vaaksiddhi_spotlight_seen_${childId}_${scr}`;
 
+  const hintsOffKey = () => `vaaksiddhi_hints_off_${childId}`;
+  const tutorialSeenKey = () => `vaaksiddhi_tutorial_seen_${childId}`;
+
   const handleSpotlightComplete = () => {
     setShowSpotlight(false);
     if (childId) localStorage.setItem(spotlightSeenKey(screen), "true");
+  };
+
+  // Skip = "stop showing me the walkthrough" for this account, on every screen.
+  const handleSpotlightSkip = () => {
+    setShowSpotlight(false);
+    if (childId) localStorage.setItem(hintsOffKey(), "true");
+  };
+
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    if (childId) localStorage.setItem(tutorialSeenKey(), "true");
+  };
+
+  const handleTutorialSkip = () => {
+    handleTutorialClose();
+    if (childId) localStorage.setItem(hintsOffKey(), "true");
   };
 
   // Auto-show hints the first time a new user reaches a screen that has them.
@@ -128,6 +147,7 @@ export default function App() {
   // of each other (both can trigger off the same screen-change event).
   useEffect(() => {
     if (!isNewUser || !childId || showTutorial) return;
+    if (localStorage.getItem(hintsOffKey())) return;
     const hints = SCREEN_HINTS[screen];
     if (!hints) return;
     if (localStorage.getItem(spotlightSeenKey(screen))) return;
@@ -251,7 +271,7 @@ export default function App() {
     setCharacter(charId);
     saveProfile({ character: charId });
     setScreen(SCREENS.THERAPIST_INPUT);
-    if (isNewUser) {
+    if (isNewUser && childId && !localStorage.getItem(tutorialSeenKey())) {
       setShowTutorial(true);
     }
   };
@@ -325,7 +345,7 @@ export default function App() {
     setResult(null);
     setTrialStatus(null);
     setTrialDaysRemaining(null);
-    setScreen(SCREENS.HOMEPAGE);
+    setScreen(getAccounts().length ? SCREENS.WHO : SCREENS.LOGIN);
   };
 
   if (resuming) return <div style={{ minHeight: "100vh" }} />;
@@ -545,9 +565,9 @@ export default function App() {
         onOpenSettings={() => setScreen(SCREENS.SETTINGS)}
         onOpenPaywall={() => setScreen(SCREENS.PAYWALL)}
       />
-      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} darkMode={darkMode} />}
+      {showTutorial && <Tutorial onClose={handleTutorialClose} onSkip={handleTutorialSkip} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (
-        <SpotlightHint steps={SCREEN_HINTS[screen]} onComplete={handleSpotlightComplete} darkMode={darkMode} />
+        <SpotlightHint steps={SCREEN_HINTS[screen]} onComplete={handleSpotlightComplete} onSkip={handleSpotlightSkip} darkMode={darkMode} />
       )}
       {SCREEN_HINTS[screen] && (
         <button

@@ -16,8 +16,12 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
 
   const handleSubmit = async () => {
     setError("");
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      setError("Please fill in your name, email, and password.");
+    if (!name.trim() || !email.trim() || !mobile.trim() || !password.trim()) {
+      setError("Please fill in your name, email, mobile number, and password.");
+      return;
+    }
+    if (mobile.replace(/\D/g, "").length < 10) {
+      setError("Please enter a valid mobile number, e.g. +91 98765 43210.");
       return;
     }
     setLoading(true);
@@ -29,7 +33,7 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
           name: name.trim(),
           email: email.trim(),
           password: password.trim(),
-          mobile: mobile.trim() || null,
+          mobile: mobile.trim(),
         }),
       });
       const data = await res.json();
@@ -85,7 +89,7 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
           <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle} />
 
           <label style={{ display: "block", fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.8rem", color: labelColor, marginBottom: "6px" }}>
-            Mobile number <span style={{ opacity: 0.6, fontWeight: 500 }}>(optional for now)</span>
+            Mobile number
           </label>
           <input value={mobile} onChange={(e) => setMobile(e.target.value.replace(/[^\d+\s]/g, ""))} placeholder="+91 98765 43210" type="tel" style={inputStyle} />
 

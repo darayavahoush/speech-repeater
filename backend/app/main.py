@@ -1,3 +1,4 @@
+import re
 import nltk
 from typing import Optional
 for _res, _pkg in (("taggers/averaged_perceptron_tagger_eng", "averaged_perceptron_tagger_eng"), ("corpora/cmudict", "cmudict")):
@@ -673,6 +674,25 @@ class DeleteAccountRequest(BaseModel):
     password: str
 
 
+def _normalize_mobile(raw):
+    """Return E.164 (+<digits>) or None if it isn't a plausible number.
+    A bare 10-digit number is assumed to be Indian (+91)."""
+    if not raw:
+        return None
+    digits = re.sub(r"\D", "", raw)
+    if raw.strip().startswith("+"):
+        pass
+    elif len(digits) == 10:
+        digits = "91" + digits
+    elif len(digits) == 12 and digits.startswith("91"):
+        pass
+    else:
+        return None
+    if not 8 <= len(digits) <= 15:
+        return None
+    return "+" + digits
+
+
 @app.post("/auth/signup")
 def auth_signup(req: SignupRequest):
     from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status, get_account_by_mobile
@@ -680,10 +700,12 @@ def auth_signup(req: SignupRequest):
     name = req.name.strip()
     email = req.email.strip().lower()
     password = req.password
-    mobile = req.mobile.strip() if req.mobile else None
+    mobile = _normalize_mobile(req.mobile)
 
-    if not name or not email or not password:
-        return {"success": False, "error": "Name, email, and password are required."}
+    if not name or not email or not password or not (req.mobile or "").strip():
+        return {"success": False, "error": "Name, email, mobile number, and password are required."}
+    if not mobile:
+        return {"success": False, "error": "Please enter a valid mobile number with country code, e.g. +91 98765 43210."}
     if not is_valid_email(email):
         return {"success": False, "error": "Please enter a valid email address."}
     if len(password) < 6:
@@ -698,14 +720,13 @@ def auth_signup(req: SignupRequest):
     if existing:
         return {"success": False, "error": "An account with that email already exists. Try signing in instead."}
 
-    if mobile:
-        try:
-            existing_mobile = get_account_by_mobile(mobile)
-        except Exception as e:
-            print(f"Signup mobile lookup error: {e}")
-            return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
-        if existing_mobile:
-            return {"success": False, "error": "An account with that mobile number already exists. Try signing in instead."}
+    try:
+        existing_mobile = get_account_by_mobile(mobile)
+    except Exception as e:
+        print(f"Signup mobile lookup error: {e}")
+        return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
+    if existing_mobile:
+        return {"success": False, "error": "An account with that mobile number already exists. Try signing in instead."}
 
     try:
         account = create_account(name, email, password, mobile=mobile)

@@ -8,16 +8,18 @@ import { useState, useEffect, useRef } from "react";
  * steps: [{ targetId: string, text: string }]
  * onComplete: called when all steps are done or user skips
  */
-export default function SpotlightHint({ steps, onComplete, darkMode }) {
+export default function SpotlightHint({ steps, onComplete, onSkip, darkMode }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const clickListenerRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const current = steps[stepIndex];
 
   useEffect(() => {
     if (!current) {
-      onComplete();
+      onCompleteRef.current();
       return;
     }
 
@@ -37,7 +39,7 @@ export default function SpotlightHint({ steps, onComplete, darkMode }) {
       if (stepIndex < steps.length - 1) {
         setStepIndex((i) => i + 1);
       } else {
-        onComplete();
+        onCompleteRef.current();
       }
     };
 
@@ -70,7 +72,7 @@ export default function SpotlightHint({ steps, onComplete, darkMode }) {
         clickListenerRef.current.el.removeEventListener("click", clickListenerRef.current.advance);
       }
     };
-  }, [stepIndex, current, onComplete, steps.length]);
+  }, [stepIndex, current, steps.length]);
 
   if (!current || !rect) return null;
 
@@ -118,7 +120,7 @@ export default function SpotlightHint({ steps, onComplete, darkMode }) {
             {stepIndex + 1} / {steps.length}
           </span>
           <button
-            onClick={onComplete}
+            onClick={() => (onSkip || onComplete)()}
             style={{
               background: "none", border: "none", color: "#E8825A",
               fontSize: "0.75rem", fontFamily: "Nunito, sans-serif", fontWeight: 700,
