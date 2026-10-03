@@ -13,7 +13,7 @@ export default function SpotlightHint({ steps, onComplete, onSkip, darkMode }) {
   const [rect, setRect] = useState(null);
   const clickListenerRef = useRef(null);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => { onCompleteRef.current = onComplete; });
 
   const current = steps[stepIndex];
 

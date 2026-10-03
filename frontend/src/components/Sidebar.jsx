@@ -17,7 +17,7 @@ const THEMES = {
 
 const LANG_NATIVE = { english: "English", hindi: "हिन्दी", kannada: "ಕನ್ನಡ" };
 
-export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode, childId, onOpenProgress, onOpenSettings, onOpenPaywall }) {
+export default function Sidebar({ character, language, currentScreen, onSwitchCharacter, onSwitchLanguage, onHome, onShowTutorial, darkMode, onToggleDarkMode, childId, onOpenProgress, onOpenSettings, onOpenPaywall, onLogout }) {
   const [open, setOpen] = useState(false);
   const [streak, setStreak] = useState(0);
   const th = getTheme(character, darkMode);
@@ -88,7 +88,7 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
             </button>
           )}
 
-          {(onOpenProgress || onOpenSettings) && (
+          {(onOpenProgress || onOpenSettings || onLogout) && (
             <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
               {onOpenProgress && (
                 <button onClick={() => { onOpenProgress(); setOpen(false); }} title="Progress" style={{
@@ -108,6 +108,16 @@ export default function Sidebar({ character, language, currentScreen, onSwitchCh
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text }}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                   <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.62rem", color: th.text }}>Settings</span>
+                </button>
+              )}
+              {onLogout && (
+                <button onClick={() => { setOpen(false); onLogout(); }} title="Log out" style={{
+                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
+                  background: "transparent", border: `1.5px solid ${th.accent}33`,
+                  borderRadius: "12px", padding: "10px 6px", cursor: "pointer",
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: th.text }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.62rem", color: th.text }}>Log out</span>
                 </button>
               )}
             </div>

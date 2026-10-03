@@ -6,7 +6,7 @@ for _res, _pkg in (("taggers/averaged_perceptron_tagger_eng", "averaged_perceptr
         nltk.data.find(_res)
     except LookupError:
         nltk.download(_pkg, quiet=True)
-from fastapi import FastAPI, UploadFile, File, Form, Response
+from fastapi import FastAPI, UploadFile, File, Form, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from faster_whisper import WhisperModel
 import tempfile
@@ -29,6 +29,7 @@ from app.services.image.matcher import get_image_for_phrase
 from app.services.chat_cache import find_cached_answer, store_answer
 from pydantic import BaseModel
 from app.services.session import make_session_token
+from app.services import ratelimit
 
 app = FastAPI(title="VaakSiddhi Autism", version="1.0.0")
 
@@ -358,6 +359,18 @@ def compare(
     tmp_path = tmp_wav.name
 
     try:
+        # Nothing but silence/noise? Say so now instead of running Whisper and the
+        # scoring models on it (the slow part) and handing back a confusing score.
+        try:
+            import librosa
+            from app.services.audio.vad import speech_seconds, MIN_SPEECH_SECONDS
+            y_check, sr_check = librosa.load(tmp_path, sr=16000, mono=True)
+            heard = speech_seconds(y_check, sr_check)
+            if heard is not None and heard < MIN_SPEECH_SECONDS:
+                return {"no_speech": True, "speech_seconds": round(heard, 2)}
+        except Exception as e:
+            print(f"Speech pre-check skipped: {e}")  # fail open: evaluate as before
+
         whisper_lang = "hi" if language == "hindi" else "kn" if language == "kannada" else "en"
         segments, _ = whisper.transcribe(tmp_path, language=whisper_lang, condition_on_previous_text=False, beam_size=1, temperature=0.0)
         transcript = " ".join([s.text.strip() for s in segments]).strip().lower()
@@ -650,6 +663,7 @@ class SignupRequest(BaseModel):
     email: str
     password: str
     mobile: Optional[str] = None
+    code: Optional[str] = None  # SMS code; absent on the first call, which sends it
 
 
 class LoginRequest(BaseModel):
@@ -674,62 +688,90 @@ class DeleteAccountRequest(BaseModel):
     password: str
 
 
-def _normalize_mobile(raw):
-    """Return E.164 (+<digits>) or None if it isn't a plausible number.
-    A bare 10-digit number is assumed to be Indian (+91)."""
-    if not raw:
-        return None
-    digits = re.sub(r"\D", "", raw)
-    if raw.strip().startswith("+"):
-        pass
-    elif len(digits) == 10:
-        digits = "91" + digits
-    elif len(digits) == 12 and digits.startswith("91"):
-        pass
-    else:
-        return None
-    if not 8 <= len(digits) <= 15:
-        return None
-    return "+" + digits
+def _profile_gaps(account: dict) -> dict:
+    """What an account still needs before it satisfies "email AND verified phone"."""
+    has_mobile = bool(account.get("mobile")) and (bool(account.get("mobile_verified")) or not settings.REQUIRE_PHONE_VERIFICATION)
+    return {
+        "mobile": account.get("mobile"),
+        "needs_mobile": not has_mobile,
+        "needs_email": not account.get("email"),
+    }
 
 
 @app.post("/auth/signup")
-def auth_signup(req: SignupRequest):
-    from app.services.auth import get_account_by_email, create_account, is_valid_email, get_trial_status, get_account_by_mobile
+def auth_signup(req: SignupRequest, request: Request):
+    """Two-step when REQUIRE_PHONE_VERIFICATION is on: the first call validates
+    everything and texts a code (response has needs_phone_code); the second call
+    repeats the same fields plus `code`, and only then is the account created."""
+    from sqlalchemy.exc import IntegrityError
+    from app.services.auth import (
+        get_account_by_email, create_account, is_valid_email, get_trial_status,
+        get_account_by_mobile, normalize_mobile,
+    )
 
     name = req.name.strip()
     email = req.email.strip().lower()
     password = req.password
-    mobile = _normalize_mobile(req.mobile)
+    mobile = normalize_mobile(req.mobile)
+    code = (req.code or "").strip()
 
     if not name or not email or not password or not (req.mobile or "").strip():
         return {"success": False, "error": "Name, email, mobile number, and password are required."}
-    if not mobile:
-        return {"success": False, "error": "Please enter a valid mobile number with country code, e.g. +91 98765 43210."}
     if not is_valid_email(email):
         return {"success": False, "error": "Please enter a valid email address."}
+    if not mobile:
+        return {"success": False, "error": "Please enter a valid mobile number with country code, e.g. +91 98765 43210."}
     if len(password) < 6:
         return {"success": False, "error": "Password should be at least 6 characters."}
 
     try:
         existing = get_account_by_email(email)
+        existing_mobile = get_account_by_mobile(mobile)
     except Exception as e:
         print(f"Signup lookup error: {e}")
         return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
 
     if existing:
         return {"success": False, "error": "An account with that email already exists. Try signing in instead."}
-
-    try:
-        existing_mobile = get_account_by_mobile(mobile)
-    except Exception as e:
-        print(f"Signup mobile lookup error: {e}")
-        return {"success": False, "error": "Sign up is temporarily unavailable. Please try again shortly."}
     if existing_mobile:
         return {"success": False, "error": "An account with that mobile number already exists. Try signing in instead."}
 
+    mobile_verified = False
+    if settings.REQUIRE_PHONE_VERIFICATION:
+        from app.services.phone_otp import send_phone_otp, check_phone_otp
+
+        if not code:
+            # Checked only after every validation above passes, so duplicates and typos never cost an SMS.
+            blocked = ratelimit.enforce(request, "phone-send", mobile, per_ip=(20, 3600), per_id=(3, 3600), per_id_extra=(6, 86400))
+            if blocked:
+                return blocked
+            try:
+                send_phone_otp(mobile)
+            except RuntimeError as e:
+                return {"success": False, "error": str(e)}
+            except Exception as e:
+                print(f"Signup SMS send error: {e}")
+                return {"success": False, "error": "Could not send the verification code. Please try again."}
+            return {"success": False, "needs_phone_code": True, "mobile": mobile}
+
+        blocked = ratelimit.enforce(request, "phone-check", mobile, per_ip=(60, 600), per_id=(8, 600))
+        if blocked:
+            return blocked
+        try:
+            approved = check_phone_otp(mobile, code)
+        except RuntimeError as e:
+            return {"success": False, "error": str(e)}
+        except Exception as e:
+            print(f"Signup SMS check error: {e}")
+            return {"success": False, "error": "Could not verify the code. Please try again."}
+        if not approved:
+            return {"success": False, "needs_phone_code": True, "mobile": mobile, "error": "Incorrect or expired code."}
+        mobile_verified = True
+
     try:
-        account = create_account(name, email, password, mobile=mobile)
+        account = create_account(name, email, password, mobile=mobile, mobile_verified=mobile_verified)
+    except IntegrityError:
+        return {"success": False, "error": "An account with that email or mobile number already exists. Try signing in instead."}
     except Exception as e:
         print(f"Signup create error: {e}")
         return {"success": False, "error": "Could not create your account. Please try again."}
@@ -753,6 +795,7 @@ def auth_signup(req: SignupRequest):
         "trial_days_remaining": trial["days_remaining"],
         "needs_verification": settings.REQUIRE_EMAIL_VERIFICATION,
         "session_token": None if settings.REQUIRE_EMAIL_VERIFICATION else make_session_token(account["id"]),
+        **_profile_gaps(account),
     }
 
 
@@ -766,11 +809,14 @@ class VerifyOtpRequest(BaseModel):
 
 
 @app.post("/auth/send-email-otp")
-def send_email_otp(req: SendOtpRequest):
+def send_email_otp(req: SendOtpRequest, request: Request):
     from app.services.auth import get_account_by_email
     from app.services.email_otp import issue_otp
 
     email = req.email.strip().lower()
+    blocked = ratelimit.enforce(request, "email-send", email, per_ip=(20, 3600), per_id=(5, 3600))
+    if blocked:
+        return blocked
     try:
         account = get_account_by_email(email)
     except Exception as e:
@@ -790,11 +836,15 @@ def send_email_otp(req: SendOtpRequest):
 
 
 @app.post("/auth/verify-email-otp")
-def verify_email_otp(req: VerifyOtpRequest):
+def verify_email_otp(req: VerifyOtpRequest, request: Request):
     from app.services.email_otp import verify_otp
     from app.services.auth import get_account_by_email, get_trial_status
 
     email = req.email.strip().lower()
+    # A 6-digit code is only 1M possibilities, so cap guesses per address.
+    blocked = ratelimit.enforce(request, "email-check", email, per_ip=(60, 600), per_id=(8, 600))
+    if blocked:
+        return blocked
     success, error = verify_otp(email, req.code.strip())
     if not success:
         return {"success": False, "error": error}
@@ -811,15 +861,19 @@ def verify_email_otp(req: VerifyOtpRequest):
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
         "session_token": make_session_token(account["id"]),
+        **_profile_gaps(account),
     }
 
 
 @app.post("/auth/login")
-def auth_login(req: LoginRequest):
+def auth_login(req: LoginRequest, request: Request):
     from app.services.auth import get_account_by_email, verify_password, get_trial_status
 
     email = req.email.strip().lower()
     password = req.password
+    blocked = ratelimit.enforce(request, "login", email, per_ip=(100, 600), per_id=(10, 600))
+    if blocked:
+        return blocked
 
     if not email or not password:
         return {"success": False, "error": "Email and password are required."}
@@ -850,6 +904,7 @@ def auth_login(req: LoginRequest):
         "trial_status": trial["status"],
         "trial_days_remaining": trial["days_remaining"],
         "session_token": make_session_token(account["id"]),
+        **_profile_gaps(account),
     }
 
 
@@ -909,6 +964,7 @@ def _account_auth_response(account: dict, is_new: bool = False) -> dict:
         "trial_days_remaining": trial["days_remaining"],
         "is_new": is_new,
         "session_token": make_session_token(account["id"]),
+        **_profile_gaps(account),
     }
 
 
@@ -952,12 +1008,17 @@ class VerifyPhoneOtpRequest(BaseModel):
 
 
 @app.post("/auth/send-phone-otp")
-def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
+def send_phone_otp_endpoint(req: SendPhoneOtpRequest, request: Request):
     from app.services.phone_otp import send_phone_otp
+    from app.services.auth import normalize_mobile
 
-    mobile = req.mobile.strip()
+    mobile = normalize_mobile(req.mobile)
     if not mobile:
-        return {"success": False, "error": "Please enter a mobile number."}
+        return {"success": False, "error": "Please enter a valid mobile number with country code, e.g. +91 98765 43210."}
+
+    blocked = ratelimit.enforce(request, "phone-send", mobile, per_ip=(20, 3600), per_id=(3, 3600), per_id_extra=(6, 86400))
+    if blocked:
+        return blocked
 
     try:
         send_phone_otp(mobile)
@@ -971,14 +1032,18 @@ def send_phone_otp_endpoint(req: SendPhoneOtpRequest):
 
 
 @app.post("/auth/verify-phone-otp")
-def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest):
+def verify_phone_otp_endpoint(req: VerifyPhoneOtpRequest, request: Request):
     from app.services.phone_otp import check_phone_otp
-    from app.services.auth import get_or_create_phone_account
+    from app.services.auth import get_or_create_phone_account, normalize_mobile
 
-    mobile = req.mobile.strip()
+    mobile = normalize_mobile(req.mobile)
     code = req.code.strip()
     if not mobile or not code:
         return {"success": False, "error": "Mobile number and code are required."}
+
+    blocked = ratelimit.enforce(request, "phone-check", mobile, per_ip=(60, 600), per_id=(8, 600))
+    if blocked:
+        return blocked
 
     try:
         approved = check_phone_otp(mobile, code)
@@ -1013,8 +1078,10 @@ def auth_resume(req: ResumeRequest):
     from app.services.session import verify_session_token
     from app.services.auth import get_account_by_id
 
+    from app.services.revocation import is_revoked
+
     account_id = verify_session_token(req.token)
-    if not account_id:
+    if not account_id or is_revoked(req.token):
         return {"success": False, "expired": True}
 
     try:
@@ -1029,6 +1096,194 @@ def auth_resume(req: ResumeRequest):
     return _account_auth_response(account)
 
 
+def _authed_account(token: str):
+    """Account for a valid, non-revoked session token, else None."""
+    from app.services.session import verify_session_token
+    from app.services.revocation import is_revoked
+    from app.services.auth import get_account_by_id
+
+    account_id = verify_session_token(token)
+    if not account_id or is_revoked(token):
+        return None
+    return get_account_by_id(account_id)
+
+
+_SESSION_EXPIRED = {"success": False, "expired": True, "error": "Your session has expired. Please sign in again."}
+
+
+class LogoutRequest(BaseModel):
+    token: str
+
+
+@app.post("/auth/logout")
+def auth_logout(req: LogoutRequest):
+    from app.services.revocation import revoke
+    # Always succeeds from the client's point of view; the device clears its own copy regardless.
+    return {"success": True, "revoked": revoke(req.token)}
+
+
+class AddMobileSendRequest(BaseModel):
+    token: str
+    mobile: str
+
+
+class AddMobileVerifyRequest(BaseModel):
+    token: str
+    mobile: str
+    code: str
+
+
+@app.post("/auth/profile/mobile/send")
+def profile_mobile_send(req: AddMobileSendRequest, request: Request):
+    """Google / legacy accounts without a verified phone: text a code to add one."""
+    from app.services.auth import normalize_mobile, get_account_by_mobile, set_verified_mobile
+    from app.services.phone_otp import send_phone_otp
+
+    account = _authed_account(req.token)
+    if not account:
+        return _SESSION_EXPIRED
+    mobile = normalize_mobile(req.mobile)
+    if not mobile:
+        return {"success": False, "error": "Please enter a valid mobile number with country code, e.g. +91 98765 43210."}
+
+    other = get_account_by_mobile(mobile)
+    if other and other["id"] != account["id"]:
+        return {"success": False, "error": "That mobile number is already used by another account."}
+
+    if not settings.REQUIRE_PHONE_VERIFICATION:
+        try:
+            updated = set_verified_mobile(account["id"], mobile, verified=False)
+        except ValueError:
+            return {"success": False, "error": "That mobile number is already used by another account."}
+        return {**_account_auth_response(updated), "done": True}
+
+    blocked = ratelimit.enforce(request, "phone-send", mobile, per_ip=(20, 3600), per_id=(3, 3600), per_id_extra=(6, 86400))
+    if not blocked:
+        blocked = ratelimit.enforce(request, "phone-send-acct", account["id"], per_id=(6, 3600))
+    if blocked:
+        return blocked
+    try:
+        send_phone_otp(mobile)
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        print(f"Profile SMS send error: {e}")
+        return {"success": False, "error": "Could not send the verification code. Please try again."}
+    return {"success": True, "mobile": mobile}
+
+
+@app.post("/auth/profile/mobile/verify")
+def profile_mobile_verify(req: AddMobileVerifyRequest, request: Request):
+    from app.services.auth import normalize_mobile, set_verified_mobile
+    from app.services.phone_otp import check_phone_otp
+
+    account = _authed_account(req.token)
+    if not account:
+        return _SESSION_EXPIRED
+    mobile = normalize_mobile(req.mobile)
+    code = req.code.strip()
+    if not mobile or not code:
+        return {"success": False, "error": "Mobile number and code are required."}
+
+    blocked = ratelimit.enforce(request, "phone-check", mobile, per_ip=(60, 600), per_id=(8, 600))
+    if blocked:
+        return blocked
+    try:
+        approved = check_phone_otp(mobile, code)
+    except RuntimeError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        print(f"Profile SMS check error: {e}")
+        return {"success": False, "error": "Could not verify the code. Please try again."}
+    if not approved:
+        return {"success": False, "error": "Incorrect or expired code."}
+
+    try:
+        updated = set_verified_mobile(account["id"], mobile)
+    except ValueError:
+        return {"success": False, "error": "That mobile number is already used by another account."}
+    except Exception as e:
+        print(f"Profile mobile save error: {e}")
+        return {"success": False, "error": "Could not save your number. Please try again."}
+    return _account_auth_response(updated)
+
+
+class AddEmailSendRequest(BaseModel):
+    token: str
+    email: str
+
+
+class AddEmailVerifyRequest(BaseModel):
+    token: str
+    email: str
+    code: str
+
+
+@app.post("/auth/profile/email/send")
+def profile_email_send(req: AddEmailSendRequest, request: Request):
+    """Phone-only accounts: email a code to the address they want to add."""
+    from app.services.auth import is_valid_email, get_account_by_email
+    from app.services.session import make_email_code
+    from app.services.email_otp import send_otp_email
+
+    account = _authed_account(req.token)
+    if not account:
+        return _SESSION_EXPIRED
+    email = req.email.strip().lower()
+    if not is_valid_email(email):
+        return {"success": False, "error": "Please enter a valid email address."}
+
+    other = get_account_by_email(email)
+    if other and other["id"] != account["id"]:
+        return {"success": False, "error": "That email is already used by another account."}
+
+    blocked = ratelimit.enforce(request, "email-send", email, per_ip=(20, 3600), per_id=(5, 3600))
+    if not blocked:
+        blocked = ratelimit.enforce(request, "email-send-acct", account["id"], per_id=(6, 3600))
+    if blocked:
+        return blocked
+
+    code = make_email_code(account["id"], email)
+    if not code:
+        return {"success": False, "error": "Adding an email is temporarily unavailable. Please try again shortly."}
+    try:
+        send_otp_email(email, account["name"], code)
+    except Exception as e:
+        print(f"Profile email send error: {e}")
+        return {"success": False, "error": "Could not send the verification email. Please try again."}
+    return {"success": True}
+
+
+@app.post("/auth/profile/email/verify")
+def profile_email_verify(req: AddEmailVerifyRequest, request: Request):
+    from app.services.auth import is_valid_email, set_verified_email
+    from app.services.session import check_email_code
+
+    account = _authed_account(req.token)
+    if not account:
+        return _SESSION_EXPIRED
+    email = req.email.strip().lower()
+    if not is_valid_email(email) or not req.code.strip():
+        return {"success": False, "error": "Email and code are required."}
+
+    blocked = ratelimit.enforce(request, "email-check", email, per_ip=(60, 600), per_id=(8, 600))
+    if not blocked:
+        blocked = ratelimit.enforce(request, "email-check-acct", account["id"], per_id=(8, 600))
+    if blocked:
+        return blocked
+    if not check_email_code(account["id"], email, req.code):
+        return {"success": False, "error": "Incorrect or expired code."}
+
+    try:
+        updated = set_verified_email(account["id"], email)
+    except ValueError:
+        return {"success": False, "error": "That email is already used by another account."}
+    except Exception as e:
+        print(f"Profile email save error: {e}")
+        return {"success": False, "error": "Could not save your email. Please try again."}
+    return _account_auth_response(updated)
+
+
 class ForgotPasswordRequest(BaseModel):
     email: str
 
@@ -1040,13 +1295,16 @@ class ResetPasswordRequest(BaseModel):
 
 
 @app.post("/auth/forgot-password")
-def auth_forgot_password(req: ForgotPasswordRequest):
+def auth_forgot_password(req: ForgotPasswordRequest, request: Request):
     from app.services.auth import get_account_by_email
     from app.services.email_otp import issue_otp
 
     email = req.email.strip().lower()
     if not email:
         return {"success": False, "error": "Please enter your email address."}
+    blocked = ratelimit.enforce(request, "email-send", email, per_ip=(20, 3600), per_id=(5, 3600))
+    if blocked:
+        return blocked
     try:
         account = get_account_by_email(email)
         if account:
@@ -1058,11 +1316,14 @@ def auth_forgot_password(req: ForgotPasswordRequest):
 
 
 @app.post("/auth/reset-password")
-def auth_reset_password(req: ResetPasswordRequest):
+def auth_reset_password(req: ResetPasswordRequest, request: Request):
     from app.services.email_otp import verify_otp
     from app.services.auth import set_password_by_email
 
     email = req.email.strip().lower()
+    blocked = ratelimit.enforce(request, "email-check", email, per_ip=(60, 600), per_id=(8, 600))
+    if blocked:
+        return blocked
     if len(req.new_password) < 6:
         return {"success": False, "error": "Password should be at least 6 characters."}
 

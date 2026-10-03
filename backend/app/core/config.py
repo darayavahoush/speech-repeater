@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     GMAIL_APP_PASSWORD: Optional[str] = None
     RESEND_API_KEY: Optional[str] = None
     REQUIRE_EMAIL_VERIFICATION: bool = False  # flip to True once real SMTP works (e.g. on Azure)
+    # Signup sends an SMS code and only creates the account once the number is confirmed.
+    # Set to false (e.g. local dev without Twilio, or a Twilio outage) to fall back to
+    # collecting the number unverified.
+    REQUIRE_PHONE_VERIFICATION: bool = True
     GOOGLE_CLIENT_ID: Optional[str] = None  # OAuth web client ID, also used to verify the ID token
     TWILIO_ACCOUNT_SID: Optional[str] = None
     TWILIO_AUTH_TOKEN: Optional[str] = None

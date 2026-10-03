@@ -24,6 +24,30 @@ def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
 
+def normalize_mobile(raw):
+    """Canonical E.164 form (+<digits>), or None if it isn't a plausible number.
+    A bare 10-digit number is assumed to be Indian (+91). Every code path that
+    sends an OTP or looks up / stores a number goes through this, so the same
+    number typed differently can never become two accounts."""
+    if not raw or not str(raw).strip():
+        return None
+    raw = str(raw).strip()
+    digits = re.sub(r"\D", "", raw)
+    if raw.startswith("+"):
+        pass
+    elif len(digits) == 10:
+        digits = "91" + digits
+    elif len(digits) == 12 and digits.startswith("91"):
+        pass
+    elif len(digits) == 11 and digits.startswith("0"):
+        digits = "91" + digits[1:]  # 098765 43210 style trunk-prefix
+    else:
+        return None
+    if not 8 <= len(digits) <= 15:
+        return None
+    return "+" + digits
+
+
 def is_valid_email(email: str) -> bool:
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
 
@@ -35,6 +59,7 @@ def get_account_by_email(email: str):
 
 
 def get_account_by_mobile(mobile: str):
+    mobile = normalize_mobile(mobile) or mobile
     with get_session() as session:
         child = session.query(Child).filter(Child.mobile == mobile).first()
         return child.to_dict() if child else None
@@ -59,14 +84,17 @@ def _unique_placeholder_name(session, base: str) -> str:
     return candidate
 
 
-def create_account(name: str, email: str = None, password: str = None, mobile: str = None):
+def create_account(name: str, email: str = None, password: str = None, mobile: str = None, mobile_verified: bool = False):
     password_hash = hash_password(password) if password else None
     now = datetime.now(timezone.utc)
     with get_session() as session:
+        # `name` is unique; a second "Priya" gets "Priya 2" instead of a crash.
+        name = _unique_placeholder_name(session, name)
         child = Child(
             name=name,
             email=email,
             mobile=mobile,
+            mobile_verified=mobile_verified,
             password_hash=password_hash,
             trial_started_at=now,
             subscription_status="trial",
@@ -113,6 +141,42 @@ def get_or_create_google_account(name: str, email: str, google_id: str):
         session.commit()
         session.refresh(child)
         return child.to_dict(), True
+
+
+def set_verified_mobile(account_id: str, mobile: str, verified: bool = True):
+    """Attach a mobile number that has just passed OTP verification. Returns the
+    account dict, or raises ValueError('mobile_taken') if another account has it."""
+    mobile = normalize_mobile(mobile)
+    with get_session() as session:
+        other = session.query(Child).filter(Child.mobile == mobile, Child.id != account_id).first()
+        if other:
+            raise ValueError("mobile_taken")
+        child = session.query(Child).filter(Child.id == account_id).first()
+        if not child:
+            return None
+        child.mobile = mobile
+        child.mobile_verified = verified
+        session.commit()
+        session.refresh(child)
+        return child.to_dict()
+
+
+def set_verified_email(account_id: str, email: str):
+    """Attach an email that has just passed OTP verification. Returns the
+    account dict, or raises ValueError('email_taken')."""
+    email = email.strip().lower()
+    with get_session() as session:
+        other = session.query(Child).filter(func.lower(Child.email) == email, Child.id != account_id).first()
+        if other:
+            raise ValueError("email_taken")
+        child = session.query(Child).filter(Child.id == account_id).first()
+        if not child:
+            return None
+        child.email = email
+        child.email_verified = True
+        session.commit()
+        session.refresh(child)
+        return child.to_dict()
 
 
 def get_or_create_phone_account(mobile: str, name: str = None):

@@ -22,6 +22,7 @@ import LegalPage from "./components/LegalPage";
 import { inputWord, translateWord } from "./utils/api";
 import { API_BASE } from "./utils/config";
 import WhoIsContinuing from "./components/WhoIsContinuing";
+import CompleteProfile from "./components/CompleteProfile";
 import { getAccounts, rememberAccount, forgetAccount, saveSession, getSession, clearSession, setLastActive, getLastActive, clearLastActive } from "./utils/accounts";
 
 const BACKEND_URL = API_BASE;
@@ -44,6 +45,7 @@ const SCREENS = {
   PRIVACY: "privacy",
   TERMS: "terms",
   WHO: "who",
+  COMPLETE_PROFILE: "complete_profile",
 };
 
 export default function App() {
@@ -69,6 +71,8 @@ export default function App() {
   const [attemptNumber, setAttemptNumber] = useState(1);
   const [attemptHistory, setAttemptHistory] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
+  // Set while a signed-in account still needs a verified phone and/or an email.
+  const [profileGap, setProfileGap] = useState(null);
   const [trialStatus, setTrialStatus] = useState(null);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState(null);
   const [pendingEmail, setPendingEmail] = useState(null);
@@ -210,6 +214,15 @@ export default function App() {
     if (data.language) setLanguage(data.language);
     if (data.character) setCharacter(data.character);
 
+    // Every account needs an email AND a verified phone. Google / phone-only / older
+    // accounts that are missing one are asked for it before going any further.
+    if ((data.needs_mobile || data.needs_email) && data.session_token) {
+      setProfileGap({ name: data.name, token: data.session_token, needsMobile: !!data.needs_mobile, needsEmail: !!data.needs_email });
+      setScreen(SCREENS.COMPLETE_PROFILE);
+      return;
+    }
+    setProfileGap(null);
+
     if (data.trial_status === "expired") {
       setScreen(SCREENS.PAYWALL);
       return;
@@ -334,6 +347,27 @@ export default function App() {
     setScreen(SCREENS.WHO);
   };
 
+  // Log out: end this device's session (and revoke the token server-side), then go back to the
+  // profile picker. The profile tile stays, but picking it again asks for the password.
+  const handleLogout = () => {
+    const id = childId || getLastActive();
+    const token = id ? getSession(id) : null;
+    if (token) {
+      fetch(`${BACKEND_URL}/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+        keepalive: true,
+      }).catch(() => { /* offline: the local session is cleared below regardless */ });
+    }
+    if (id) clearSession(id);
+    setProfileGap(null);
+    setIsNewUser(false);
+    setShowTutorial(false);
+    setShowSpotlight(false);
+    handleSwitchAccount();
+  };
+
   const handleAccountDeleted = () => {
     if (childId) forgetAccount(childId);
     setChildId(null);
@@ -380,6 +414,21 @@ export default function App() {
           setScreen(SCREENS.LOGIN);
         }}
         onAddAccount={() => { setPrefillEmail(""); setScreen(SCREENS.LOGIN); }}
+      />
+    );
+  }
+
+  if (screen === SCREENS.COMPLETE_PROFILE && profileGap) {
+    return (
+      <CompleteProfile
+        key={profileGap.needsMobile ? "mobile" : "email"}
+        name={profileGap.name}
+        token={profileGap.token}
+        needsMobile={profileGap.needsMobile}
+        needsEmail={profileGap.needsEmail}
+        onUpdated={(data) => handleLogin(data, isNewUser)}
+        onLogout={handleLogout}
+        darkMode={darkMode}
       />
     );
   }
@@ -538,6 +587,7 @@ export default function App() {
           }}
           onAccountDeleted={handleAccountDeleted}
           onSwitchAccount={handleSwitchAccount}
+          onLogout={handleLogout}
         />
       )}
       {screen === SCREENS.DRILL && (
@@ -564,6 +614,7 @@ export default function App() {
         onOpenProgress={() => setScreen(SCREENS.PROGRESS)}
         onOpenSettings={() => setScreen(SCREENS.SETTINGS)}
         onOpenPaywall={() => setScreen(SCREENS.PAYWALL)}
+        onLogout={handleLogout}
       />
       {showTutorial && <Tutorial onClose={handleTutorialClose} onSkip={handleTutorialSkip} darkMode={darkMode} />}
       {showSpotlight && SCREEN_HINTS[screen] && (

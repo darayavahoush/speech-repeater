@@ -38,3 +38,42 @@ def verify_session_token(token: str):
         return data["sub"] if data["exp"] > time.time() else None
     except Exception:
         return None
+
+
+def token_expiry(token: str):
+    """Expiry (unix seconds) of a validly signed token, else None."""
+    if verify_session_token(token) is None:
+        return None
+    try:
+        return int(json.loads(_unb64(token.split(".", 1)[0]))["exp"])
+    except Exception:
+        return None
+
+
+# Codes for "add/verify an email on an existing account". Instead of storing a
+# pending email in the DB, the 6-digit code is an HMAC of (account, email,
+# 10-minute window); a code is accepted for the current and previous window.
+EMAIL_CODE_WINDOW = 600
+
+
+def _email_code(account_id: str, email: str, window: int) -> str:
+    key = _key()
+    msg = f"email-add|{account_id}|{email.strip().lower()}|{window}".encode()
+    digest = hmac.new(key, msg, hashlib.sha256).digest()
+    return f"{int.from_bytes(digest[:4], 'big') % 1_000_000:06d}"
+
+
+def make_email_code(account_id: str, email: str):
+    if not _key():
+        return None
+    return _email_code(account_id, email, int(time.time()) // EMAIL_CODE_WINDOW)
+
+
+def check_email_code(account_id: str, email: str, code: str) -> bool:
+    if not _key() or not code:
+        return False
+    now_window = int(time.time()) // EMAIL_CODE_WINDOW
+    return any(
+        hmac.compare_digest(code.strip(), _email_code(account_id, email, w))
+        for w in (now_window, now_window - 1)
+    )

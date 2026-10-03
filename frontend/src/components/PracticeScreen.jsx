@@ -11,10 +11,17 @@ import { API_BASE } from "../utils/config";
 
 const BASE = API_BASE;
 
+const NO_SPEECH_MESSAGES = {
+  english: "I couldn't hear anything that time. Tap Try again and say the word a little louder! 🎤",
+  hindi: "इस बार मुझे कुछ सुनाई नहीं दिया। \"Try again\" दबाओ और शब्द थोड़ा ज़ोर से बोलो! 🎤",
+  kannada: "ಈ ಬಾರಿ ನನಗೆ ಏನೂ ಕೇಳಿಸಲಿಲ್ಲ. \"Try again\" ಒತ್ತಿ ಪದವನ್ನು ಸ್ವಲ್ಪ ಜೋರಾಗಿ ಹೇಳಿ! 🎤",
+};
+
 export default function PracticeScreen({ character, language = "english", wordData, sessionId, attemptNumber, attemptHistory = [], onResult, onSwitchCharacter, darkMode, childId }) {
   const [phase, setPhase] = useState("listen");
   const [waitStage, setWaitStage] = useState(0);
   const [submitError, setSubmitError] = useState(false);
+  const [noSpeech, setNoSpeech] = useState(false);
   useEffect(() => {
     setWaitStage(0);
     if (phase !== "loading") return;
@@ -128,6 +135,7 @@ export default function PracticeScreen({ character, language = "english", wordDa
     if (!audioBlob) return;
     setPhase("loading");
     setSubmitError(false);
+    setNoSpeech(false);
     try {
       const result = await evaluateAttempt({
         audio: audioBlob,
@@ -140,6 +148,12 @@ export default function PracticeScreen({ character, language = "english", wordDa
         childId,
         attemptHistory,
       });
+      if (result.no_speech) {
+        // Nothing but silence/noise was recorded: don't count it as an attempt, just ask for another go.
+        setNoSpeech(true);
+        setPhase("record");
+        return;
+      }
       const newHistory = [...attemptHistory, result];
       onResult({ ...result, attemptNumber, attemptHistory: newHistory, childAudioUrl: audioUrl });
     } catch (err) {
@@ -349,10 +363,15 @@ export default function PracticeScreen({ character, language = "english", wordDa
                 Oops, that didn't go through. Let's try again! 💛
               </p>
             )}
+            {noSpeech && (
+              <p role="status" style={{ color: th.sub, fontSize: "0.85rem", fontWeight: 700, textAlign: "center", margin: 0 }}>
+                {NO_SPEECH_MESSAGES[language] || NO_SPEECH_MESSAGES.english}
+              </p>
+            )}
             <button onClick={handleSubmit} style={{ background: th.accent, border: "none", borderRadius: "16px", padding: "20px", fontFamily: "Nunito, sans-serif", fontSize: "1.1rem", fontWeight: 900, color: "#fff", cursor: "pointer", boxShadow: `0 4px 20px ${th.accent}44` }}>
               Check my answer! ✨
             </button>
-            <button id="hint-mic-button" onClick={() => { reset(); setSubmitError(false); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
+            <button id="hint-mic-button" onClick={() => { reset(); setSubmitError(false); setNoSpeech(false); setPhase("record"); startRecording(); }} style={{ background: "transparent", border: `1.5px solid ${th.accent}44`, borderRadius: "12px", padding: "12px", color: th.sub, fontSize: "0.85rem", cursor: "pointer", fontFamily: "Nunito, sans-serif", fontWeight: 600 }}>
               Try again
             </button>
           </div>

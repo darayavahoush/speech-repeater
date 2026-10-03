@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LIGHT_THEMES, DARK_THEMES, getSurface } from "../utils/themes";
 import logo from "../assets/images/logo.png";
 import GoogleAuthButton from "./GoogleAuthButton";
@@ -13,8 +13,19 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  // Step 2: the server texted a code to this number; the account is only created once it's entered.
+  const [step, setStep] = useState("form");
+  const [code, setCode] = useState("");
+  const [sentTo, setSentTo] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const handleSubmit = async (withCode = false) => {
     setError("");
     if (!name.trim() || !email.trim() || !mobile.trim() || !password.trim()) {
       setError("Please fill in your name, email, mobile number, and password.");
@@ -22,6 +33,10 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
     }
     if (mobile.replace(/\D/g, "").length < 10) {
       setError("Please enter a valid mobile number, e.g. +91 98765 43210.");
+      return;
+    }
+    if (withCode && code.trim().length < 4) {
+      setError("Please enter the code we texted you.");
       return;
     }
     setLoading(true);
@@ -34,11 +49,17 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
           email: email.trim(),
           password: password.trim(),
           mobile: mobile.trim(),
+          ...(withCode ? { code: code.trim() } : {}),
         }),
       });
       const data = await res.json();
       if (data.success) {
         onSignup(data, true);
+      } else if (data.needs_phone_code) {
+        setSentTo(data.mobile || mobile.trim());
+        setStep("code");
+        if (!withCode) setCooldown(30);
+        if (withCode) setError(data.error || "Incorrect or expired code.");
       } else {
         setError(data.error || "Something went wrong. Please try again.");
       }
@@ -59,6 +80,61 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
     outline: "none", boxSizing: "border-box", caretColor: "#E8825A",
     color: darkMode ? "#F0DCCF" : "#2C2C2A", background: getSurface(darkMode, 1),
   };
+
+  if (step === "code") {
+    const btn = {
+      width: "100%", padding: "16px", marginTop: "16px", background: "#E8825A", color: "#fff",
+      border: "none", borderRadius: "14px", fontFamily: "Nunito, sans-serif", fontSize: "1rem",
+      fontWeight: 900, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1,
+    };
+    const link = { background: "none", border: "none", fontFamily: "Nunito, sans-serif", fontSize: "0.82rem", fontWeight: 800, cursor: "pointer", padding: 0 };
+    return (
+      <div style={{ minHeight: "100vh", background: bgGradient, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+        <div style={{ width: "100%", maxWidth: "380px" }}>
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            <h1 style={{ fontFamily: "Nunito, sans-serif", fontSize: "1.7rem", fontWeight: 900, color: textColor, margin: "0 0 8px 0" }}>Verify your phone</h1>
+            <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "0.9rem", color: labelColor, margin: 0 }}>
+              We sent a code to <strong>{sentTo}</strong>
+            </p>
+          </div>
+          <div style={{ background: getSurface(darkMode, 0.9), borderRadius: "22px", padding: "28px 24px", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+            <label style={{ display: "block", fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "0.8rem", color: labelColor, marginBottom: "6px" }}>Verification code</label>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit(true)}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              autoFocus
+              placeholder="123456"
+              style={{ ...inputStyle, marginBottom: "8px", textAlign: "center", letterSpacing: "0.3em", fontSize: "1.3rem", fontWeight: 800 }}
+            />
+            {error && (
+              <p style={{ color: "#E05555", fontSize: "0.8rem", fontFamily: "Nunito, sans-serif", fontWeight: 700, margin: "6px 0 0 0" }}>{error}</p>
+            )}
+            <button onClick={() => handleSubmit(true)} disabled={loading} style={btn}>
+              {loading ? "..." : "Verify & start free trial 🚀"}
+            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "18px" }}>
+              <button
+                onClick={() => { setCode(""); setError(""); setStep("form"); }}
+                style={{ ...link, color: labelColor }}
+              >
+                ← Change details
+              </button>
+              <button
+                onClick={() => { setCode(""); handleSubmit(false); }}
+                disabled={loading || cooldown > 0}
+                style={{ ...link, color: "#E8825A", opacity: cooldown > 0 ? 0.5 : 1, cursor: cooldown > 0 ? "default" : "pointer" }}
+              >
+                {cooldown > 0 ? `Resend code (${cooldown}s)` : "Resend code"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: bgGradient, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", position: "relative" }}>
@@ -97,7 +173,7 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit(false)}
             placeholder="At least 6 characters"
             type="password"
             style={{ ...inputStyle, marginBottom: "8px" }}
@@ -110,7 +186,7 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
           )}
 
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(false)}
             disabled={loading}
             style={{
               width: "100%", padding: "16px", marginTop: "20px",
@@ -120,7 +196,7 @@ export default function Signup({ onSignup, onGoToLogin, onGoToPhoneAuth, onSeePl
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading ? "..." : "Start free trial 🚀"}
+            {loading ? "..." : "Continue"}
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "20px 0" }}>

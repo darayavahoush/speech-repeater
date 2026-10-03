@@ -62,6 +62,15 @@ class Child(Base):
         }
 
 
+class RevokedSession(Base):
+    """Session tokens that were logged out before they expired. Only a hash of
+    the token is stored; rows can be deleted once `expires_at` has passed."""
+    __tablename__ = "revoked_sessions"
+
+    token_hash = Column(String, primary_key=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+
+
 class PracticeAttempt(Base):
     __tablename__ = "practice_attempts"
 
