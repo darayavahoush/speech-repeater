@@ -174,32 +174,7 @@ export default function App() {
   useEffect(() => initMoonCursor(), []);
   useEffect(() => { setCursorCharacter(character); }, [character]);
 
-  const [resuming, setResuming] = useState(() => {
-    try { const id = getLastActive(); return !!(id && getSession(id)); } catch { return false; }
-  });
-
-  useEffect(() => {
-    const id = getLastActive();
-    const token = id ? getSession(id) : null;
-    if (!token) { setResuming(false); return undefined; }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`${BACKEND_URL}/auth/resume`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        if (data.success) handleLogin(data);
-        else if (data.expired) clearSession(id);
-      } catch { /* offline or server error: fall back to the profile picker */ }
-      finally { if (!cancelled) setResuming(false); }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // No auto-resume on load: a fresh load always opens the "Who's continuing?" picker.
 
   const handleLogin = (data, isNew = false) => {
     rememberAccount({ account_id: data.account_id, name: data.name, email: data.email });
@@ -382,7 +357,6 @@ export default function App() {
     setScreen(getAccounts().length ? SCREENS.WHO : SCREENS.LOGIN);
   };
 
-  if (resuming) return <div style={{ minHeight: "100vh" }} />;
 
   if (screen === SCREENS.PRIVACY) {
     return <LegalPage type="privacy" onBack={() => setScreen(SCREENS.HOMEPAGE)} />;
