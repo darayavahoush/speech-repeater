@@ -40,7 +40,7 @@ function TrashIcon({ size = 30 }) {
   );
 }
 
-export default function WhoIsContinuing({ onPick, onAddAccount, darkMode }) {
+export default function WhoIsContinuing({ onPick, onAddAccount, onBack, darkMode }) {
   const [accounts, setAccounts] = useState(getAccounts);
   const [managing, setManaging] = useState(false);
   const bg = darkMode ? DARK_THEMES.DEFAULT.bgGradient : LIGHT_THEMES.DEFAULT.bgGradient;
@@ -91,8 +91,34 @@ export default function WhoIsContinuing({ onPick, onAddAccount, darkMode }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+    <div style={{ minHeight: "100vh", background: bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px", position: "relative" }}>
       <style>{CSS}</style>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: "absolute",
+            top: "24px",
+            left: "24px",
+            background: "none",
+            border: "none",
+            color: sub,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: font,
+            fontSize: "0.95rem",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "8px 12px",
+            borderRadius: "10px",
+            transition: "all 0.15s ease",
+          }}
+        >
+          ← Home
+        </button>
+      )}
 
       <img src={logo} alt="Vaakify" style={{ width: "64px", height: "64px", objectFit: "contain", marginBottom: "12px" }} />
       <h1 style={{ fontFamily: font, fontSize: "clamp(1.9rem, 5vw, 2.6rem)", fontWeight: 900, color: text, margin: "0 0 36px 0", textAlign: "center" }}>

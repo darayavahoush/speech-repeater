@@ -53,7 +53,7 @@ export default function App() {
     const path = window.location.pathname.replace(/\/+$/, "");
     if (path === "/privacy") return SCREENS.PRIVACY;
     if (path === "/terms") return SCREENS.TERMS;
-    return getAccounts().length ? SCREENS.WHO : SCREENS.LOGIN;
+    return SCREENS.HOMEPAGE;
   });
   const [prefillEmail, setPrefillEmail] = useState("");
   const [childId, setChildId] = useState(null);
@@ -370,6 +370,7 @@ export default function App() {
     return (
       <WhoIsContinuing
         darkMode={darkMode}
+        onBack={() => setScreen(SCREENS.HOMEPAGE)}
         onPick={async (a) => {
           const token = getSession(a.account_id);
           if (token) {
@@ -410,8 +411,8 @@ export default function App() {
   if (screen === SCREENS.HOMEPAGE) {
     return (
       <Homepage
-        onSignIn={() => setScreen(SCREENS.LOGIN)}
-        onGetStarted={() => setScreen(SCREENS.SIGNUP)}
+        onSignIn={() => setScreen(getAccounts().length ? SCREENS.WHO : SCREENS.LOGIN)}
+        onGetStarted={() => setScreen(getAccounts().length ? SCREENS.WHO : SCREENS.SIGNUP)}
         onSeePlans={() => setScreen(SCREENS.PAYWALL)}
         onSeePrivacy={() => setScreen(SCREENS.PRIVACY)}
         onSeeTerms={() => setScreen(SCREENS.TERMS)}
@@ -475,7 +476,7 @@ export default function App() {
       <Login
         onLogin={handleLogin}
         prefillEmail={prefillEmail}
-        onBack={getAccounts().length ? () => setScreen(SCREENS.WHO) : null}
+        onBack={() => setScreen(getAccounts().length ? SCREENS.WHO : SCREENS.HOMEPAGE)}
         onNeedsVerification={(email, name) => {
           setPendingEmail(email);
           setPendingName(name);
