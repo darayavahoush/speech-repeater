@@ -1,0 +1,10 @@
+# Vaakify
+
+> Vaakify is a speech-therapy practice app for children. Kids practise words, get instant pronunciation feedback, and do targeted drills on the sounds they find hard.
+
+## Links
+- [Home](https://vaakify.manaslearning.com/): what Vaakify is and how to start
+- [Privacy](https://vaakify.manaslearning.com/privacy)
+- [Terms](https://vaakify.manaslearning.com/terms)
+
+Built by Manas Learning (https://manaslearning.com).
